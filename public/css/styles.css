@@ -1,0 +1,110 @@
+::-webkit-scrollbar {
+	display: none;
+}
+
+h2 {
+  font-family: 'Raleway', sans-serif;
+}
+
+#titleURL {
+	color: white;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+#titleIMG {
+	cursor: pointer;
+}
+
+#navBar {
+	position: fixed;
+	top: 0px;
+	z-index: 99;
+}
+
+#mainContent {	  
+	/* background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
+	background-size: 400% 400%;
+	animation: gradientBG 15s ease infinite; */
+
+	background-image: url('../resources/mtnbg.jpg');
+	background-attachment: fixed;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	max-width: none !important;
+	min-height: 100vh;
+
+	padding-top: 50px !important;
+	padding-bottom: 0px !important;
+	margin: 0;
+}
+
+/* @keyframes gradientBG {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+} */
+
+.bodyText {
+	font-size: 15px;
+	font-family: 'Raleway', sans-serif;
+}
+
+pre {
+	font-family: "Ubuntu" Ubuntu monospace;
+	color: #f45905;
+	font-weight: bolder;
+	margin-left: 12px;
+	margin-top: 6px;
+	margin-bottom: 6px;
+	padding: 10px;
+	font-size: 14px;
+	background-color: rgba(0, 0, 0, 0.85);
+}
+
+/* HelloWorld.vue */
+
+#helloWorldContainer {
+	padding-left: 60px;
+}
+
+/* Cards */
+
+.world-cards {
+	margin-top: 20px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+/* FavoriteWorlds.vue */
+
+#favoriteWorldsContainer {
+	background-image: url('../resources/mtnbg.jpg');
+	background-attachment: fixed;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	max-width: none !important;
+}
+
+/* Transitions */
+
+.fade-enter-active, .fade-leave-active {
+	transition: opacity .5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */ {
+	opacity: 0;
+}
+
+/* App.vue */
+
+.v-application .blue.v-btn--depressed {
+    background-color: #34455f !important;
+}
