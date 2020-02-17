@@ -191,7 +191,7 @@ async function getDirectories (src) {
 		// 	}
 		// });
 	});
-    	
+
 	let result = await getDirectoriesPromise; 
 	return interfacesToReturn;
 }
@@ -538,7 +538,7 @@ function launchInstaller() {
             console.log(data.toString());
         });
     });
-};
+}
 
 ipcMain.on('download-athena', async (event, arg) => {
 	var libraryPath;
