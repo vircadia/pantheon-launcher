@@ -343,10 +343,14 @@ export default {
 		}
         
         this.setMetaverseServer();
-        this.selectedInterface = this.$store.state.selectedInterface.name;
-        this.currentFolder = this.$store.state.currentLibraryFolder;
         
-        if (this.currentFolder == "") {
+        if (this.$store.state.selectedInterface) {
+            this.selectedInterface = this.$store.state.selectedInterface.name;
+        }
+        
+        if (this.$store.state.currentLibraryFolder) {
+            this.currentFolder = this.$store.state.currentLibraryFolder;
+        } else {
             this.setLibraryDefault();
         }
 	}
