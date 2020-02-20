@@ -32,38 +32,38 @@
 		</v-bottom-navigation>
 		
     <v-app-bar
-      app
-      color="#182b49"
-      dark
-			:bottom=true
-			:fixed=true
-			style="top: initial !important;"
+        app
+        color="#182b49"
+        dark
+        :bottom=true
+        :fixed=true
+        style="top: initial !important;"
     >
-      <div class="d-flex align-center">
-        <v-img
-          alt="Project Athena Logo"
-					id="titleIMG"
-          class="shrink mr-2"
-					v-on:click="launchBrowser('https://projectathena.io/')"
-          contain
-          src="./assets/logo_256_256.png"
-          transition="scale-transition"
-          width="40"
-        />
-				
-				<h2 id="titleURL" v-on:click="launchBrowser('https://projectathena.io/')">Project Athena</h2>
-				
-				<v-btn
-					v-on:click="launchBrowser('https://github.com/kasenvr/project-athena')"
-					target="_blank"
-					text
-					:left=true
-					class="ml-3"
-				>
-					<span class="mr-2">Github</span>
-					<v-icon>mdi-open-in-new</v-icon>
-				</v-btn>
-      </div>
+        <div class="d-flex align-center">
+            <v-img
+                alt="Project Athena Logo"
+                id="titleIMG"
+                class="shrink mr-2"
+                v-on:click="launchBrowser('https://projectathena.io/')"
+                contain
+                src="./assets/logo_256_256.png"
+                transition="scale-transition"
+                width="40"
+            />
+            
+            <h2 id="titleURL" v-on:click="launchBrowser('https://projectathena.io/')">Project Athena</h2>
+
+            <v-btn
+                v-on:click="launchBrowser('https://github.com/kasenvr/project-athena')"
+                target="_blank"
+                text
+                :left=true
+                class="ml-3"
+            >
+                <span class="mr-2">Github</span>
+                <v-icon>mdi-open-in-new</v-icon>
+            </v-btn>
+        </div>
 
       <v-spacer></v-spacer>
 				<v-btn
@@ -72,6 +72,7 @@
 					color="blue"
 					:tile=true
                     :depressed="isDownloading"
+                    :disabled="isSilentInstalling"
 				>
                     <span style="font-size: 12px;">{{downloadText}}</span>
 					<v-progress-circular
@@ -309,6 +310,17 @@ ipcRenderer.on('no-installer-found', (event, arg) => {
     vue_this.openDialog('NoInstallerFound', true);
 });
 
+ipcRenderer.on('silent-installer-running', (event, arg) => {
+    vue_this.downloadText = "Installing, please wait...";
+    vue_this.isSilentInstalling = true;
+});
+
+ipcRenderer.on('silent-installer-complete', (event, arg) => {
+    vue_this.downloadText = "Download Interface";
+    vue_this.isSilentInstalling = false;
+    vue_this.openDialog('InstallComplete', true);
+});
+
 import HelloWorld from './components/HelloWorld';
 import FavoriteWorlds from './components/FavoriteWorlds';
 import Settings from './components/Settings';
@@ -318,7 +330,7 @@ import DownloadComplete from './components/Dialogs/DownloadComplete'
 import DownloadFailed from './components/Dialogs/DownloadFailed'
 import NoInstallerFound from './components/Dialogs/NoInstallerFound'
 import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
-
+import InstallComplete from './components/Dialogs/InstallComplete'
 
 export default {
 	name: 'App',
@@ -331,7 +343,8 @@ export default {
         DownloadComplete,
         DownloadFailed,
         NoInstallerFound,
-        NoInterfaceFound
+        NoInterfaceFound,
+        InstallComplete
 	},
 	methods: {
         toggleTab: function(tab) {
@@ -404,7 +417,7 @@ export default {
 		vue_this = this;
 		
 		ipcRenderer.send('load-state');
-        ipcRenderer.send('getLibraryFolder');
+        ipcRenderer.send('get-library-folder');
 	},
 	computed: {
 		interfaceSelected () {
@@ -440,6 +453,7 @@ export default {
 		allowMultipleInstances: false,
 		downloadProgress: 0,
 		isDownloading: false,
+        isSilentInstalling: false,
         downloadText: "Download Interface",
 		showCloudIcon: true,
 		showCloudDownload: false,

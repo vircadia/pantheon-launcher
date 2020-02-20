@@ -483,7 +483,7 @@ ipcMain.on('set-library-folder-default', (event, arg) => {
 	setLibrary(storagePath.default);
 })
 
-ipcMain.on('getLibraryFolder', (event, arg) => {
+ipcMain.on('get-library-folder', (event, arg) => {
 	getSetting('athena_interface.library', storagePath.default).then(async function(libraryPath){
 		win.webContents.send('current-library-folder', {
 			libraryPath
@@ -550,6 +550,36 @@ function launchInstaller() {
     });
 }
 
+function silentInstall() {
+    getSetting('athena_interface.library', storagePath.default).then(function (libPath) {
+        var executablePath = libPath + "/Athena_Setup_Latest.exe";
+        var installPath = libPath + "\\Athena_Interface_Latest_SILENT";
+        var parameters = [];
+        
+        parameters.push("/S");
+        parameters.push("/D=" + installPath);
+
+        if (!fs.existsSync(executablePath)) {
+            // Notify main window of the issue.
+            win.webContents.send('no-installer-found');
+            return;
+        }
+        
+        win.webContents.send('silent-installer-running');
+
+        console.info("Installing silently, params:", executablePath, installPath, parameters)
+
+        installer_exe(executablePath, parameters, { windowsVerbatimArguments: true }, function (err, data) {
+            console.log(err)
+            console.log(data.toString());
+            
+            // On installer finished...
+            console.info("Installation complete.");
+            win.webContents.send('silent-installer-complete');
+        });
+    });
+}
+
 ipcMain.on('download-athena', async (event, arg) => {
 	var libraryPath;
 	var downloadURL = await shouldUpdate();
@@ -574,9 +604,10 @@ ipcMain.on('download-athena', async (event, arg) => {
                             win.webContents.send('download-installer-progress', {
                                 percent
                             });
-                            if (percent === 1) {
+                            if (percent === 1) { // When the setup download completes...
                                 electronDlItem = null;
-                                launchInstaller();
+                                // launchInstaller();
+                                silentInstall();
                             }
                         }
 					},
