@@ -324,6 +324,12 @@ ipcRenderer.on('silent-installer-complete', (event, arg) => {
     vue_this.openDialog('InstallComplete', true);
 });
 
+ipcRenderer.on('silent-installer-failed', (event, arg) => {
+    vue_this.downloadText = "Download Interface";
+    vue_this.isSilentInstalling = false;
+    vue_this.openDialog('InstallFailed', true);
+});
+
 import HelloWorld from './components/HelloWorld';
 import FavoriteWorlds from './components/FavoriteWorlds';
 import Settings from './components/Settings';
@@ -334,6 +340,7 @@ import DownloadFailed from './components/Dialogs/DownloadFailed'
 import NoInstallerFound from './components/Dialogs/NoInstallerFound'
 import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
 import InstallComplete from './components/Dialogs/InstallComplete'
+import InstallFailed from './components/Dialogs/InstallFailed'
 
 export default {
 	name: 'App',
@@ -347,7 +354,8 @@ export default {
         DownloadFailed,
         NoInstallerFound,
         NoInterfaceFound,
-        InstallComplete
+        InstallComplete,
+        InstallFailed
 	},
 	methods: {
         toggleTab: function(tab) {

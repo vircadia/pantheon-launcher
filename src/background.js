@@ -580,9 +580,14 @@ function silentInstall() {
             console.log(err)
             console.log(data.toString());
             
-            // On installer finished...
-            console.info("Installation complete.");
-            win.webContents.send('silent-installer-complete');
+            // On installer exit...
+            if (err) {
+                console.info("Installation failed.");
+                win.webContents.send('silent-installer-failed');    
+            } else {
+                console.info("Installation complete.");
+                win.webContents.send('silent-installer-complete');                
+            }
         });
     });
 }

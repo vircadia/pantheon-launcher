@@ -1,7 +1,7 @@
 <!--
-//  InstallComplete.vue
+//  InstallFailed.vue
 //
-//  Created by Kalila L. on 19 Feb 2020.
+//  Created by Kalila L. on 22 Feb 2020.
 //  Copyright 2020 Project Athena and contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -11,7 +11,7 @@
     <v-dialog
         width="500"
         persistent
-        v-model="showInstallComplete"
+        v-model="showInstallFailed"
     >
         <v-card>
             <v-card-title
@@ -19,12 +19,12 @@
                 primary-title
                 dark
             >
-                <v-icon color="success" class="mr-2">mdi-check</v-icon>
-                Installation Complete
+                <v-icon color="success" class="mr-2">mdi-message-alert</v-icon>
+                Installation Failed
             </v-card-title>
     
             <v-card-text>
-                The latest version of Interface is done installing! You can now launch it.
+                The Interface failed to install.
             </v-card-text>
     
             <v-divider></v-divider>
@@ -46,10 +46,10 @@
 
 <script>
 export default {
-    name: 'InstallComplete',
+    name: 'InstallFailed',
 
     data: () => ({
-        showInstallComplete: true,
+        showInstallFailed: true,
     }),
 };
 </script>
