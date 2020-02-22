@@ -551,8 +551,15 @@ function launchInstaller() {
 }
 
 function silentInstall() {
-    getSetting('athena_interface.library', storagePath.default).then(function (libPath) {
-        var executablePath = libPath + "/Athena_Setup_Latest.exe";
+    var executablePath;
+    
+    getSetting('athena_interface.library', storagePath.default).then(function (libPath) {    
+        if (libPath) {
+            executablePath = libPath + "/Athena_Setup_Latest.exe";
+        } else {
+            executablePath = storagePath.default + "/Athena_Setup_Latest.exe";
+        }
+        
         var installPath = libPath + "\\Athena_Interface_Latest_SILENT";
         var parameters = [];
         
@@ -587,40 +594,41 @@ ipcMain.on('download-athena', async (event, arg) => {
 	if (downloadURL) {
 		getSetting('athena_interface.library', storagePath.default).then(function(results){
 			if(results) {
-				libraryPath = results;
-				electronDl.download(win, downloadURL, {
-					directory: libraryPath,
-					showBadge: true,
-					filename: "Athena_Setup_Latest.exe",
-                    // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to
-                    // use the downloadItem to check which download is progressing.
-                    onStarted: downloadItem => {
-                        electronDlItem = downloadItem;
-                    },
-					onProgress: currentProgress => {
-						console.info(currentProgress);
-						var percent = currentProgress.percent;
-                        if (electronDlItem && electronDlItem.getURL() === downloadURL) {
-                            win.webContents.send('download-installer-progress', {
-                                percent
-                            });
-                            if (percent === 1) { // When the setup download completes...
-                                electronDlItem = null;
-                                // launchInstaller();
-                                silentInstall();
-                            }
+                libraryPath = results;
+            } else {
+                libraryPath = storagePath.default;
+            }
+            
+			electronDl.download(win, downloadURL, {
+				directory: libraryPath,
+				showBadge: true,
+				filename: "Athena_Setup_Latest.exe",
+                // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to
+                // use the downloadItem to check which download is progressing.
+                onStarted: downloadItem => {
+                    electronDlItem = downloadItem;
+                },
+				onProgress: currentProgress => {
+					console.info(currentProgress);
+					var percent = currentProgress.percent;
+                    if (electronDlItem && electronDlItem.getURL() === downloadURL) {
+                        win.webContents.send('download-installer-progress', {
+                            percent
+                        });
+                        if (percent === 1) { // When the setup download completes...
+                            electronDlItem = null;
+                            // launchInstaller();
+                            silentInstall();
                         }
-					},
-                    onCancel: downloadItem => {
-                        electronDlItem = null;
                     }
-                    // FIXME: electron-dl currently displays its own "download interrupted" message box if file not found or 
-                    // download interrupted. It would be nicer to display our own, download-installer-failed, message box.
-                    // https://github.com/sindresorhus/electron-dl/issues/105
-				});
-			} else {
-				setLibraryDialog();
-			}
+				},
+                onCancel: downloadItem => {
+                    electronDlItem = null;
+                }
+                // FIXME: electron-dl currently displays its own "download interrupted" message box if file not found or 
+                // download interrupted. It would be nicer to display our own, download-installer-failed, message box.
+                // https://github.com/sindresorhus/electron-dl/issues/105
+			});
 		});
 	} else {
 		console.info("Failed to download.");

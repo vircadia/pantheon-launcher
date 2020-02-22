@@ -282,7 +282,7 @@ export default {
             ipcRenderer.send('set-library-folder-default');
         },
         getLibraryFolder: function() {
-			ipcRenderer.send('get-library-folder');
+            ipcRenderer.send('get-library-folder');
         },
 		populateInterfaceList: function() {
             if(this.debounce()) {

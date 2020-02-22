@@ -1,7 +1,7 @@
 <!--
 //  InstallComplete.vue
 //
-//  Created by Kalila L. on 15 Dec 2019.
+//  Created by Kalila L. on 19 Feb 2020.
 //  Copyright 2020 Project Athena and contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -46,10 +46,10 @@
 
 <script>
 export default {
-  name: 'showInstallComplete',
+    name: 'showInstallComplete',
 
-  data: () => ({
-      showInstallComplete: true,
-  }),
+    data: () => ({
+        showInstallComplete: true,
+    }),
 };
 </script>

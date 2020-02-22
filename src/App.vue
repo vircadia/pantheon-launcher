@@ -235,6 +235,9 @@ ipcRenderer.on('download-cancelled', (event) => {
 })
 
 ipcRenderer.on('download-installer-failed', (event) => {
+    vue_this.showCloudIcon = true;
+    vue_this.showCloudDownload = false;
+    vue_this.disableInstallIcon = false;
     vue_this.isDownloading = false;
     vue_this.downloadText = "Download Interface";
     vue_this.openDialog('DownloadFailed', true);
