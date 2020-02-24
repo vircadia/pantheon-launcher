@@ -72,7 +72,7 @@
 					color="blue"
 					:tile=true
                     :depressed="isDownloading"
-                    :disabled="isSilentInstalling"
+                    :disabled="isSilentInstalling || disableDownloadButton"
 				>
                     <span style="font-size: 12px;">{{downloadText}}</span>
 					<v-progress-circular
@@ -219,7 +219,8 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
         vue_this.showCloudDownload = false;
         vue_this.disableInstallIcon = false;
         vue_this.isDownloading = false;
-        vue_this.downloadText = "Download Interface";
+        vue_this.disableDownloadButton = true;
+        vue_this.downloadText = "Awaiting Install";
         vue_this.closeDialog();  // "Cancel Download" dialog may be open.
         // vue_this.openDialog('DownloadComplete', true);
 	}
@@ -316,6 +317,7 @@ ipcRenderer.on('no-installer-found', (event, arg) => {
 ipcRenderer.on('silent-installer-running', (event, arg) => {
     vue_this.downloadText = "Installing, please wait...";
     vue_this.isSilentInstalling = true;
+    vue_this.disableDownloadButton = false;
 });
 
 ipcRenderer.on('silent-installer-complete', (event, arg) => {
@@ -469,6 +471,7 @@ export default {
 		showCloudIcon: true,
 		showCloudDownload: false,
 		disableInstallIcon: false,
+        disableDownloadButton: false,
         launchOptions: [],
 	}),
 };

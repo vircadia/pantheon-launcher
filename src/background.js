@@ -552,15 +552,17 @@ function launchInstaller() {
 
 function silentInstall() {
     var executablePath;
+    var installPath;
     
     getSetting('athena_interface.library', storagePath.default).then(function (libPath) {    
         if (libPath) {
             executablePath = libPath + "/Athena_Setup_Latest.exe";
+            installPath = libPath + "\\Athena_Interface_Latest_SILENT";
         } else {
             executablePath = storagePath.default + "/Athena_Setup_Latest.exe";
+            installPath = storagePath.default + "\\Athena_Interface_Latest_SILENT";
         }
         
-        var installPath = libPath + "\\Athena_Interface_Latest_SILENT";
         var parameters = [];
         
         parameters.push("/S");
@@ -584,17 +586,21 @@ function silentInstall() {
             if (err) {
                 console.info("Installation failed.");
                 win.webContents.send('silent-installer-failed');    
+                return Promise.reject();
             } else {
                 console.info("Installation complete.");
                 win.webContents.send('silent-installer-complete');                
             }
-        });
+        }).catch(function() {
+            console.info("INSTALLER FAILED.")
+        });;
     });
 }
 
 ipcMain.on('download-athena', async (event, arg) => {
 	var libraryPath;
 	var downloadURL = await shouldUpdate();
+    var installerName = "Athena_Setup_Latest.exe";
     console.info("DLURL:", downloadURL);
 	if (downloadURL) {
 		getSetting('athena_interface.library', storagePath.default).then(function(results){
@@ -604,10 +610,15 @@ ipcMain.on('download-athena', async (event, arg) => {
                 libraryPath = storagePath.default;
             }
             
+            fs.unlink(libraryPath + "/" + installerName, (err) => {
+                if (err) throw err;
+                console.info(installerName, 'was deleted prior to downloading.');
+            });
+            
 			electronDl.download(win, downloadURL, {
 				directory: libraryPath,
 				showBadge: true,
-				filename: "Athena_Setup_Latest.exe",
+				filename: installerName,
                 // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to
                 // use the downloadItem to check which download is progressing.
                 onStarted: downloadItem => {

@@ -19,7 +19,7 @@
                 primary-title
                 dark
             >
-                <v-icon color="success" class="mr-2">mdi-message-alert</v-icon>
+                <v-icon color="red" class="mr-2">mdi-message-alert</v-icon>
                 Installation Failed
             </v-card-title>
     
