@@ -591,9 +591,10 @@ function silentInstall() {
                 console.info("Installation complete.");
                 win.webContents.send('silent-installer-complete');                
             }
-        }).catch(function() {
-            console.info("INSTALLER FAILED.")
-        });;
+        });
+        
+    }).catch(function() {
+        console.info("Failed to fetch library for silent install.");
     });
 }
 
