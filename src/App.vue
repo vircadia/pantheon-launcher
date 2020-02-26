@@ -224,7 +224,7 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
         vue_this.closeDialog();  // "Cancel Download" dialog may be open.
         // vue_this.openDialog('DownloadComplete', true);
 	}
-	console.info(downloadProgress);
+	console.info("Installer Download Progress:", downloadProgress);
 });
 
 ipcRenderer.on('download-cancelled', (event) => {
@@ -323,12 +323,14 @@ ipcRenderer.on('silent-installer-running', (event, arg) => {
 ipcRenderer.on('silent-installer-complete', (event, arg) => {
     vue_this.downloadText = "Download Interface";
     vue_this.isSilentInstalling = false;
+    vue_this.disableDownloadButton = false;
     vue_this.openDialog('InstallComplete', true);
 });
 
 ipcRenderer.on('silent-installer-failed', (event, arg) => {
     vue_this.downloadText = "Download Interface";
     vue_this.isSilentInstalling = false;
+    vue_this.disableDownloadButton = false;
     vue_this.openDialog('InstallFailed', true);
 });
 

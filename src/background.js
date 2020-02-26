@@ -551,16 +551,20 @@ function launchInstaller() {
 }
 
 function silentInstall() {
-    var executablePath;
-    var installPath;
+    var executableLocation; // This is the downloaded installer.
+    var installPath; // This is the location to install the application to.
+    var executablePath; // This is the location that the installer exe is located in after being downloaded.
+    var exeLocToInstall; // This is what gets installed.
     
     getSetting('athena_interface.library', storagePath.default).then(function (libPath) {    
         if (libPath) {
-            executablePath = libPath + "/Athena_Setup_Latest.exe";
+            executableLocation = libPath + "/Athena_Setup_Latest.exe";
             installPath = libPath + "\\Athena_Interface_Latest_SILENT";
+            executablePath = libPath;
         } else {
-            executablePath = storagePath.default + "/Athena_Setup_Latest.exe";
+            executableLocation = storagePath.default + "/Athena_Setup_Latest.exe";
             installPath = storagePath.default + "\\Athena_Interface_Latest_SILENT";
+            executablePath = storagePath.default;
         }
         
         var parameters = [];
@@ -568,33 +572,54 @@ function silentInstall() {
         parameters.push("/S");
         parameters.push("/D=" + installPath);
 
-        if (!fs.existsSync(executablePath)) {
+        if (!fs.existsSync(executableLocation)) {
             // Notify main window of the issue.
             win.webContents.send('no-installer-found');
             return;
+        } else {
+            console.info("exeLoc:", executableLocation);
+            console.info("exePath:", executablePath);
+            
+            fs.copyFileSync(executableLocation, executablePath + "/Athena_Setup_Latest_READY.exe", (err) => {
+                if (err) console.log('ERROR ON COPY: ' + err);
+                console.log('Completed copy operation successfully.');
+            });
+            
+            fs.unlink(executableLocation, (err) => {
+                if (err) console.log('ERROR ON ORIGINAL INSTALLER DELETE: ' + err);
+                console.info(executableLocation, 'was deleted after copying.');
+            });
+            
+            exeLocToInstall = executablePath + "/Athena_Setup_Latest_READY.exe";
         }
         
         win.webContents.send('silent-installer-running');
 
-        console.info("Installing silently, params:", executablePath, installPath, parameters)
+        console.info("Installing silently, params:", exeLocToInstall, installPath, parameters)
 
-        installer_exe(executablePath, parameters, { windowsVerbatimArguments: true }, function (err, data) {
-            console.log(err)
-            console.log(data.toString());
-            
-            // On installer exit...
-            if (err) {
-                console.info("Installation failed.");
-                win.webContents.send('silent-installer-failed');    
-                return Promise.reject();
-            } else {
-                console.info("Installation complete.");
-                win.webContents.send('silent-installer-complete');                
-            }
-        });
+        try { 
+            installer_exe(exeLocToInstall, parameters, { windowsVerbatimArguments: true }, function (err, data) {
+                console.log(err)
+                console.log(data.toString());
+                
+                // On installer exit...
+                if (err) {
+                    console.info("Installation failed.");
+                    win.webContents.send('silent-installer-failed');    
+                    // throw err;
+                } else {
+                    console.info("Installation complete.");
+                    win.webContents.send('silent-installer-complete');                
+                }
+            });
+        } catch (e) {
+            console.info("Try block: Silent installation failed.")
+            win.webContents.send('silent-installer-failed');    
+        }
         
-    }).catch(function() {
-        console.info("Failed to fetch library for silent install.");
+    }).catch(function(e) {
+        console.info("Failed to fetch library for silent install. Error:", e);
+        win.webContents.send('silent-installer-failed');    
     });
 }
 
@@ -612,7 +637,7 @@ ipcMain.on('download-athena', async (event, arg) => {
             }
             
             fs.unlink(libraryPath + "/" + installerName, (err) => {
-                if (err) throw err;
+                if (err) console.log("No previous installation to delete.");
                 console.info(installerName, 'was deleted prior to downloading.');
             });
             

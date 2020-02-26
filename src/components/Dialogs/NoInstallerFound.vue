@@ -52,7 +52,7 @@ export default {
         showNoInstallerFound: true,
     }),
     created: function () {
-        console.info("What?", this.showNoInstallerFound);
+        
     },
 };
 </script>
