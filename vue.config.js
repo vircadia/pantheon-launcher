@@ -30,8 +30,8 @@ module.exports = {
 				},
 				"linux": {
 					"target": [
-					"AppImage",
-					"deb"
+    					"AppImage",
+    					"deb"
 					]
 				},
 				// "extraFiles": [

@@ -24,6 +24,7 @@ const { readdirSync } = require('fs')
 const { forEach } = require('p-iteration');
 const fs = require('fs');
 const compareVersions = require('compare-versions');
+const tasklist = require('tasklist'); // This is specific to Windows.
 
 var glob = require('glob');
 
@@ -91,17 +92,16 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
-  if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
-    try {
-		// console.info("Installing VueDevTools, if this does not work, Electron will not generate an interface.");
-		// await installVueDevtools()
-	} catch (e) {
-		// console.error('Vue Devtools failed to install:', e.toString())
-	}
-
-  }
-  createWindow();
+    if (isDevelopment && !process.env.IS_TEST) {
+        // Install Vue Devtools
+        try {
+            // console.info("Installing VueDevTools, if this does not work, Electron will not generate an interface.");
+            // await installVueDevtools()
+        } catch (e) {
+            // console.error('Vue Devtools failed to install:', e.toString())
+        }
+    }
+    createWindow();
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -278,7 +278,7 @@ async function getCurrentInterfaceJSON() {
 }
 
 async function getLatestMetaJSON() {
-	var metaURL = 'https://projectathena.io/cdn/athena/launcher/athenaMeta.json';
+	var metaURL = 'https://cdn.projectathena.io/dist/launcher/athenaMeta.json';
 		
 	await electronDl.download(win, metaURL, {
 		directory: storagePath.default,
@@ -483,7 +483,7 @@ ipcMain.on('set-library-folder-default', (event, arg) => {
 	setLibrary(storagePath.default);
 })
 
-ipcMain.on('getLibraryFolder', (event, arg) => {
+ipcMain.on('get-library-folder', (event, arg) => {
 	getSetting('athena_interface.library', storagePath.default).then(async function(libraryPath){
 		win.webContents.send('current-library-folder', {
 			libraryPath
@@ -550,46 +550,141 @@ function launchInstaller() {
     });
 }
 
+async function silentInstall() {
+    var executableLocation; // This is the downloaded installer.
+    var installPath; // This is the location to install the application to.
+    var executablePath; // This is the location that the installer exe is located in after being downloaded.
+    var exeLocToInstall; // This is what gets installed.
+    var list = await tasklist();
+    var canInstall = true;
+    
+    list.forEach((task) => {
+        if (task.imageName === "server-console.exe") {
+            console.log("SANDBOX FOUND!");
+            canInstall = false;
+        }
+    });
+    
+    if (!canInstall) {
+        win.webContents.send('silent-installer-failed', 'Your server sandbox is running. Please close it before proceeding.');        
+        return;
+    }
+    
+    getSetting('athena_interface.library', storagePath.default).then(function (libPath) {    
+        if (libPath) {
+            executableLocation = libPath + "/Athena_Setup_Latest.exe";
+            installPath = libPath + "\\Athena_Interface_Latest_SILENT";
+            executablePath = libPath;
+        } else {
+            executableLocation = storagePath.default + "/Athena_Setup_Latest.exe";
+            installPath = storagePath.default + "\\Athena_Interface_Latest_SILENT";
+            executablePath = storagePath.default;
+        }
+        
+        var parameters = [];
+        
+        parameters.push("/S");
+        parameters.push("/D=" + installPath);
+
+        if (!fs.existsSync(executableLocation)) {
+            // Notify main window of the issue.
+            win.webContents.send('no-installer-found');
+            return;
+        } else {
+            console.info("exeLoc:", executableLocation);
+            console.info("exePath:", executablePath);
+            
+            fs.copyFileSync(executableLocation, executablePath + "/Athena_Setup_Latest_READY.exe", (err) => {
+                if (err) console.log('ERROR ON COPY: ' + err);
+                console.log('Completed copy operation successfully.');
+            });
+            
+            fs.unlink(executableLocation, (err) => {
+                if (err) console.log('ERROR ON ORIGINAL INSTALLER DELETE: ' + err);
+                console.info(executableLocation, 'was deleted after copying.');
+            });
+            
+            exeLocToInstall = executablePath + "/Athena_Setup_Latest_READY.exe";
+        }
+        
+        win.webContents.send('silent-installer-running');
+
+        console.info("Installing silently, params:", exeLocToInstall, installPath, parameters)
+
+        try { 
+            installer_exe(exeLocToInstall, parameters, { windowsVerbatimArguments: true }, function (err, data) {
+                console.log(err)
+                console.log(data.toString());
+                
+                // On installer exit...
+                if (err) {
+                    console.info("Installation failed.");
+                    win.webContents.send('silent-installer-failed');    
+                    // throw err;
+                } else {
+                    console.info("Installation complete.");
+                    win.webContents.send('silent-installer-complete');                
+                }
+            });
+        } catch (e) {
+            console.info("Try block: Silent installation failed.")
+            win.webContents.send('silent-installer-failed');    
+        }
+        
+    }).catch(function(e) {
+        console.info("Failed to fetch library for silent install. Error:", e);
+        win.webContents.send('silent-installer-failed');
+    });
+}
+
 ipcMain.on('download-athena', async (event, arg) => {
 	var libraryPath;
 	var downloadURL = await shouldUpdate();
+    var installerName = "Athena_Setup_Latest.exe";
     console.info("DLURL:", downloadURL);
 	if (downloadURL) {
 		getSetting('athena_interface.library', storagePath.default).then(function(results){
 			if(results) {
-				libraryPath = results;
-				electronDl.download(win, downloadURL, {
-					directory: libraryPath,
-					showBadge: true,
-					filename: "Athena_Setup_Latest.exe",
-                    // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to
-                    // use the downloadItem to check which download is progressing.
-                    onStarted: downloadItem => {
-                        electronDlItem = downloadItem;
-                    },
-					onProgress: currentProgress => {
-						console.info(currentProgress);
-						var percent = currentProgress.percent;
-                        if (electronDlItem && electronDlItem.getURL() === downloadURL) {
-                            win.webContents.send('download-installer-progress', {
-                                percent
-                            });
-                            if (percent === 1) {
-                                electronDlItem = null;
-                                launchInstaller();
-                            }
+                libraryPath = results;
+            } else {
+                libraryPath = storagePath.default;
+            }
+            
+            fs.unlink(libraryPath + "/" + installerName, (err) => {
+                if (err) console.log("No previous installation to delete.");
+                console.info(installerName, 'was deleted prior to downloading.');
+            });
+            
+			electronDl.download(win, downloadURL, {
+				directory: libraryPath,
+				showBadge: true,
+				filename: installerName,
+                // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to
+                // use the downloadItem to check which download is progressing.
+                onStarted: downloadItem => {
+                    electronDlItem = downloadItem;
+                },
+				onProgress: currentProgress => {
+					console.info(currentProgress);
+					var percent = currentProgress.percent;
+                    if (electronDlItem && electronDlItem.getURL() === downloadURL) {
+                        win.webContents.send('download-installer-progress', {
+                            percent
+                        });
+                        if (percent === 1) { // When the setup download completes...
+                            electronDlItem = null;
+                            // launchInstaller();
+                            silentInstall();
                         }
-					},
-                    onCancel: downloadItem => {
-                        electronDlItem = null;
                     }
-                    // FIXME: electron-dl currently displays its own "download interrupted" message box if file not found or 
-                    // download interrupted. It would be nicer to display our own, download-installer-failed, message box.
-                    // https://github.com/sindresorhus/electron-dl/issues/105
-				});
-			} else {
-				setLibraryDialog();
-			}
+				},
+                onCancel: downloadItem => {
+                    electronDlItem = null;
+                }
+                // FIXME: electron-dl currently displays its own "download interrupted" message box if file not found or 
+                // download interrupted. It would be nicer to display our own, download-installer-failed, message box.
+                // https://github.com/sindresorhus/electron-dl/issues/105
+			});
 		});
 	} else {
 		console.info("Failed to download.");

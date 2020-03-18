@@ -1,7 +1,7 @@
 <!--
-//  NoInstallerFound.vue
+//  InstallComplete.vue
 //
-//  Created by Kalila L. on 15 Dec 2019.
+//  Created by Kalila L. on 19 Feb 2020.
 //  Copyright 2020 Project Athena and contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -11,7 +11,7 @@
     <v-dialog
         width="500"
         persistent
-        v-model="showNoInstallerFound"
+        v-model="showInstallComplete"
     >
         <v-card>
             <v-card-title
@@ -19,12 +19,12 @@
                 primary-title
                 dark
             >
-                <v-icon color="red" class="mr-2">mdi-message-alert</v-icon>
-                No Installer Found
+                <v-icon color="success" class="mr-2">mdi-check</v-icon>
+                Installation Complete
             </v-card-title>
     
             <v-card-text>
-                An installer for interface was not found. Try downloading it by pressing the "Download Interface" button.
+                The latest version of Interface is done installing! You can now launch it.
             </v-card-text>
     
             <v-divider></v-divider>
@@ -46,13 +46,10 @@
 
 <script>
 export default {
-    name: 'NoInstallerFound',
+    name: 'InstallComplete',
 
     data: () => ({
-        showNoInstallerFound: true,
+        showInstallComplete: true,
     }),
-    created: function () {
-        
-    },
 };
 </script>
