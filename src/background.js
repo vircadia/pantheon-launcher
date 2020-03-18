@@ -24,6 +24,7 @@ const { readdirSync } = require('fs')
 const { forEach } = require('p-iteration');
 const fs = require('fs');
 const compareVersions = require('compare-versions');
+const tasklist = require('tasklist');
 
 var glob = require('glob');
 
