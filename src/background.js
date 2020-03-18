@@ -278,7 +278,7 @@ async function getCurrentInterfaceJSON() {
 }
 
 async function getLatestMetaJSON() {
-	var metaURL = 'https://projectathena.io/cdn/athena/launcher/athenaMeta.json';
+	var metaURL = 'https://cdn.projectathena.io/dist/launcher/athenaMeta.json';
 		
 	await electronDl.download(win, metaURL, {
 		directory: storagePath.default,
