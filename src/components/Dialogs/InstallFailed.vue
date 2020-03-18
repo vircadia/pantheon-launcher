@@ -24,7 +24,7 @@
             </v-card-title>
     
             <v-card-text>
-                The Interface failed to install.
+                {{installFailedMessage}}
             </v-card-text>
     
             <v-divider></v-divider>
@@ -50,6 +50,11 @@ export default {
 
     data: () => ({
         showInstallFailed: true,
+        installFailedMessage: ""
     }),
+    created: function () {
+        var vue_this = this;
+        this.installFailedMessage = this.$store.state.currentError;
+    }
 };
 </script>

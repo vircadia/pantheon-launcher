@@ -23,6 +23,7 @@ export const store = new Vuex.Store({
 		populatedInterfaceList: [],
 		noSteamVR: false,
 		currentLibraryFolder: "No library folder selected.",
+        currentError: ""
 	},
 	mutations: {
 		mutate(state, payload) {

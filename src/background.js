@@ -24,7 +24,7 @@ const { readdirSync } = require('fs')
 const { forEach } = require('p-iteration');
 const fs = require('fs');
 const compareVersions = require('compare-versions');
-const tasklist = require('tasklist');
+const tasklist = require('tasklist'); // This is specific to Windows.
 
 var glob = require('glob');
 
@@ -92,17 +92,16 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
-  if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
-    try {
-		// console.info("Installing VueDevTools, if this does not work, Electron will not generate an interface.");
-		// await installVueDevtools()
-	} catch (e) {
-		// console.error('Vue Devtools failed to install:', e.toString())
-	}
-
-  }
-  createWindow();
+    if (isDevelopment && !process.env.IS_TEST) {
+        // Install Vue Devtools
+        try {
+            // console.info("Installing VueDevTools, if this does not work, Electron will not generate an interface.");
+            // await installVueDevtools()
+        } catch (e) {
+            // console.error('Vue Devtools failed to install:', e.toString())
+        }
+    }
+    createWindow();
 })
 
 // Exit cleanly on request from parent process in development mode.
@@ -551,11 +550,25 @@ function launchInstaller() {
     });
 }
 
-function silentInstall() {
+async function silentInstall() {
     var executableLocation; // This is the downloaded installer.
     var installPath; // This is the location to install the application to.
     var executablePath; // This is the location that the installer exe is located in after being downloaded.
     var exeLocToInstall; // This is what gets installed.
+    var list = await tasklist();
+    var canInstall = true;
+    
+    list.forEach((task) => {
+        if (task.imageName == "server-console.exe") {
+            console.log("SANDBOX FOUND!");
+            canInstall = false;
+        }
+    })
+    
+    if (!canInstall) {
+        win.webContents.send('silent-installer-failed', 'Your server sandbox is running, please close it before proceeding.');        
+        return;
+    }
     
     getSetting('athena_interface.library', storagePath.default).then(function (libPath) {    
         if (libPath) {
@@ -620,7 +633,7 @@ function silentInstall() {
         
     }).catch(function(e) {
         console.info("Failed to fetch library for silent install. Error:", e);
-        win.webContents.send('silent-installer-failed');    
+        win.webContents.send('silent-installer-failed');
     });
 }
 

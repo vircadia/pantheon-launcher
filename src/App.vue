@@ -331,6 +331,7 @@ ipcRenderer.on('silent-installer-failed', (event, arg) => {
     vue_this.downloadText = "Download Interface";
     vue_this.isSilentInstalling = false;
     vue_this.disableDownloadButton = false;
+    vue_this.$store.state.currentError = arg;
     vue_this.openDialog('InstallFailed', true);
 });
 
