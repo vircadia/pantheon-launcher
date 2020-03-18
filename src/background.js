@@ -559,14 +559,14 @@ async function silentInstall() {
     var canInstall = true;
     
     list.forEach((task) => {
-        if (task.imageName == "server-console.exe") {
+        if (task.imageName === "server-console.exe") {
             console.log("SANDBOX FOUND!");
             canInstall = false;
         }
-    })
+    });
     
     if (!canInstall) {
-        win.webContents.send('silent-installer-failed', 'Your server sandbox is running, please close it before proceeding.');        
+        win.webContents.send('silent-installer-failed', 'Your server sandbox is running. Please close it before proceeding.');        
         return;
     }
     
