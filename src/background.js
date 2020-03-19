@@ -67,7 +67,7 @@ function createWindow () {
 	}
 
 	win.on('closed', () => {
-	win = null
+    	win = null
 	})
 }
 
@@ -701,4 +701,26 @@ ipcMain.on('cancel-download', async (event) => {
 
 ipcMain.on('install-athena', (event, arg) => {
     launchInstaller();
+});
+
+ipcMain.on('request-close', async (event, arg) => {
+    var list = await tasklist();
+    var canClose = true;
+    
+    list.forEach((task) => {
+        if (task.imageName === "interface.exe") {
+            console.log("Interface.exe found.");
+            canClose = false;
+        }
+    });
+    
+    if (!canClose) {
+        win.webContents.send('interface-running');
+    } else {
+        app.exit();
+    }
+});
+
+ipcMain.on('close-launcher', (event, arg) => {
+    app.exit();
 });

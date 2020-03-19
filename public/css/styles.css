@@ -26,9 +26,14 @@ h2 {
 	cursor: pointer;
 }
 
+#topMenuBar {
+    height: 25px;
+    -webkit-app-region: drag;
+}
+
 #navBar {
 	position: fixed;
-	top: 0px;
+	top: 25px;
 	z-index: 99;
 }
 
