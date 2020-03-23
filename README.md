@@ -83,3 +83,16 @@ npm run electron:build
 Building the launcher will generate an installer executable and an unpacked folder that allows you to run the built launcher without running the setup. You can find the build artifacts in the **dist_electron** folder. 
 
 To see more documentation on the Vue CLI Plugin Electron Builder, visit this [website](https://nklayman.github.io/vue-cli-plugin-electron-builder/guide/guide.html).
+
+#### Update your build environment:
+
+When new dependencies are added and required by the codebase, you will need to add them.
+
+If you use Yarn:
+```
+yarn install
+```
+or if you use NPM:
+```
+npm update
+```
