@@ -1,7 +1,7 @@
 <!--
 //  WantToClose.vue
 //
-//  Created by David Rowe on 14 Feb 2020.
+//  Created by KasenVR on 19 Mar 2020.
 //  Copyright 2020 Project Athena and contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -61,7 +61,7 @@ export default {
             ipcRenderer.send('close-launcher');
         },
         cancelClose: function () {
-            // nothing to do.
+            // Nothing to do.
         },
      },
     data: () => ({
