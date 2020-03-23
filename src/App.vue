@@ -10,7 +10,6 @@
 <template>
     <v-app>
         <v-system-bar
-            color="#182b49"
             dark
             :top=true
             :fixed=true
@@ -44,11 +43,11 @@
 		
     <v-app-bar
         app
-        color="#182b49"
         dark
         :bottom=true
         :fixed=true
         style="top: initial !important;"
+        id="bottomAppBar"
     >
         <div class="d-flex align-center">
             <v-img
