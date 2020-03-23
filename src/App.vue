@@ -9,8 +9,7 @@
 -->
 <template>
     <v-app>
-        <v-app-bar
-            app
+        <v-system-bar
             color="#182b49"
             dark
             :top=true
@@ -18,8 +17,8 @@
             style="top: initial !important;"
             id="topMenuBar"
         >    
-            test
-        </v-app-bar>
+            
+        </v-system-bar>
         
         <v-bottom-navigation id="navBar">
             <v-btn disabled value="recent">

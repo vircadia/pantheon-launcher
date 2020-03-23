@@ -27,7 +27,7 @@ h2 {
 }
 
 #topMenuBar {
-    height: 25px;
+    height: 25px !important;
     -webkit-app-region: drag;
 }
 
