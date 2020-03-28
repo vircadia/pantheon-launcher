@@ -75,40 +75,43 @@
             </v-btn>
         </div>
 
-      <v-spacer></v-spacer>
-				<v-btn
-                    v-if="showDownloadButton"
-					v-on:click.native="downloadInterface()"
-					:right=true
-					color="blue"
-					:tile=true
-                    :depressed="isDownloading"
-                    :disabled="isSilentInstalling || disableDownloadButton"
-				>
-                    <span style="font-size: 12px;">{{downloadText}}</span>
-					<v-progress-circular
-						:size="25"
-						:width="5"
-						:rotate="90"
-						:value="downloadProgress"
-						color="red"
-						v-if="showCloudDownload"
-                        class="ml-2"
-					>
-					</v-progress-circular>
-					<v-icon class="ml-2" v-if="showCloudIcon">cloud_download</v-icon>
-				</v-btn>
-                
-                <v-btn
-                    v-if="showUpdateButton"
-                    v-on:click.native="checkForUpdates()"
-                    :right=true
-                    color="blue"
-                    :tile=true
+        <v-spacer></v-spacer>
+        
+			<v-btn
+                v-if="showDownloadButton"
+                v-on:click.native="downloadInterface()"
+                :right=true
+                color="blue"
+                :tile=true
+                :depressed="isDownloading"
+                :disabled="isSilentInstalling || disableDownloadButton"
+                id="downloadButton"
+			>
+                <span>{{downloadText}}</span>
+                <v-progress-circular
+                    :size="25"
+                    :width="5"
+                    :rotate="90"
+                    :value="downloadProgress"
+                    color="red"
+                    v-if="showCloudDownload"
+                    class="ml-2"
                 >
-                    <span style="font-size: 12px;">Check for Updates</span>
-                    <v-icon class="ml-2" v-if="showCloudIcon">cloud_download</v-icon>
-                </v-btn>
+                </v-progress-circular>
+                <v-icon class="ml-2" v-if="showCloudIcon">cloud_download</v-icon>
+            </v-btn>
+            
+            <v-btn
+                v-if="showUpdateButton"
+                v-on:click.native="checkForUpdates()"
+                :right=true
+                color="blue"
+                :tile=true
+                id="updateButton"
+            >
+                <span>Check for Updates</span>
+                <v-icon class="ml-2" v-if="showCloudIcon">cloud_download</v-icon>
+            </v-btn>
             
             <!-- <v-tooltip top>	
                 <template v-slot:activator="{ on }">
