@@ -209,7 +209,7 @@
                 <v-icon>mdi-play</v-icon>
             </v-btn>
 
-    </v-app-bar>
+        </v-app-bar>
 		
     <v-content class="" id="mainContent">
 			<!-- <iframe id="mainIframe" src="https://projectathena.io/" style="width: 100%; height: 100%;"></iframe>  -->
@@ -224,7 +224,7 @@
         </transition>
     </v-content>
 		
-  </v-app>
+    </v-app>
 </template>
 
 <script>
@@ -389,11 +389,11 @@ import UpdateAvailable from './components/Dialogs/UpdateAvailable'
 import NoUpdateAvailable from './components/Dialogs/NoUpdateAvailable'
 
 export default {
-	name: 'App',
-	components: {
-		HelloWorld,
-		FavoriteWorlds,
-		Settings,
+    name: 'App',
+    components: {
+        HelloWorld,
+        FavoriteWorlds,
+        Settings,
         // Dialogs
         CancelDownload,
         DownloadComplete,
@@ -405,8 +405,8 @@ export default {
         WantToClose,
         UpdateAvailable,
         NoUpdateAvailable
-	},
-	methods: {
+    },
+    methods: {
         toggleTab: function(tab) {
             if(this.showTab == tab) {
                 this.showTab = "";
@@ -456,18 +456,18 @@ export default {
 		},
 		downloadInterface: function() {
             // This function also auto-installs interface.
-			if (!this.isDownloading) {
+            if (!this.isDownloading) {
                 this.isDownloading = true;
-				const { ipcRenderer } = require('electron');
-				ipcRenderer.send('download-vircadia');
+                const { ipcRenderer } = require('electron');
+                ipcRenderer.send('download-vircadia');
             } else {
                 vue_this.openDialog('CancelDownload', true);
-			}
+            }
 		},
-		installInterface: function() {
-			const { ipcRenderer } = require('electron');
-			ipcRenderer.send('install-vircadia');
-		},
+        installInterface: function() {
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('install-vircadia');
+        },
         selectInterfaceExe: function() {
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('set-athena-location');
@@ -477,32 +477,32 @@ export default {
             ipcRenderer.send('check-for-updates');            
         }
 	},
-	created: function () {
-		const { ipcRenderer } = require('electron');
-		vue_this = this;
-        
+    created: function () {
+        const { ipcRenderer } = require('electron');
+        vue_this = this;
+
         window.onbeforeunload = (e) => {
             e.returnValue = false;
             ipcRenderer.send('request-close');
         }
-        
-		ipcRenderer.send('load-state');
+
+        ipcRenderer.send('load-state');
         ipcRenderer.send('get-library-folder');
-	},
-	computed: {
-		interfaceSelected() {
-			return this.$store.state.selectedInterface;
-		}
-	},
+        },
+        computed: {
+            interfaceSelected() {
+                return this.$store.state.selectedInterface;
+            }
+        },
 	watch: {
-		noSteamVR: function (newValue, oldValue) {
+        noSteamVR: function (newValue, oldValue) {
             if(newValue != oldValue) {
                 this.$store.commit('mutate', {
                     property: 'noSteamVR', 
                     with: newValue
                 });
             }
-		},
+        },
         allowMultipleInstances: function (newValue, oldValue) {
             if(newValue != oldValue) {
                 this.$store.commit('mutate', {
@@ -511,30 +511,30 @@ export default {
                 });
             }
         },
-		interfaceSelected (newVal, oldVal) {
+        interfaceSelected (newVal, oldVal) {
             if (newVal) {
                 this.showDownloadButton = false;
                 this.showUpdateButton = true;
             }
-		}
-	},
-	data: () => ({
+        }
+    },
+    data: () => ({
         showTab: '',
         showDialog: '',
         shouldShowDialog: false,
-		noSteamVR: false,
-		allowMultipleInstances: false,
-		downloadProgress: 0,
-		isDownloading: false,
+        noSteamVR: false,
+        allowMultipleInstances: false,
+        downloadProgress: 0,
+        isDownloading: false,
         isSilentInstalling: false,
         downloadText: "Download Interface",
-		showCloudIcon: true,
-		showCloudDownload: false,
-		disableInstallIcon: false,
+        showCloudIcon: true,
+        showCloudDownload: false,
+        disableInstallIcon: false,
         disableDownloadButton: false,
         showDownloadButton: true,
         showUpdateButton: false,
         launchOptions: [],
-	}),
+    }),
 };
 </script>
