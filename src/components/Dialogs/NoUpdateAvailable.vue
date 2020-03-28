@@ -43,7 +43,7 @@
                     text
                     @click="doNothing(); $emit('hideDialog')"
                 >
-                    Okay
+                    No
                 </v-btn>
             </v-card-actions>
         </v-card>
