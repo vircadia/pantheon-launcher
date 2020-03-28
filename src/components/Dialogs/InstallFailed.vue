@@ -54,7 +54,7 @@ export default {
     }),
     created: function () {
         var vue_this = this;
-        this.installFailedMessage = this.$store.state.currentError;
+        this.installFailedMessage = this.$store.state.currentNotice;
     }
 };
 </script>

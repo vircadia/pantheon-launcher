@@ -8,6 +8,10 @@
     See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
 */
 
+:root {
+    --vircadia-navy: #182b49;
+}
+
 ::-webkit-scrollbar {
 	display: none;
 }
@@ -26,9 +30,19 @@ h2 {
 	cursor: pointer;
 }
 
+#topMenuBar {
+    height: 25px !important;
+    background-color: var(--vircadia-navy);
+    -webkit-app-region: drag;
+}
+
+#bottomAppBar {
+    background-color: var(--vircadia-navy);
+}
+
 #navBar {
 	position: fixed;
-	top: 0px;
+	top: 25px;
 	z-index: 99;
 }
 

@@ -8,36 +8,46 @@
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
 -->
 <template>
-  <v-app>
-		<v-bottom-navigation id="navBar">
-			<v-btn disabled value="recent">
-				<span>Recent</span>
-				<v-icon>mdi-history</v-icon>
-			</v-btn>
-	
-			<v-btn disabled v-on:click="toggleTab('Settings')" value="favorites">
-				<span>Favorites</span>
-				<v-icon>mdi-heart</v-icon>
-			</v-btn>
-	
-			<v-btn disabled v-on:click="toggleTab('Settings')" value="nearby">
-				<span>Worlds</span>
-				<v-icon>mdi-map-search-outline</v-icon>
-			</v-btn>
-			
-			<v-btn v-on:click="toggleTab('Settings')" value="settings">
-				<span>Settings</span>
-				<v-icon>mdi-settings-outline</v-icon>
-			</v-btn>
-		</v-bottom-navigation>
+    <v-app>
+        <v-system-bar
+            dark
+            :top=true
+            :fixed=true
+            style="top: initial !important;"
+            id="topMenuBar"
+        >    
+            
+        </v-system-bar>
+        
+        <v-bottom-navigation id="navBar">
+            <v-btn disabled value="recent">
+                <span>Recent</span>
+                <v-icon>mdi-history</v-icon>
+            </v-btn>
+
+            <v-btn disabled v-on:click="toggleTab('Settings')" value="favorites">
+                <span>Favorites</span>
+                <v-icon>mdi-heart</v-icon>
+            </v-btn>
+
+            <v-btn disabled v-on:click="toggleTab('Settings')" value="nearby">
+                <span>Worlds</span>
+                <v-icon>mdi-map-search-outline</v-icon>
+            </v-btn>
+
+            <v-btn v-on:click="toggleTab('Settings')" value="settings">
+                <span>Settings</span>
+                <v-icon>mdi-settings-outline</v-icon>
+            </v-btn>
+        </v-bottom-navigation>
 		
     <v-app-bar
         app
-        color="#182b49"
         dark
         :bottom=true
         :fixed=true
         style="top: initial !important;"
+        id="bottomAppBar"
     >
         <div class="d-flex align-center">
             <v-img
@@ -314,6 +324,11 @@ ipcRenderer.on('no-installer-found', (event, arg) => {
     vue_this.openDialog('NoInstallerFound', true);
 });
 
+ipcRenderer.on('interface-running', (event, arg) => {
+    vue_this.openDialog('WantToClose', true);
+});
+
+
 ipcRenderer.on('silent-installer-running', (event, arg) => {
     vue_this.downloadText = "Installing, please wait...";
     vue_this.isSilentInstalling = true;
@@ -331,7 +346,7 @@ ipcRenderer.on('silent-installer-failed', (event, arg) => {
     vue_this.downloadText = "Download Interface";
     vue_this.isSilentInstalling = false;
     vue_this.disableDownloadButton = false;
-    vue_this.$store.state.currentError = arg;
+    vue_this.$store.state.currentNotice = arg;
     vue_this.openDialog('InstallFailed', true);
 });
 
@@ -346,6 +361,7 @@ import NoInstallerFound from './components/Dialogs/NoInstallerFound'
 import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
 import InstallComplete from './components/Dialogs/InstallComplete'
 import InstallFailed from './components/Dialogs/InstallFailed'
+import WantToClose from './components/Dialogs/WantToClose'
 
 export default {
 	name: 'App',
@@ -360,7 +376,8 @@ export default {
         NoInstallerFound,
         NoInterfaceFound,
         InstallComplete,
-        InstallFailed
+        InstallFailed,
+        WantToClose
 	},
 	methods: {
         toggleTab: function(tab) {
@@ -431,7 +448,12 @@ export default {
 	created: function () {
 		const { ipcRenderer } = require('electron');
 		vue_this = this;
-		
+        
+        window.onbeforeunload = (e) => {
+            e.returnValue = false;
+            ipcRenderer.send('request-close');
+        }
+        
 		ipcRenderer.send('load-state');
         ipcRenderer.send('get-library-folder');
 	},
