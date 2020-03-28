@@ -212,7 +212,7 @@ async function getLibraryInterfaces() {
 	let getLibraryPromise = new Promise((res, rej) => {
 		var res_p = res;
 		var rej_p = rej;
-		getSetting('athena_interface.library', storagePath.default).then(async function(libraryPath){
+		getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
 			if(libraryPath) {
 				await getDirectories(libraryPath).then(function(interfacesList){
 					interfaces = interfacesList;
@@ -231,7 +231,7 @@ async function getLibraryInterfaces() {
 }
 
 function setLibrary(libPath) {
-	storage.set('athena_interface.library', libPath, {dataPath: storagePath.default}, function(error) {
+	storage.set('vircadia_interface.library', libPath, {dataPath: storagePath.default}, function(error) {
 		if (error) {
 			throw error;
 		} else {
@@ -303,13 +303,13 @@ async function getLatestMetaJSON() {
         }
 	});
 	
-	var athenaMetaFile = storagePath.default + '/athenaMeta.json';
-	let rawdata = fs.readFileSync(athenaMetaFile);
-	let athenaMetaJSON = JSON.parse(rawdata);
+	var vircadiaMetaFile = storagePath.default + '/athenaMeta.json';
+	let rawdata = fs.readFileSync(vircadiaMetaFile);
+	let vircadiaMetaJSON = JSON.parse(rawdata);
 	
-	if (athenaMetaJSON) {
-		console.info("Athena Meta JSON:", athenaMetaJSON);
-		return athenaMetaJSON;
+	if (vircadiaMetaJSON) {
+		console.info("Athena Meta JSON:", vircadiaMetaJSON);
+		return vircadiaMetaJSON;
 	} else {
         console.error("Failed to download Athena Meta JSON");
 		return false;
@@ -317,37 +317,38 @@ async function getLatestMetaJSON() {
 }
 
 async function checkForInterfaceUpdates() {
-	var athenaMeta = await getLatestMetaJSON();
+	var vircadiaMeta = await getLatestMetaJSON();
     var interfacePackage = await getCurrentInterfaceJSON();
     
-    if (athenaMeta && athenaMeta.latest.version && interfacePackage && interfacePackage.package.version) {
-        var versionCompare = compareVersions(athenaMeta.latest.version, interfacePackage.package.version);
+    if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.package.version) {
+        var versionCompare = compareVersions(vircadiaMeta.latest.version, interfacePackage.package.version);
         console.info("Compare Versions: ", versionCompare);
         if (versionCompare == 1) {
-            return athenaMeta.latest.url;
+            return vircadiaMeta.latest.url;
         } else {
             // Version check failed, interface is either equal to or above the server's version.
-            return false;
+            return -1;
         }
     } else {
         // Failed to retrieve either or both the server meta and interface meta .JSON files.
-        return false;
+        return -1;
     }
 }
 
-async function shouldUpdate() {
-    var metaJSON;
+async function checkForUpdates() {
     if (storagePath.interfaceSettings) {
         // This means to update because an interface exists and is selected.
-        console.info("Should update: true");
+        console.info("Checking for updates.");
         var checkForUpdates = await checkForInterfaceUpdates();
-        if (checkForUpdates) {
-            return checkForUpdates;
+        if (checkForUpdates != null) {
+            // Return with the URL to download or false if not.
+            win.webContents.send('checked-for-updates', { checkForUpdates }); 
         }
     }
-    // This means to simply download and install a new one because update is not necessary.
-    console.info("Should update: false");
-    metaJSON = await getLatestMetaJSON();
+}
+
+async function getDownloadURL() {
+    var metaJSON = await getLatestMetaJSON();
     if (metaJSON) {
         return metaJSON.latest.url;
     } else {
@@ -386,13 +387,13 @@ async function getSetting(setting, storageDataPath) {
 const { ipcMain } = require('electron')
 
 ipcMain.on('save-state', (event, arg) => {
-	storage.set('athena_launcher.state', arg, {dataPath: storagePath.default}, function(error) {
+	storage.set('vircadia_launcher.state', arg, {dataPath: storagePath.default}, function(error) {
 		if (error) throw error;
 	});
 })
 
 ipcMain.on('load-state', (event, arg) => {
-	getSetting('athena_launcher.state', storagePath.default).then(function(results){
+	getSetting('vircadia_launcher.state', storagePath.default).then(function(results){
 		if(results) {
 			win.webContents.send('state-loaded', {
 				results
@@ -436,7 +437,7 @@ ipcMain.on('launch-interface', (event, arg) => {
 })
 
 ipcMain.on('get-athena-location', async (event, arg) => {
-	var athenaLocation = await getSetting('athena_interface.location', storagePath.interfaceSettings);
+	var athenaLocation = await getSetting('vircadia_interface.location', storagePath.interfaceSettings);
 	var athenaLocationExe = athenaLocation.toString();
 	console.info("AthenaLocationExe:",athenaLocationExe);
 	event.returnValue = athenaLocationExe;
@@ -459,7 +460,7 @@ ipcMain.on('set-athena-location', async (event, arg) => {
 		var storageSavePath;
 		if (storagePath.interfaceSettings) {
 			storageSavePath = storagePath.interfaceSettings;
-            storage.set('athena_interface.location', result.filePaths[0], {dataPath: storageSavePath}, function(error) {
+            storage.set('vircadia_interface.location', result.filePaths[0], {dataPath: storageSavePath}, function(error) {
                 if (error) throw error;
             });
 		} else {
@@ -484,7 +485,7 @@ ipcMain.on('set-library-folder-default', (event, arg) => {
 })
 
 ipcMain.on('get-library-folder', (event, arg) => {
-	getSetting('athena_interface.library', storagePath.default).then(async function(libraryPath){
+	getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
 		win.webContents.send('current-library-folder', {
 			libraryPath
 		});
@@ -530,9 +531,9 @@ ipcMain.handle('get-interface-list-for-launch', (event, arg) => {
 var installer_exe = cp.execFile;
 
 function launchInstaller() {
-    getSetting('athena_interface.library', storagePath.default).then(function (libPath) {
-        var executablePath = libPath + "/Athena_Setup_Latest.exe";
-        var installPath = libPath + "/Athena_Interface_Latest";
+    getSetting('vircadia_interface.library', storagePath.default).then(function (libPath) {
+        var executablePath = libPath + "/Vircadia_Setup_Latest.exe";
+        var installPath = libPath + "/Vircadia_Interface_Latest";
         var parameters = [""];
 
         if (!fs.existsSync(executablePath)) {
@@ -570,14 +571,14 @@ async function silentInstall() {
         return;
     }
     
-    getSetting('athena_interface.library', storagePath.default).then(function (libPath) {    
+    getSetting('vircadia_interface.library', storagePath.default).then(function (libPath) {    
         if (libPath) {
-            executableLocation = libPath + "/Athena_Setup_Latest.exe";
-            installPath = libPath + "\\Athena_Interface_Latest_SILENT";
+            executableLocation = libPath + "/Vircadia_Setup_Latest.exe";
+            installPath = libPath + "\\Vircadia_Interface_Latest_SILENT";
             executablePath = libPath;
         } else {
-            executableLocation = storagePath.default + "/Athena_Setup_Latest.exe";
-            installPath = storagePath.default + "\\Athena_Interface_Latest_SILENT";
+            executableLocation = storagePath.default + "/Vircadia_Setup_Latest.exe";
+            installPath = storagePath.default + "\\Vircadia_Interface_Latest_SILENT";
             executablePath = storagePath.default;
         }
         
@@ -594,7 +595,7 @@ async function silentInstall() {
             console.info("exeLoc:", executableLocation);
             console.info("exePath:", executablePath);
             
-            fs.copyFileSync(executableLocation, executablePath + "/Athena_Setup_Latest_READY.exe", (err) => {
+            fs.copyFileSync(executableLocation, executablePath + "/Vircadia_Setup_Latest_READY.exe", (err) => {
                 if (err) console.log('ERROR ON COPY: ' + err);
                 console.log('Completed copy operation successfully.');
             });
@@ -604,7 +605,7 @@ async function silentInstall() {
                 console.info(executableLocation, 'was deleted after copying.');
             });
             
-            exeLocToInstall = executablePath + "/Athena_Setup_Latest_READY.exe";
+            exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
         }
         
         win.webContents.send('silent-installer-running');
@@ -637,13 +638,13 @@ async function silentInstall() {
     });
 }
 
-ipcMain.on('download-athena', async (event, arg) => {
+ipcMain.on('download-vircadia', async (event, arg) => {
 	var libraryPath;
-	var downloadURL = await shouldUpdate();
-    var installerName = "Athena_Setup_Latest.exe";
+	var downloadURL = await getDownloadURL();
+    var installerName = "Vircadia_Setup_Latest.exe";
     console.info("DLURL:", downloadURL);
 	if (downloadURL) {
-		getSetting('athena_interface.library', storagePath.default).then(function(results){
+		getSetting('vircadia_interface.library', storagePath.default).then(function(results){
 			if(results) {
                 libraryPath = results;
             } else {
@@ -699,8 +700,12 @@ ipcMain.on('cancel-download', async (event) => {
     }
 });
 
-ipcMain.on('install-athena', (event, arg) => {
+ipcMain.on('install-vircadia', (event, arg) => {
     launchInstaller();
+});
+
+ipcMain.on('check-for-updates', (event, arg) => {
+    checkForUpdates();
 });
 
 ipcMain.on('request-close', async (event, arg) => {

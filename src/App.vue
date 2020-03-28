@@ -54,14 +54,14 @@
                 alt="Project Athena Logo"
                 id="titleIMG"
                 class="shrink mr-2"
-                v-on:click="launchBrowser('https://projectathena.io/')"
+                v-on:click="launchBrowser('https://vircadia.com/')"
                 contain
                 src="./assets/logo_256_256.png"
                 transition="scale-transition"
                 width="40"
             />
             
-            <h2 id="titleURL" v-on:click="launchBrowser('https://projectathena.io/')">Project Athena</h2>
+            <h2 id="titleURL" v-on:click="launchBrowser('https://vircadia.com/')">Vircadia</h2>
 
             <v-btn
                 v-on:click="launchBrowser('https://github.com/kasenvr/project-athena')"
@@ -77,6 +77,7 @@
 
       <v-spacer></v-spacer>
 				<v-btn
+                    v-if="showDownloadButton"
 					v-on:click.native="downloadInterface()"
 					:right=true
 					color="blue"
@@ -97,6 +98,17 @@
 					</v-progress-circular>
 					<v-icon class="ml-2" v-if="showCloudIcon">cloud_download</v-icon>
 				</v-btn>
+                
+                <v-btn
+                    v-if="showUpdateButton"
+                    v-on:click.native="checkForUpdates()"
+                    :right=true
+                    color="blue"
+                    :tile=true
+                >
+                    <span style="font-size: 12px;">Check for Updates</span>
+                    <v-icon class="ml-2" v-if="showCloudIcon">cloud_download</v-icon>
+                </v-btn>
             
             <!-- <v-tooltip top>	
                 <template v-slot:activator="{ on }">
@@ -350,6 +362,14 @@ ipcRenderer.on('silent-installer-failed', (event, arg) => {
     vue_this.openDialog('InstallFailed', true);
 });
 
+ipcRenderer.on('checked-for-updates', (event, arg) => {
+    if (arg.checkForUpdates > 0) {
+        vue_this.openDialog('UpdateAvailable', true);
+    } else {
+        vue_this.openDialog('NoUpdateAvailable', true);
+    }
+});
+
 import HelloWorld from './components/HelloWorld';
 import FavoriteWorlds from './components/FavoriteWorlds';
 import Settings from './components/Settings';
@@ -362,6 +382,8 @@ import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
 import InstallComplete from './components/Dialogs/InstallComplete'
 import InstallFailed from './components/Dialogs/InstallFailed'
 import WantToClose from './components/Dialogs/WantToClose'
+import UpdateAvailable from './components/Dialogs/UpdateAvailable'
+import NoUpdateAvailable from './components/Dialogs/NoUpdateAvailable'
 
 export default {
 	name: 'App',
@@ -377,7 +399,9 @@ export default {
         NoInterfaceFound,
         InstallComplete,
         InstallFailed,
-        WantToClose
+        WantToClose,
+        UpdateAvailable,
+        NoUpdateAvailable
 	},
 	methods: {
         toggleTab: function(tab) {
@@ -428,22 +452,27 @@ export default {
 			shell.openExternal(url);
 		},
 		downloadInterface: function() {
+            // This function also auto-installs interface.
 			if (!this.isDownloading) {
                 this.isDownloading = true;
 				const { ipcRenderer } = require('electron');
-				ipcRenderer.send('download-athena');
+				ipcRenderer.send('download-vircadia');
             } else {
                 vue_this.openDialog('CancelDownload', true);
 			}
 		},
 		installInterface: function() {
 			const { ipcRenderer } = require('electron');
-			ipcRenderer.send('install-athena');
+			ipcRenderer.send('install-vircadia');
 		},
         selectInterfaceExe: function() {
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('set-athena-location');
         },
+        checkForUpdates: function() {
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('check-for-updates');            
+        }
 	},
 	created: function () {
 		const { ipcRenderer } = require('electron');
@@ -458,7 +487,7 @@ export default {
         ipcRenderer.send('get-library-folder');
 	},
 	computed: {
-		interfaceSelected () {
+		interfaceSelected() {
 			return this.$store.state.selectedInterface;
 		}
 	},
@@ -480,7 +509,10 @@ export default {
             }
         },
 		interfaceSelected (newVal, oldVal) {
-			// console.log(`We have ${newVal} now!`);
+            if (newVal) {
+                this.showDownloadButton = false;
+                this.showUpdateButton = true;
+            }
 		}
 	},
 	data: () => ({
@@ -497,6 +529,8 @@ export default {
 		showCloudDownload: false,
 		disableInstallIcon: false,
         disableDownloadButton: false,
+        showDownloadButton: true,
+        showUpdateButton: false,
         launchOptions: [],
 	}),
 };

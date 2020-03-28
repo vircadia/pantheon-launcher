@@ -16,16 +16,16 @@ module.exports = {
 		electronBuilder: {
 			builderOptions: {
 				"nsis": {
-					"artifactName": "AthenaLauncherSetup.${ext}",
+					"artifactName": "VircadiaLauncherSetup.${ext}",
 					"installerIcon": "src/assets/logo_256_256.ico",
 					"uninstallerIcon": "src/assets/logo_256_256.ico",
-					"uninstallDisplayName": "Athena Launcher",
+					"uninstallDisplayName": "Vircadia Launcher",
                     "createStartMenuShortcut": true,
 				},
 				"win": {
 					"target": "nsis",
 					"icon": "src/assets/logo_256_256.ico",
-					"publisherName": "https://projectathena.io/",
+					"publisherName": "https://vircadia.com/",
 					"requestedExecutionLevel": "requireAdministrator",
 				},
 				"linux": {
@@ -37,8 +37,8 @@ module.exports = {
 				// "extraFiles": [
 				//   "settings.json"
 				// ],
-				"appId": "com.athena.pantheon",
-				"productName": "Athena Launcher",
+				"appId": "com.vircadia.pantheon",
+				"productName": "Vircadia Launcher",
 			},
 		},
 	},
