@@ -232,14 +232,16 @@ var vue_this;
 const { ipcRenderer } = require('electron');
 
 ipcRenderer.on('download-installer-progress', (event, arg) => {
-	var downloadProgress = arg.percent;
-	if (downloadProgress < 1 && downloadProgress > 0) { // If downloading...
-		vue_this.showCloudIcon = false;
-		vue_this.showCloudDownload = true;
+    var downloadProgress = arg.percent;
+    if (downloadProgress < 1 && downloadProgress > 0) { // If downloading...
+        vue_this.showCloudIcon = false;
+        vue_this.showCloudDownload = true;
+        vue_this.showDownloadButton = true;
+        vue_this.showUpdateButton = false;    
         vue_this.disableInstallIcon = true;
         vue_this.downloadText = "Downloading";
         vue_this.downloadProgress = downloadProgress * 100;
-	} else if (downloadProgress == 1) { // When done.
+    } else if (downloadProgress == 1) { // When done.
         vue_this.showCloudIcon = true;
         vue_this.showCloudDownload = false;
         vue_this.disableInstallIcon = false;
@@ -248,8 +250,8 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
         vue_this.downloadText = "Awaiting Install";
         vue_this.closeDialog();  // "Cancel Download" dialog may be open.
         // vue_this.openDialog('DownloadComplete', true);
-	}
-	console.info("Installer Download Progress:", downloadProgress);
+    }
+    console.info("Installer Download Progress:", downloadProgress);
 });
 
 ipcRenderer.on('download-cancelled', (event) => {
@@ -354,6 +356,8 @@ ipcRenderer.on('silent-installer-complete', (event, arg) => {
     vue_this.downloadText = "Download Interface";
     vue_this.isSilentInstalling = false;
     vue_this.disableDownloadButton = false;
+    vue_this.showDownloadButton = false;
+    vue_this.showUpdateButton = true;
     vue_this.openDialog('InstallComplete', true);
 });
 
