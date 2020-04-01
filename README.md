@@ -1,4 +1,4 @@
-This is a stand-alone guide for building the Pantheon launcher for Athena interface on Windows 64-bit.  
+This is a stand-alone guide for building the Pantheon launcher for the Vircadia interface on Windows 64-bit.  
 
 ## Building Pantheon Launcher
 
