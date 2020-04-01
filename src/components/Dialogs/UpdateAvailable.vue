@@ -34,16 +34,16 @@
                 <v-btn
                     color="primary"
                     text
-                    @click="cancelUpdate(); $emit('hideDialog')"
+                    @click="continueUpdate(); $emit('hideDialog')"
                 >
-                    No
+                    Yes
                 </v-btn>
                 <v-btn
                     color="primary"
                     text
-                    @click="continueUpdate(); $emit('hideDialog')"
+                    @click="cancelUpdate(); $emit('hideDialog')"
                 >
-                    Yes
+                    No
                 </v-btn>
             </v-card-actions>
         </v-card>

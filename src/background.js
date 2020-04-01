@@ -324,7 +324,7 @@ async function checkForInterfaceUpdates() {
         var versionCompare = compareVersions(vircadiaMeta.latest.version, interfacePackage.package.version);
         console.info("Compare Versions: ", versionCompare);
         if (versionCompare == 1) {
-            return vircadiaMeta.latest.url;
+            return 1; // An update is available.
         } else {
             // Version check failed, interface is either equal to or above the server's version.
             return -1;
