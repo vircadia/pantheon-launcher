@@ -272,7 +272,7 @@ export default {
 			if(this.$store.state.interfaceSelectionRequired) {
 				this.showRequireInterface = true;
 			} else {
-				ipcRenderer.send('set-athena-location');
+				ipcRenderer.send('set-vircadia-location');
 			}
 		},
 		setLibrary: function() {

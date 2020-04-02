@@ -433,7 +433,7 @@ export default {
             this.shouldShowDialog = false;
         },
 		attemptLaunchInterface: function() {
-			// var exeLoc = ipcRenderer.sendSync('get-athena-location'); // todo: check if that location exists first when using that, we need to default to using folder path + /interface.exe otherwise.
+			// var exeLoc = ipcRenderer.sendSync('get-vircadia-location'); // todo: check if that location exists first when using that, we need to default to using folder path + /interface.exe otherwise.
             var exeLoc;
             if (this.$store.state.selectedInterface) {
                 exeLoc = this.$store.state.selectedInterface.folder + "interface.exe";
@@ -474,7 +474,7 @@ export default {
         },
         selectInterfaceExe: function() {
             const { ipcRenderer } = require('electron');
-            ipcRenderer.send('set-athena-location');
+            ipcRenderer.send('set-vircadia-location');
         },
         checkForUpdates: function() {
             const { ipcRenderer } = require('electron');

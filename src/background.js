@@ -131,6 +131,8 @@ var storagePath = {
 	currentLibrary: null,
 };
 
+var installFolderName = "\\Vircadia_Interface_Latest_SILENT";
+
 var currentInterface;
 var requireInterfaceSelection;
 
@@ -278,7 +280,7 @@ async function getCurrentInterfaceJSON() {
 }
 
 async function getLatestMetaJSON() {
-	var metaURL = 'https://cdn.projectathena.io/dist/launcher/vircadiaMeta.json';
+	var metaURL = 'https://cdn.vircadia.com/dist/launcher/vircadiaMeta.json';
 		
 	await electronDl.download(win, metaURL, {
 		directory: storagePath.default,
@@ -436,14 +438,14 @@ ipcMain.on('launch-interface', (event, arg) => {
   
 })
 
-ipcMain.on('get-athena-location', async (event, arg) => {
+ipcMain.on('get-vircadia-location', async (event, arg) => {
     var vircadiaLocation = await getSetting('vircadia_interface.location', storagePath.interfaceSettings);
     var vircadiaLocationExe = vircadiaLocation.toString();
-    console.info("AthenaLocationExe:",vircadiaLocationExe);
+    console.info("VircadiaLocationExe:",vircadiaLocationExe);
     event.returnValue = vircadiaLocationExe;
 })
 
-ipcMain.on('set-athena-location', async (event, arg) => {
+ipcMain.on('set-vircadia-location', async (event, arg) => {
     const {dialog} = require('electron') 
   
     dialog.showOpenDialog(win, {
@@ -574,11 +576,11 @@ async function silentInstall() {
     getSetting('vircadia_interface.library', storagePath.default).then(function (libPath) {    
         if (libPath) {
             executableLocation = libPath + "/Vircadia_Setup_Latest.exe";
-            installPath = libPath + "\\Vircadia_Interface_Latest_SILENT";
+            installPath = libPath + installFolderName;
             executablePath = libPath;
         } else {
             executableLocation = storagePath.default + "/Vircadia_Setup_Latest.exe";
-            installPath = storagePath.default + "\\Vircadia_Interface_Latest_SILENT";
+            installPath = storagePath.default + installFolderName;
             executablePath = storagePath.default;
         }
         
@@ -620,11 +622,12 @@ async function silentInstall() {
                 // On installer exit...
                 if (err) {
                     console.info("Installation failed.");
-                    win.webContents.send('silent-installer-failed');    
+                    win.webContents.send('silent-installer-failed');
                     // throw err;
                 } else {
                     console.info("Installation complete.");
-                    win.webContents.send('silent-installer-complete');                
+                    console.info("Running post-install.");
+                    postInstall();
                 }
             });
         } catch (e) {
@@ -635,6 +638,41 @@ async function silentInstall() {
     }).catch(function(e) {
         console.info("Failed to fetch library for silent install. Error:", e);
         win.webContents.send('silent-installer-failed');
+    });
+}
+
+async function postInstall() {
+    getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
+        var installPath;
+        var vircadiaMetaJSON = await getLatestMetaJSON();
+        var vircadiaPackageJSON = 
+        {
+            "package": {
+                "name": vircadiaMetaJSON.latest.name,
+                "version": vircadiaMetaJSON.latest.version
+            }
+        };
+        
+        if (libPath) {
+            installPath = libPath + installFolderName;
+        } else {
+            installPath = storagePath.default + installFolderName;
+        }
+        
+        var packageJSONFilename = installPath + "/launcher_settings/interface_package.json";
+        
+        fs.writeFileSync(packageJSONFilename, JSON.stringify(vircadiaPackageJSON), err => {
+            if (err) {
+                console.error(err);
+                win.webContents.send('silent-installer-failed', 'Failed to create Interface metadata post-install.');
+                return
+            }
+            //file written successfully
+        });
+        
+        win.webContents.send('silent-installer-complete');
+    }).catch(function(e) {
+        console.info("Failed to fetch library for post install. Error:", e);
     });
 }
 
