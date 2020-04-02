@@ -239,6 +239,7 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
         vue_this.showDownloadButton = true;
         vue_this.showUpdateButton = false;    
         vue_this.disableInstallIcon = true;
+        vue_this.isDownloading = true;
         vue_this.downloadText = "Downloading";
         vue_this.downloadProgress = downloadProgress * 100;
     } else if (downloadProgress == 1) { // When done.
