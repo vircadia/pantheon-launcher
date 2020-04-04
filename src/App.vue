@@ -51,7 +51,7 @@
     >
         <div class="d-flex align-center">
             <v-img
-                alt="Project Athena Logo"
+                alt="Vircadia Logo"
                 id="titleIMG"
                 class="shrink mr-2"
                 v-on:click="launchBrowser('https://vircadia.com/')"
@@ -77,7 +77,7 @@
 
         <v-spacer></v-spacer>
         
-			<v-btn
+            <v-btn
                 v-if="showDownloadButton"
                 v-on:click.native="downloadInterface()"
                 :right=true
@@ -86,7 +86,7 @@
                 :depressed="isDownloading"
                 :disabled="isSilentInstalling || disableDownloadButton"
                 id="downloadButton"
-			>
+            >
                 <span>{{downloadText}}</span>
                 <v-progress-circular
                     :size="25"
