@@ -460,7 +460,7 @@ export default {
 			shell.openExternal(url);
 		},
 		downloadInterface: function() {
-            // This function also auto-installs interface.
+            // This function also auto-installs Interface.
             if (!this.isDownloading) {
                 this.isDownloading = true;
                 const { ipcRenderer } = require('electron');
