@@ -45,7 +45,7 @@ function createWindow () {
 	win = new BrowserWindow({ 
 		width: 1000, 
 		height: 800, 
-		icon: path.join(__static, '/resources/launcher.ico'), 
+		icon: path.join(__static, '/resources/logo_256_256.ico'), 
 		resizable: false,
 		webPreferences: {
 			nodeIntegration: true,
