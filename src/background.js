@@ -156,7 +156,7 @@ async function generateInterfaceList(interfaces) {
             interfacesArray.push(appObject);
         });
 
-        // var appName = "Athena Interface";
+        // var appName = "Vircadia Interface";
         // var appObject = { 
         // 	[appName]: {
         // 		"location": client,
