@@ -54,7 +54,12 @@ function createWindow () {
 	})
 
 	// This line disables the default menu behavior on Windows.
-	// win.setMenu(null);
+    if (isDevelopment && !process.env.IS_TEST) {
+        // Don't nullify the menu.
+    } else {
+        win.setMenu(null);
+    }
+	
 
 	if (process.env.WEBPACK_DEV_SERVER_URL) {
 		// Load the url of the dev server if in development mode
