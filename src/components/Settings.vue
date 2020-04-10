@@ -31,7 +31,7 @@
                         
                         <h3 class="mx-7 mt-5">Installation Path</h3>
                         
-                        <p class="mx-7 mt-3 bodyText">The installs folder is the directory that your Athena installations are located in.<br />
+                        <p class="mx-7 mt-3 bodyText">The installs folder is the directory that your Vircadia installations are located in.<br />
                             The launcher will detect the installations.
                         </p>
                         
@@ -272,7 +272,7 @@ export default {
 			if(this.$store.state.interfaceSelectionRequired) {
 				this.showRequireInterface = true;
 			} else {
-				ipcRenderer.send('set-athena-location');
+				ipcRenderer.send('set-vircadia-location');
 			}
 		},
 		setLibrary: function() {

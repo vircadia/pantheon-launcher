@@ -1,7 +1,7 @@
 <!--
-//  WantToClose.vue
+//  NoUpdateAvailable.vue
 //
-//  Created by KasenVR on 19 Mar 2020.
+//  Created by KasenVR on 28 Mar 2020.
 //  Copyright 2020 Vircadia and contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -11,7 +11,7 @@
     <v-dialog
         width="500"
         persistent
-        v-model="showWantToClose"
+        v-model="showNoUpdateAvailable"
     >
         <v-card>
             <v-card-title
@@ -19,12 +19,12 @@
                 primary-title
                 dark
             >
-                <v-icon color="green" class="mr-2">mdi-comment-question</v-icon>
-                Interface Instance Detected
+                <v-icon color="red" class="mr-2">mdi-comment-question</v-icon>
+                No Update Available
             </v-card-title>
     
             <v-card-text>
-                Are you sure you want to quit? Closing the launcher may close your Interface.
+                There is currently no update available. Would you like to reinstall your Interface?
             </v-card-text>
     
             <v-divider></v-divider>
@@ -32,16 +32,16 @@
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
-                    color="primary"
+                    color="red"
                     text
-                    @click="continueClose(); $emit('hideDialog')"
+                    @click="reinstallInterface(); $emit('hideDialog')"
                 >
-                    Yes
+                    Reinstall
                 </v-btn>
                 <v-btn
                     color="primary"
                     text
-                    @click="cancelClose(); $emit('hideDialog')"
+                    @click="doNothing(); $emit('hideDialog')"
                 >
                     No
                 </v-btn>
@@ -55,17 +55,17 @@
 const { ipcRenderer } = require('electron');
 
 export default {
-    name: 'WantToClose',
+    name: 'NoUpdateAvailable',
 	methods: {
-        continueClose: function () {
-            ipcRenderer.send('close-launcher');
+        reinstallInterface: function() {
+            ipcRenderer.send('download-vircadia');
         },
-        cancelClose: function () {
+        doNothing: function () {
             // Nothing to do.
-        },
+        }
      },
     data: () => ({
-        showWantToClose: true,
+        showNoUpdateAvailable: true,
     }),
 };
 </script>

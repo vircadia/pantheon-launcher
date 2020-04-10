@@ -51,17 +51,17 @@
     >
         <div class="d-flex align-center">
             <v-img
-                alt="Project Athena Logo"
+                alt="Vircadia Logo"
                 id="titleIMG"
                 class="shrink mr-2"
-                v-on:click="launchBrowser('https://projectathena.io/')"
+                v-on:click="launchBrowser('https://vircadia.com/')"
                 contain
                 src="./assets/logo_256_256.png"
                 transition="scale-transition"
                 width="40"
             />
             
-            <h2 id="titleURL" v-on:click="launchBrowser('https://projectathena.io/')">Project Athena</h2>
+            <h2 id="titleURL" v-on:click="launchBrowser('https://vircadia.com/')">Vircadia</h2>
 
             <v-btn
                 v-on:click="launchBrowser('https://github.com/kasenvr/project-athena')"
@@ -75,28 +75,43 @@
             </v-btn>
         </div>
 
-      <v-spacer></v-spacer>
-				<v-btn
-					v-on:click.native="downloadInterface()"
-					:right=true
-					color="blue"
-					:tile=true
-                    :depressed="isDownloading"
-                    :disabled="isSilentInstalling || disableDownloadButton"
-				>
-                    <span style="font-size: 12px;">{{downloadText}}</span>
-					<v-progress-circular
-						:size="25"
-						:width="5"
-						:rotate="90"
-						:value="downloadProgress"
-						color="red"
-						v-if="showCloudDownload"
-                        class="ml-2"
-					>
-					</v-progress-circular>
-					<v-icon class="ml-2" v-if="showCloudIcon">cloud_download</v-icon>
-				</v-btn>
+        <v-spacer></v-spacer>
+        
+            <v-btn
+                v-if="showDownloadButton"
+                v-on:click.native="downloadInterface()"
+                :right=true
+                color="blue"
+                :tile=true
+                :depressed="isDownloading"
+                :disabled="isSilentInstalling || disableDownloadButton"
+                id="downloadButton"
+            >
+                <span>{{downloadText}}</span>
+                <v-progress-circular
+                    :size="25"
+                    :width="5"
+                    :rotate="90"
+                    :value="downloadProgress"
+                    color="red"
+                    v-if="showCloudDownload"
+                    class="ml-2"
+                >
+                </v-progress-circular>
+                <v-icon class="ml-2" v-if="showCloudIcon">cloud_download</v-icon>
+            </v-btn>
+            
+            <v-btn
+                v-if="showUpdateButton"
+                v-on:click.native="checkForUpdates()"
+                :right=true
+                color="blue"
+                :tile=true
+                id="updateButton"
+            >
+                <span>Check for Updates</span>
+                <v-icon class="ml-2" v-if="showCloudIcon">cloud_download</v-icon>
+            </v-btn>
             
             <!-- <v-tooltip top>	
                 <template v-slot:activator="{ on }">
@@ -194,10 +209,10 @@
                 <v-icon>mdi-play</v-icon>
             </v-btn>
 
-    </v-app-bar>
+        </v-app-bar>
 		
     <v-content class="" id="mainContent">
-			<!-- <iframe id="mainIframe" src="https://projectathena.io/" style="width: 100%; height: 100%;"></iframe>  -->
+			<!-- <iframe id="mainIframe" src="https://vircadia.com/" style="width: 100%; height: 100%;"></iframe>  -->
 			<transition name="fade" mode="out-in">
 				<component v-bind:is="showTab"></component>
 			</transition>
@@ -209,7 +224,7 @@
         </transition>
     </v-content>
 		
-  </v-app>
+    </v-app>
 </template>
 
 <script>
@@ -217,14 +232,17 @@ var vue_this;
 const { ipcRenderer } = require('electron');
 
 ipcRenderer.on('download-installer-progress', (event, arg) => {
-	var downloadProgress = arg.percent;
-	if (downloadProgress < 1 && downloadProgress > 0) { // If downloading...
-		vue_this.showCloudIcon = false;
-		vue_this.showCloudDownload = true;
+    var downloadProgress = arg.percent;
+    if (downloadProgress < 1 && downloadProgress > 0) { // If downloading...
+        vue_this.showCloudIcon = false;
+        vue_this.showCloudDownload = true;
+        vue_this.showDownloadButton = true;
+        vue_this.showUpdateButton = false;    
         vue_this.disableInstallIcon = true;
+        vue_this.isDownloading = true;
         vue_this.downloadText = "Downloading";
         vue_this.downloadProgress = downloadProgress * 100;
-	} else if (downloadProgress == 1) { // When done.
+    } else if (downloadProgress == 1) { // When done.
         vue_this.showCloudIcon = true;
         vue_this.showCloudDownload = false;
         vue_this.disableInstallIcon = false;
@@ -233,8 +251,8 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
         vue_this.downloadText = "Awaiting Install";
         vue_this.closeDialog();  // "Cancel Download" dialog may be open.
         // vue_this.openDialog('DownloadComplete', true);
-	}
-	console.info("Installer Download Progress:", downloadProgress);
+    }
+    console.info("Installer Download Progress:", downloadProgress);
 });
 
 ipcRenderer.on('download-cancelled', (event) => {
@@ -339,6 +357,8 @@ ipcRenderer.on('silent-installer-complete', (event, arg) => {
     vue_this.downloadText = "Download Interface";
     vue_this.isSilentInstalling = false;
     vue_this.disableDownloadButton = false;
+    vue_this.showDownloadButton = false;
+    vue_this.showUpdateButton = true;
     vue_this.openDialog('InstallComplete', true);
 });
 
@@ -348,6 +368,14 @@ ipcRenderer.on('silent-installer-failed', (event, arg) => {
     vue_this.disableDownloadButton = false;
     vue_this.$store.state.currentNotice = arg;
     vue_this.openDialog('InstallFailed', true);
+});
+
+ipcRenderer.on('checked-for-updates', (event, arg) => {
+    if (arg.checkForUpdates > 0) {
+        vue_this.openDialog('UpdateAvailable', true);
+    } else {
+        vue_this.openDialog('NoUpdateAvailable', true);
+    }
 });
 
 import HelloWorld from './components/HelloWorld';
@@ -362,13 +390,15 @@ import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
 import InstallComplete from './components/Dialogs/InstallComplete'
 import InstallFailed from './components/Dialogs/InstallFailed'
 import WantToClose from './components/Dialogs/WantToClose'
+import UpdateAvailable from './components/Dialogs/UpdateAvailable'
+import NoUpdateAvailable from './components/Dialogs/NoUpdateAvailable'
 
 export default {
-	name: 'App',
-	components: {
-		HelloWorld,
-		FavoriteWorlds,
-		Settings,
+    name: 'App',
+    components: {
+        HelloWorld,
+        FavoriteWorlds,
+        Settings,
         // Dialogs
         CancelDownload,
         DownloadComplete,
@@ -377,9 +407,11 @@ export default {
         NoInterfaceFound,
         InstallComplete,
         InstallFailed,
-        WantToClose
-	},
-	methods: {
+        WantToClose,
+        UpdateAvailable,
+        NoUpdateAvailable
+    },
+    methods: {
         toggleTab: function(tab) {
             if(this.showTab == tab) {
                 this.showTab = "";
@@ -402,7 +434,7 @@ export default {
             this.shouldShowDialog = false;
         },
 		attemptLaunchInterface: function() {
-			// var exeLoc = ipcRenderer.sendSync('get-athena-location'); // todo: check if that location exists first when using that, we need to default to using folder path + /interface.exe otherwise.
+			// var exeLoc = ipcRenderer.sendSync('get-vircadia-location'); // todo: check if that location exists first when using that, we need to default to using folder path + /interface.exe otherwise.
             var exeLoc;
             if (this.$store.state.selectedInterface) {
                 exeLoc = this.$store.state.selectedInterface.folder + "interface.exe";
@@ -428,49 +460,54 @@ export default {
 			shell.openExternal(url);
 		},
 		downloadInterface: function() {
-			if (!this.isDownloading) {
+            // This function also auto-installs Interface.
+            if (!this.isDownloading) {
                 this.isDownloading = true;
-				const { ipcRenderer } = require('electron');
-				ipcRenderer.send('download-athena');
+                const { ipcRenderer } = require('electron');
+                ipcRenderer.send('download-vircadia');
             } else {
                 vue_this.openDialog('CancelDownload', true);
-			}
+            }
 		},
-		installInterface: function() {
-			const { ipcRenderer } = require('electron');
-			ipcRenderer.send('install-athena');
-		},
+        installInterface: function() {
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('install-vircadia');
+        },
         selectInterfaceExe: function() {
             const { ipcRenderer } = require('electron');
-            ipcRenderer.send('set-athena-location');
+            ipcRenderer.send('set-vircadia-location');
         },
+        checkForUpdates: function() {
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('check-for-updates');            
+        }
 	},
-	created: function () {
-		const { ipcRenderer } = require('electron');
-		vue_this = this;
-        
+    created: function () {
+        const { ipcRenderer } = require('electron');
+        vue_this = this;
+
         window.onbeforeunload = (e) => {
             e.returnValue = false;
             ipcRenderer.send('request-close');
         }
-        
-		ipcRenderer.send('load-state');
+
+        ipcRenderer.send('load-state');
         ipcRenderer.send('get-library-folder');
-	},
-	computed: {
-		interfaceSelected () {
-			return this.$store.state.selectedInterface;
-		}
-	},
+        },
+        computed: {
+            interfaceSelected() {
+                return this.$store.state.selectedInterface;
+            }
+        },
 	watch: {
-		noSteamVR: function (newValue, oldValue) {
+        noSteamVR: function (newValue, oldValue) {
             if(newValue != oldValue) {
                 this.$store.commit('mutate', {
                     property: 'noSteamVR', 
                     with: newValue
                 });
             }
-		},
+        },
         allowMultipleInstances: function (newValue, oldValue) {
             if(newValue != oldValue) {
                 this.$store.commit('mutate', {
@@ -479,25 +516,30 @@ export default {
                 });
             }
         },
-		interfaceSelected (newVal, oldVal) {
-			// console.log(`We have ${newVal} now!`);
-		}
-	},
-	data: () => ({
+        interfaceSelected (newVal, oldVal) {
+            if (newVal) {
+                this.showDownloadButton = false;
+                this.showUpdateButton = true;
+            }
+        }
+    },
+    data: () => ({
         showTab: '',
         showDialog: '',
         shouldShowDialog: false,
-		noSteamVR: false,
-		allowMultipleInstances: false,
-		downloadProgress: 0,
-		isDownloading: false,
+        noSteamVR: false,
+        allowMultipleInstances: false,
+        downloadProgress: 0,
+        isDownloading: false,
         isSilentInstalling: false,
         downloadText: "Download Interface",
-		showCloudIcon: true,
-		showCloudDownload: false,
-		disableInstallIcon: false,
+        showCloudIcon: true,
+        showCloudDownload: false,
+        disableInstallIcon: false,
         disableDownloadButton: false,
+        showDownloadButton: true,
+        showUpdateButton: false,
         launchOptions: [],
-	}),
+    }),
 };
 </script>

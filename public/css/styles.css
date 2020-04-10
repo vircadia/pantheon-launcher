@@ -132,3 +132,11 @@ pre {
 .v-application .blue.v-btn--depressed {
     background-color: #34455f !important;
 }
+
+#downloadButton span {
+    font-size: 12px;
+}
+
+#updateButton span {
+    font-size: 12px;
+}

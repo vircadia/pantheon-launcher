@@ -1,7 +1,7 @@
 <!--
-//  WantToClose.vue
+//  UpdateAvailable.vue
 //
-//  Created by KasenVR on 19 Mar 2020.
+//  Created by KasenVR on 28 Mar 2020.
 //  Copyright 2020 Vircadia and contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -11,7 +11,7 @@
     <v-dialog
         width="500"
         persistent
-        v-model="showWantToClose"
+        v-model="showUpdateAvailable"
     >
         <v-card>
             <v-card-title
@@ -20,11 +20,11 @@
                 dark
             >
                 <v-icon color="green" class="mr-2">mdi-comment-question</v-icon>
-                Interface Instance Detected
+                Update Available
             </v-card-title>
     
             <v-card-text>
-                Are you sure you want to quit? Closing the launcher may close your Interface.
+                An update is available. Would you like to download and install it?
             </v-card-text>
     
             <v-divider></v-divider>
@@ -34,14 +34,14 @@
                 <v-btn
                     color="primary"
                     text
-                    @click="continueClose(); $emit('hideDialog')"
+                    @click="continueUpdate(); $emit('hideDialog')"
                 >
                     Yes
                 </v-btn>
                 <v-btn
                     color="primary"
                     text
-                    @click="cancelClose(); $emit('hideDialog')"
+                    @click="cancelUpdate(); $emit('hideDialog')"
                 >
                     No
                 </v-btn>
@@ -55,17 +55,17 @@
 const { ipcRenderer } = require('electron');
 
 export default {
-    name: 'WantToClose',
+    name: 'UpdateAvailable',
 	methods: {
-        continueClose: function () {
-            ipcRenderer.send('close-launcher');
+        continueUpdate: function () {
+            ipcRenderer.send('download-vircadia');
         },
-        cancelClose: function () {
+        cancelUpdate: function () {
             // Nothing to do.
         },
      },
     data: () => ({
-        showWantToClose: true,
+        showUpdateAvailable: true,
     }),
 };
 </script>
