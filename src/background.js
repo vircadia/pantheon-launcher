@@ -627,8 +627,15 @@ async function silentInstall() {
                 // On installer exit...
                 if (err) {
                     console.info("Installation failed.");
-                    win.webContents.send('silent-installer-failed');
-                    // throw err;
+                    var errorMessage;
+                    
+                    if (err.code === "EACCES") {
+                        errorMessage = "Please run the launcher as an administrator to continue.";
+                    } else {
+                        errorMessage = "An error has occurred with code: " + err.code;
+                    }
+                    
+                    win.webContents.send('silent-installer-failed', {errorMessage});
                 } else {
                     console.info("Installation complete.");
                     console.info("Running post-install.");
@@ -675,7 +682,12 @@ async function postInstall() {
             //file written successfully
         });
         
-        win.webContents.send('silent-installer-complete');
+        var postInstallPackage = {
+            "name": vircadiaMetaJSON.latest.name,
+            "folder": installPath,
+        }
+        
+        win.webContents.send('silent-installer-complete', postInstallPackage);
     }).catch(function(e) {
         console.info("Failed to fetch library for post install. Error:", e);
     });

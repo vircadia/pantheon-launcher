@@ -360,13 +360,24 @@ ipcRenderer.on('silent-installer-complete', (event, arg) => {
     vue_this.showDownloadButton = false;
     vue_this.showUpdateButton = true;
     vue_this.openDialog('InstallComplete', true);
+    
+    vue_this.$store.commit('mutate', {
+        property: 'interfaceSelectionRequired', 
+        with: false
+    });
+    vue_this.$store.commit('mutate', {
+        property: 'selectedInterface', 
+        with: { name: arg.name, folder: arg.folder }
+    });
+    
+    ipcRenderer.send('set-current-interface', arg.folder);
 });
 
 ipcRenderer.on('silent-installer-failed', (event, arg) => {
     vue_this.downloadText = "Download Interface";
     vue_this.isSilentInstalling = false;
     vue_this.disableDownloadButton = false;
-    vue_this.$store.state.currentNotice = arg;
+    vue_this.$store.state.currentNotice = arg.errorMessage;
     vue_this.openDialog('InstallFailed', true);
 });
 
@@ -449,11 +460,7 @@ export default {
             }
 		},
         launchInterface: function(exeLoc) {
-            var allowMulti = false;
-            if(this.$store.state.allowMultipleInstances) {
-                allowMulti = true;
-            }
-            ipcRenderer.send('launch-interface', { "exec": exeLoc, "steamVR": this.noSteamVR, "allowMultipleInstances": allowMulti});
+            ipcRenderer.send('launch-interface', { "exec": exeLoc, "steamVR": this.noSteamVR, "allowMultipleInstances": this.allowMultipleInstances });
         },
 		launchBrowser: function(url) {
 			const { shell } = require('electron');
@@ -517,6 +524,7 @@ export default {
             }
         },
         interfaceSelected (newVal, oldVal) {
+            console.info("Interface selected:", newVal);
             if (newVal) {
                 this.showDownloadButton = false;
                 this.showUpdateButton = true;

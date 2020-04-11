@@ -264,8 +264,7 @@ export default {
 				property: 'selectedInterface', 
 				with: { name: selected.name, folder: selected.folder }
 			});
-            this.selectedInterface = selected.name;
-            console.info("Set", this.selectedInterface, "from...", selected.name);
+            
 			ipcRenderer.send('set-current-interface', selected.folder);
 		},
 		selectInterfaceExe: function() {
@@ -324,11 +323,18 @@ export default {
     computed: {
         librarySelected () {
             return this.$store.state.currentLibraryFolder;
+        },
+        interfaceSelected () {
+            return this.$store.state.selectedInterface;
         }
     },
     watch: {
         librarySelected (newVal, oldVal) {
             this.currentFolder = newVal;
+        },
+        interfaceSelected (newVal, oldVal) {
+            this.selectedInterface = newVal.name;
+            console.info("Set selected interface to...", this.selectedInterface, "from...", newVal.name);
         }
     },
 	created: function () {
