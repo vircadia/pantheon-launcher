@@ -644,12 +644,14 @@ async function silentInstall() {
             });
         } catch (e) {
             console.info("Try block: Silent installation failed.")
-            win.webContents.send('silent-installer-failed');    
+            var errorMessage = "An error has occurred: " + e;
+            win.webContents.send('silent-installer-failed', errorMessage);
         }
         
     }).catch(function(e) {
         console.info("Failed to fetch library for silent install. Error:", e);
-        win.webContents.send('silent-installer-failed');
+        var errorMessage = "An error has occurred: " + e;
+        win.webContents.send('silent-installer-failed', errorMessage);
     });
 }
 
