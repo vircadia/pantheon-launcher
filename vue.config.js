@@ -25,8 +25,9 @@ module.exports = {
 				"win": {
 					"target": "nsis",
 					"icon": "src/assets/logo_256_256.ico",
-					"publisherName": "https://vircadia.com/",
+					"publisherName": "Vircadia",
 					"requestedExecutionLevel": "requireAdministrator",
+                    "rfc3161TimeStampServer": "http://timestamp.comodoca.com/",
 				},
 				"linux": {
 					"target": [
@@ -39,6 +40,7 @@ module.exports = {
 				// ],
 				"appId": "com.vircadia.pantheon",
 				"productName": "Vircadia Launcher",
+                "copyright": "Vircadia"
 			},
 		},
 	},
