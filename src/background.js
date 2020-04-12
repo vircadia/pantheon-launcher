@@ -635,7 +635,7 @@ async function silentInstall() {
                         errorMessage = "An error has occurred with code: " + err.code;
                     }
                     
-                    win.webContents.send('silent-installer-failed', {errorMessage});
+                    win.webContents.send('silent-installer-failed', errorMessage);
                 } else {
                     console.info("Installation complete.");
                     console.info("Running post-install.");
