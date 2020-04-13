@@ -348,6 +348,9 @@ ipcRenderer.on('interface-running', (event, arg) => {
     vue_this.openDialog('WantToClose', true);
 });
 
+ipcRenderer.on('first-time-user', (event, arg) => {
+    vue_this.openDialog('FirstTimeUser', true);
+});
 
 ipcRenderer.on('silent-installer-running', (event, arg) => {
     vue_this.downloadText = "Installing, please wait...";
@@ -407,6 +410,7 @@ import InstallFailed from './components/Dialogs/InstallFailed'
 import WantToClose from './components/Dialogs/WantToClose'
 import UpdateAvailable from './components/Dialogs/UpdateAvailable'
 import NoUpdateAvailable from './components/Dialogs/NoUpdateAvailable'
+import FirstTimeUser from './components/Dialogs/FirstTimeUser'
 
 export default {
     name: 'App',
@@ -424,7 +428,8 @@ export default {
         InstallFailed,
         WantToClose,
         UpdateAvailable,
-        NoUpdateAvailable
+        NoUpdateAvailable,
+        FirstTimeUser
     },
     methods: {
         toggleTab: function(tab) {

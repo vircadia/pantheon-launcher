@@ -400,12 +400,14 @@ ipcMain.on('save-state', (event, arg) => {
 })
 
 ipcMain.on('load-state', (event, arg) => {
-	getSetting('vircadia_launcher.state', storagePath.default).then(function(results){
+	getSetting('vircadia_launcher.state', storagePath.default).then(function(results) {
 		if(results) {
 			win.webContents.send('state-loaded', {
 				results
 			});
-		}
+		} else {
+            win.webContents.send('first-time-user');
+        }
 	});
 })
 
