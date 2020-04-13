@@ -144,8 +144,6 @@
                     </v-btn>
                 </template>
                 <div style="background: rgba(255,255,255,0.8);">
-                    <!-- <v-checkbox id="noSteamVR" class="" v-model="noSteamVR" label="No SteamVR" value="true"></v-checkbox> -->
-                    <!-- <v-checkbox color="blue" id="multipleInterfaces" class="" v-model="allowMultipleInstances" @click="multipleInstances" label="Allow Multiple Instances" value="true"></v-checkbox> -->
                 </div>
                 <v-list
                     subheader
@@ -200,6 +198,7 @@
 
             <v-btn
                 v-on:click.native="attemptLaunchInterface()"
+                :disabled="disableLaunchButton"
                 :right=true
                 class=""
                 color="rgba(133, 0, 140, 0.8)"
@@ -234,6 +233,7 @@ const { ipcRenderer } = require('electron');
 ipcRenderer.on('download-installer-progress', (event, arg) => {
     var downloadProgress = arg.percent;
     if (downloadProgress < 1 && downloadProgress > 0) { // If downloading...
+        vue_this.disableLaunchButton = true;
         vue_this.showCloudIcon = false;
         vue_this.showCloudDownload = true;
         vue_this.showDownloadButton = true;
@@ -260,6 +260,7 @@ ipcRenderer.on('download-cancelled', (event) => {
     vue_this.showCloudDownload = false;
     vue_this.disableInstallIcon = false;
     vue_this.isDownloading = false;
+    vue_this.disableLaunchButton = false;
     vue_this.downloadText = "Download Interface";
 })
 
@@ -268,6 +269,7 @@ ipcRenderer.on('download-installer-failed', (event) => {
     vue_this.showCloudDownload = false;
     vue_this.disableInstallIcon = false;
     vue_this.isDownloading = false;
+    vue_this.disableLaunchButton = false;
     vue_this.downloadText = "Download Interface";
     vue_this.openDialog('DownloadFailed', true);
 });
@@ -359,6 +361,7 @@ ipcRenderer.on('silent-installer-complete', (event, arg) => {
     vue_this.disableDownloadButton = false;
     vue_this.showDownloadButton = false;
     vue_this.showUpdateButton = true;
+    vue_this.disableLaunchButton = false;
     vue_this.openDialog('InstallComplete', true);
     
     vue_this.$store.commit('mutate', {
@@ -376,6 +379,7 @@ ipcRenderer.on('silent-installer-complete', (event, arg) => {
 ipcRenderer.on('silent-installer-failed', (event, arg) => {
     vue_this.downloadText = "Download Interface";
     vue_this.isSilentInstalling = false;
+    vue_this.disableLaunchButton = false;
     vue_this.disableDownloadButton = false;
     vue_this.$store.state.currentNotice = arg;
     vue_this.openDialog('InstallFailed', true);
@@ -533,10 +537,15 @@ export default {
     },
     data: () => ({
         showTab: '',
+        // Dialog Data
         showDialog: '',
         shouldShowDialog: false,
+        // Launch Data
+        launchOptions: [],
         noSteamVR: false,
         allowMultipleInstances: false,
+        disableLaunchButton: false,
+        // Download & Install Data
         downloadProgress: 0,
         isDownloading: false,
         isSilentInstalling: false,
@@ -547,7 +556,6 @@ export default {
         disableDownloadButton: false,
         showDownloadButton: true,
         showUpdateButton: false,
-        launchOptions: [],
     }),
 };
 </script>
