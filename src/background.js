@@ -10,6 +10,10 @@
 
 'use strict'
 
+import * as Sentry from '@sentry/electron'
+import { init } from '@sentry/electron/dist/main';
+init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
+
 import { app, protocol, BrowserWindow, DownloadItem } from 'electron'
 import {
 	installVueDevtools,
@@ -634,7 +638,7 @@ async function silentInstall() {
                     if (err.code === "EACCES") {
                         errorMessage = "Please run the launcher as an administrator to continue.";
                     } else {
-                        errorMessage = "An error has occurred with code: " + err.code;
+                        errorMessage = "An error has occurred with code: " + err.code + " Full Error: " + err;
                     }
                     
                     win.webContents.send('silent-installer-failed', errorMessage);
