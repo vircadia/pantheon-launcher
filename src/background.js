@@ -401,7 +401,7 @@ ipcMain.on('save-state', (event, arg) => {
 
 ipcMain.on('load-state', (event, arg) => {
 	getSetting('vircadia_launcher.state', storagePath.default).then(function(results) {
-		if(results) {
+		if (results) {
 			win.webContents.send('state-loaded', {
 				results
 			});
@@ -412,7 +412,7 @@ ipcMain.on('load-state', (event, arg) => {
 })
 
 ipcMain.on('set-metaverse-server', (event, arg) => {
-	if(arg != "") {
+	if (arg != "") {
 		process.env.HIFI_METAVERSE_URL = arg;
 	} else {
 		delete process.env.HIFI_METAVERSE_URL;
@@ -448,7 +448,7 @@ ipcMain.on('launch-interface', (event, arg) => {
 ipcMain.on('get-vircadia-location', async (event, arg) => {
     var vircadiaLocation = await getSetting('vircadia_interface.location', storagePath.interfaceSettings);
     var vircadiaLocationExe = vircadiaLocation.toString();
-    console.info("VircadiaLocationExe:",vircadiaLocationExe);
+    console.info("VircadiaLocationExe:", vircadiaLocationExe);
     event.returnValue = vircadiaLocationExe;
 })
 

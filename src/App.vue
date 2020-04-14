@@ -230,6 +230,9 @@
 var vue_this;
 const { ipcRenderer } = require('electron');
 
+import * as Sentry from '@sentry/electron';
+Sentry.init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
+
 ipcRenderer.on('download-installer-progress', (event, arg) => {
     var downloadProgress = arg.percent;
     if (downloadProgress < 1 && downloadProgress > 0) { // If downloading...
