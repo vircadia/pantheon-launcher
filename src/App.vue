@@ -109,6 +109,7 @@
             
             <v-btn
                 v-if="showUpdateButton"
+                :disabled="disableUpdateButton"
                 v-on:click.native="checkForUpdates()"
                 :right=true
                 color="blue"
@@ -239,6 +240,7 @@ const { ipcRenderer } = require('electron');
 ipcRenderer.on('download-installer-progress', (event, arg) => {
     var downloadProgress = arg.percent;
     if (downloadProgress < 1 && downloadProgress > 0) { // If downloading...
+        vue_this.disableDownloadButton = false; // Enable the download button again now that it has started.
         vue_this.disableLaunchButton = true;
         vue_this.showCloudIcon = false;
         vue_this.showCloudDownload = true;
@@ -395,6 +397,9 @@ ipcRenderer.on('silent-installer-failed', (event, arg) => {
 });
 
 ipcRenderer.on('checked-for-updates', (event, arg) => {
+    vue_this.disableUpdateButton = false;
+    vue_this.disableLaunchButton = false;
+    
     if (arg.checkForUpdates > 0) {
         vue_this.openDialog('UpdateAvailable', true);
     } else {
@@ -482,6 +487,9 @@ export default {
 			shell.openExternal(url);
 		},
 		downloadInterface: function() {
+            this.disableDownloadButton = true;
+            this.disableLaunchButton = true;
+            
             // This function also auto-installs Interface.
             if (!this.isDownloading) {
                 this.isDownloading = true;
@@ -500,6 +508,9 @@ export default {
             ipcRenderer.send('set-vircadia-location');
         },
         checkForUpdates: function() {
+            this.disableUpdateButton = true;
+            this.disableLaunchButton = true;
+            
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('check-for-updates');            
         }
@@ -565,6 +576,7 @@ export default {
         showCloudDownload: false,
         disableInstallIcon: false,
         disableDownloadButton: false,
+        disableUpdateButton: false,
         showDownloadButton: true,
         showUpdateButton: false,
     }),
