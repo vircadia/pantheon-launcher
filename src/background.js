@@ -141,7 +141,7 @@ var storagePath = {
 	currentLibrary: null,
 };
 
-var installFolderName = "\\Vircadia_Interface_Latest_SILENT";
+var installFolderName = "\\Vircadia_Interface_Latest_SILENT/";
 
 var currentInterface;
 var requireInterfaceSelection;
