@@ -141,7 +141,7 @@ var storagePath = {
 	currentLibrary: null,
 };
 
-var installFolderName = "\\Vircadia_Interface_Latest_SILENT/";
+var installFolderName = "\\Vircadia_Interface_Latest_SILENT\\";
 
 var currentInterface;
 var requireInterfaceSelection;
@@ -384,7 +384,7 @@ async function getSetting(setting, storageDataPath) {
                 returnValue = false;
                 rej("Error: " + error);
                 throw error;
-            } else if (Object.entries(data).length == 0) {
+            } else if (Object.entries(data).length === 0) {
                 // console.info("Requested:", setting, "Got data:", data, "Object.entries:", Object.entries(data).length);
                 returnValue = false;
                 rej("Not found.")
@@ -424,7 +424,7 @@ ipcMain.on('load-state', (event, arg) => {
 })
 
 ipcMain.on('set-metaverse-server', (event, arg) => {
-    if (arg != "") {
+    if (arg !== "") {
         process.env.HIFI_METAVERSE_URL = arg;
     } else {
         delete process.env.HIFI_METAVERSE_URL;
@@ -735,7 +735,7 @@ ipcMain.on('download-vircadia', async (event, arg) => {
                 var md5current = hasha.fromFileSync(previousInstaller, {algorithm: 'md5'});
                 md5current = md5current.toUpperCase();
                 
-                if (md5current == vircadiaMetaJSON.latest.md5) {
+                if (md5current === vircadiaMetaJSON.latest.md5) {
                     silentInstall(true);
                     return;
                 } else {
