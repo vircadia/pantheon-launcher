@@ -277,7 +277,14 @@ function setLibraryDialog() {
 
 async function getCurrentInterfaceJSON() {
     var interfacePackageJSON = storagePath.interfaceSettings + '/interface_package.json';
-    let rawdata = fs.readFileSync(interfacePackageJSON);
+    let rawdata;
+    try {
+        rawdata = fs.readFileSync(interfacePackageJSON);
+    } catch {
+        // win.webContents.send('failed-to-retrieve-interface-metadata', "We failed to get the current selected Interface metadata to perform the requested action.");
+        return false;
+    }
+    
     let interfaceJSON = JSON.parse(rawdata);
     
     if (interfaceJSON) {
@@ -679,16 +686,17 @@ async function postInstall() {
             installPath = storagePath.default + installFolderName;
         }
         
+        var packageJSONLocation = installPath + "/launcher_settings";
         var packageJSONFilename = installPath + "/launcher_settings/interface_package.json";
         
-        fs.writeFileSync(packageJSONFilename, JSON.stringify(vircadiaPackageJSON), err => {
-            if (err) {
-                console.error(err);
-                win.webContents.send('silent-installer-failed', 'Failed to create Interface metadata post-install.');
-                return
-            }
-            //file written successfully
-        });
+        try {
+            fs.mkdirSync(packageJSONLocation, { recursive: false });
+            fs.writeFileSync(packageJSONFilename, JSON.stringify(vircadiaPackageJSON));
+        } catch {
+            console.error(err);
+            win.webContents.send('silent-installer-failed', 'Failed to create Interface metadata post-install.');
+            return;
+        }
         
         var postInstallPackage = {
             "name": vircadiaMetaJSON.latest.name,

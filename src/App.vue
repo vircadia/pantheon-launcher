@@ -360,6 +360,16 @@ ipcRenderer.on('first-time-user', (event, arg) => {
     vue_this.openDialog('FirstTimeUser', true);
 });
 
+ipcRenderer.on('failed-to-retrieve-interface-metadata', (event, arg) => {
+    
+    vue_this.$store.commit('mutate', {
+        property: 'currentNotice', 
+        with: arg
+    });
+    
+    vue_this.openDialog('FailedMetadata', true);
+});
+
 ipcRenderer.on('silent-installer-running', (event, arg) => {
     vue_this.downloadText = "Installing, please wait...";
     vue_this.isSilentInstalling = true;
@@ -392,7 +402,10 @@ ipcRenderer.on('silent-installer-failed', (event, arg) => {
     vue_this.isSilentInstalling = false;
     vue_this.disableLaunchButton = false;
     vue_this.disableDownloadButton = false;
-    vue_this.$store.state.currentNotice = arg;
+    vue_this.$store.commit('mutate', {
+        property: 'currentNotice', 
+        with: arg
+    });
     vue_this.openDialog('InstallFailed', true);
 });
 
@@ -422,6 +435,7 @@ import WantToClose from './components/Dialogs/WantToClose'
 import UpdateAvailable from './components/Dialogs/UpdateAvailable'
 import NoUpdateAvailable from './components/Dialogs/NoUpdateAvailable'
 import FirstTimeUser from './components/Dialogs/FirstTimeUser'
+import FailedMetadata from './components/Dialogs/FailedMetadata'
 
 export default {
     name: 'App',
@@ -440,7 +454,8 @@ export default {
         WantToClose,
         UpdateAvailable,
         NoUpdateAvailable,
-        FirstTimeUser
+        FirstTimeUser,
+        FailedMetadata
     },
     methods: {
         toggleTab: function(tab) {

@@ -1,8 +1,8 @@
 <!--
-//  DownloadFailed.vue
+//  FailedMetadata.vue
 //
-//  Created by David Rowe on 14 Feb 2020.
-//  Copyright 2020 Project Athena and contributors.
+//  Created by KasenVR on 28 Mar 2020.
+//  Copyright 2020 Vircadia and contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -11,7 +11,7 @@
     <v-dialog
         width="500"
         persistent
-        v-model="showDownloadFailed"
+        v-model="showFailedMetadata"
     >
         <v-card>
             <v-card-title
@@ -20,11 +20,11 @@
                 dark
             >
                 <v-icon color="red" class="mr-2">mdi-message-alert</v-icon>
-                Download Failed
+                Failed to Retrieve Metadata
             </v-card-title>
     
             <v-card-text>
-                The download of the latest version of Interface failed.
+                {{currentNotice}}
             </v-card-text>
     
             <v-divider></v-divider>
@@ -45,11 +45,19 @@
 
 
 <script>
-export default {
-  name: 'DownloadFailed',
+const { ipcRenderer } = require('electron');
 
-  data: () => ({
-      showDownloadFailed: true,
-  }),
+export default {
+    name: 'FailedMetadata',
+	methods: {
+        
+    },
+    data: () => ({
+        showFailedMetadata: true,
+        currentNotice: "",
+    }),
+    created: function () {
+        this.currentNotice = this.$store.state.currentNotice;
+    }
 };
 </script>
