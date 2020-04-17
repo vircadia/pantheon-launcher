@@ -25,7 +25,7 @@
     
             <v-card-text>
                 Hello there! If you're new to Vircadia, you'll probably want to get the Interface.
-                The Interface is what you will use to navigate and enjoy the virtual worlds in desktop or VR!
+                The Interface is what you use to navigate and enjoy the virtual worlds in desktop or VR!            
             </v-card-text>
     
             <v-divider></v-divider>

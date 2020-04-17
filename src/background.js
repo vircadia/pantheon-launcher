@@ -376,84 +376,84 @@ async function getDownloadURL() {
 }
 
 async function getSetting(setting, storageDataPath) {
-	var returnValue;
+    var returnValue;
 
-	let storagePromise = new Promise((res, rej) => {
-		storage.get(setting, {dataPath: storageDataPath}, function(error, data) {
-			if (error) {
-				returnValue = false;
-				rej("Error: " + error);
-				throw error;
-			} else if (Object.entries(data).length==0) {
-				// console.info("Requested:", setting, "Got data:", data, "Object.entries:", Object.entries(data).length);
-				returnValue = false;
-				rej("Not found.")
-			} else {
-				returnValue = data;
-				res("Success!");
-			}
-		});
-	}).catch(err => {
-		console.info("Attempted to retrieve:", setting, "from:", storageDataPath, "but got:", err)
-	})
+    let storagePromise = new Promise((res, rej) => {
+        storage.get(setting, {dataPath: storageDataPath}, function(error, data) {
+            if (error) {
+                returnValue = false;
+                rej("Error: " + error);
+                throw error;
+            } else if (Object.entries(data).length == 0) {
+                // console.info("Requested:", setting, "Got data:", data, "Object.entries:", Object.entries(data).length);
+                returnValue = false;
+                rej("Not found.")
+            } else {
+                returnValue = data;
+                res("Success!");
+            }
+        });
+    }).catch(err => {
+        console.info("Attempted to retrieve:", setting, "from:", storageDataPath, "but got:", err)
+    })
 
-	// because async won't work otherwise. 
-	let result = await storagePromise; 
-	console.info("getSetting Return Value:",returnValue)
-	return returnValue;
+    // because async won't work otherwise. 
+    let result = await storagePromise; 
+    console.info("getSetting Return Value:",returnValue)
+    return returnValue;
 }
 
 const { ipcMain } = require('electron')
 
 ipcMain.on('save-state', (event, arg) => {
-	storage.set('vircadia_launcher.state', arg, {dataPath: storagePath.default}, function(error) {
-		if (error) throw error;
-	});
+    storage.set('vircadia_launcher.state', arg, {dataPath: storagePath.default}, function(error) {
+        if (error) throw error;
+    });
 })
 
 ipcMain.on('load-state', (event, arg) => {
 	getSetting('vircadia_launcher.state', storagePath.default).then(function(results) {
-		if (results) {
-			win.webContents.send('state-loaded', {
-				results
-			});
-		} else {
+        if (results) {
+            win.webContents.send('state-loaded', {
+                results
+            });
+        } else {
             win.webContents.send('first-time-user');
         }
 	});
 })
 
 ipcMain.on('set-metaverse-server', (event, arg) => {
-	if (arg != "") {
-		process.env.HIFI_METAVERSE_URL = arg;
-	} else {
-		delete process.env.HIFI_METAVERSE_URL;
-	}
-	console.info("Current Metaverse Server:", process.env.HIFI_METAVERSE_URL)
+    if (arg != "") {
+        process.env.HIFI_METAVERSE_URL = arg;
+    } else {
+        delete process.env.HIFI_METAVERSE_URL;
+    }
+    console.info("Current Metaverse Server:", process.env.HIFI_METAVERSE_URL)
 })
 
 ipcMain.on('launch-interface', (event, arg) => {
-	var interface_exe = require('child_process').execFile;
-	// var executablePath = "E:\\Development\\High_Fidelity\\v0860-kasen-VS-release+freshstart\\build\\interface\\Packaged_Release\\Release\\interface.exe";
-	var executablePath = arg.exec;
-	var parameters = [];
+    var interface_exe = require('child_process').execFile;
+    // var executablePath = "E:\\Development\\High_Fidelity\\v0860-kasen-VS-release+freshstart\\build\\interface\\Packaged_Release\\Release\\interface.exe";
+    var executablePath = arg.exec;
+    var parameters = [];
 
-	// arg is expected to be true or false with regards to SteamVR being enabled or not, later on it may be an object or array and we will handle it accordingly.
-	if (arg.steamVR) {
-		parameters.push('--disable-displays="OpenVR (Vive)"');
-		parameters.push('--disable-inputs="OpenVR (Vive)"');
-	}
+    // arg is expected to be true or false with regards to SteamVR being enabled or not, later on it may be an object or array and we will handle it accordingly.
+    if (arg.steamVR) {
+        parameters.push('--disable-displays="OpenVR (Vive)"');
+        parameters.push('--disable-inputs="OpenVR (Vive)"');
+    }
+
+    if (arg.allowMultipleInstances) {
+        parameters.push('--allowMultipleInstances');
+    }
 	
-	if (arg.allowMultipleInstances) {
-		parameters.push('--allowMultipleInstances');
-	}
-		
-	console.info("Nani?", parameters, "type?", Array.isArray(parameters));
+    console.info("Nani?", parameters, "type?", Array.isArray(parameters));
 
-	interface_exe(executablePath, parameters, { windowsVerbatimArguments: true }, function(err, stdout, data) {
-		console.log(err)
-		console.log(stdout.toString());
-	});
+    interface_exe(executablePath, parameters, { windowsVerbatimArguments: true }, function(err, stdout, data) {
+        console.log(err)
+        console.log(stdout.toString());
+    });
   
 })
 
