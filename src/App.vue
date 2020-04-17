@@ -100,13 +100,13 @@
                     :rotate="90"
                     :value="downloadProgress"
                     color="red"
-                    v-if="showCloudDownload"
+                    v-if="showCloudDownloadProgress"
                     class="ml-2"
                 >
                 </v-progress-circular>
                 <v-icon class="ml-2" v-if="showCloudIcon">cloud_download</v-icon>
             </v-btn>
-            
+
             <v-btn
                 v-if="showUpdateButton"
                 :disabled="disableUpdateButton"
@@ -243,7 +243,7 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
         vue_this.disableDownloadButton = false; // Enable the download button again now that it has started.
         vue_this.disableLaunchButton = true;
         vue_this.showCloudIcon = false;
-        vue_this.showCloudDownload = true;
+        vue_this.showCloudDownloadProgress = true;
         vue_this.showDownloadButton = true;
         vue_this.showUpdateButton = false;    
         vue_this.disableInstallIcon = true;
@@ -252,12 +252,14 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
         vue_this.downloadProgress = downloadProgress * 100;
     } else if (downloadProgress == 1) { // When done.
         vue_this.showCloudIcon = true;
-        vue_this.showCloudDownload = false;
+        vue_this.showCloudDownloadProgress = false;
         vue_this.disableInstallIcon = false;
         vue_this.isDownloading = false;
         vue_this.disableDownloadButton = true;
         vue_this.downloadText = "Awaiting Install";
-        vue_this.closeDialog();  // "Cancel Download" dialog may be open.
+        if (vue_this.showDialog = "CancelDownload") {
+            vue_this.closeDialog();  // "Cancel Download" dialog may be open.
+        }
         // vue_this.openDialog('DownloadComplete', true);
     }
     console.info("Installer Download Progress:", downloadProgress);
@@ -265,7 +267,7 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
 
 ipcRenderer.on('download-cancelled', (event) => {
     vue_this.showCloudIcon = true;
-    vue_this.showCloudDownload = false;
+    vue_this.showCloudDownloadProgress = false;
     vue_this.disableInstallIcon = false;
     vue_this.isDownloading = false;
     vue_this.disableLaunchButton = false;
@@ -274,7 +276,7 @@ ipcRenderer.on('download-cancelled', (event) => {
 
 ipcRenderer.on('download-installer-failed', (event) => {
     vue_this.showCloudIcon = true;
-    vue_this.showCloudDownload = false;
+    vue_this.showCloudDownloadProgress = false;
     vue_this.disableInstallIcon = false;
     vue_this.isDownloading = false;
     vue_this.disableLaunchButton = false;
@@ -372,8 +374,15 @@ ipcRenderer.on('failed-to-retrieve-interface-metadata', (event, arg) => {
 
 ipcRenderer.on('silent-installer-running', (event, arg) => {
     vue_this.downloadText = "Installing, please wait...";
-    vue_this.isSilentInstalling = true;
-    vue_this.disableDownloadButton = false;
+    vue_this.isSilentInstalling = true;    
+    vue_this.disableDownloadButton = true;
+    vue_this.disableLaunchButton = true;
+    
+    vue_this.showCloudIcon = false;
+    vue_this.showCloudDownloadProgress = false;
+    
+    vue_this.showDownloadButton = true;
+    vue_this.showUpdateButton = false;
 });
 
 ipcRenderer.on('silent-installer-complete', (event, arg) => {
@@ -382,6 +391,7 @@ ipcRenderer.on('silent-installer-complete', (event, arg) => {
     vue_this.disableDownloadButton = false;
     vue_this.showDownloadButton = false;
     vue_this.showUpdateButton = true;
+    vue_this.showCloudIcon = true;
     vue_this.disableLaunchButton = false;
     vue_this.openDialog('InstallComplete', true);
     
@@ -588,7 +598,7 @@ export default {
         isSilentInstalling: false,
         downloadText: "Download Interface",
         showCloudIcon: true,
-        showCloudDownload: false,
+        showCloudDownloadProgress: false,
         disableInstallIcon: false,
         disableDownloadButton: false,
         disableUpdateButton: false,

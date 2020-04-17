@@ -24,7 +24,7 @@
             </v-card-title>
     
             <v-card-text>
-                An installer for interface was not found. Try downloading it by pressing the "Download Interface" button.
+                An installer for Interface was not found.
             </v-card-text>
     
             <v-divider></v-divider>

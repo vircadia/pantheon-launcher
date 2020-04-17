@@ -26,6 +26,7 @@ const { shell } = require('electron')
 const electronDl = require('electron-dl');
 const { readdirSync } = require('fs')
 const { forEach } = require('p-iteration');
+const hasha = require('hasha');
 const fs = require('fs');
 const compareVersions = require('compare-versions');
 const tasklist = require('tasklist'); // This is specific to Windows.
@@ -571,7 +572,7 @@ function launchInstaller() {
     });
 }
 
-async function silentInstall() {
+async function silentInstall(useOldInstaller) {
     var executableLocation; // This is the downloaded installer.
     var installPath; // This is the location to install the application to.
     var executablePath; // This is the location that the installer exe is located in after being downloaded.
@@ -606,30 +607,34 @@ async function silentInstall() {
         
         parameters.push("/S");
         parameters.push("/D=" + installPath);
-
-        if (!fs.existsSync(executableLocation)) {
-            // Notify main window of the issue.
-            win.webContents.send('no-installer-found');
-            return;
-        } else {
-            console.info("exeLoc:", executableLocation);
-            console.info("exePath:", executablePath);
-            
-            fs.copyFileSync(executableLocation, executablePath + "/Vircadia_Setup_Latest_READY.exe", (err) => {
-                if (err) console.log('ERROR ON COPY: ' + err);
-                console.log('Completed copy operation successfully.');
-            });
-            
-            fs.unlink(executableLocation, (err) => {
-                if (err) console.log('ERROR ON ORIGINAL INSTALLER DELETE: ' + err);
-                console.info(executableLocation, 'was deleted after copying.');
-            });
-            
+        
+        if (useOldInstaller === true) {
             exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
+        } else {
+            if (!fs.existsSync(executableLocation)) {
+                // Notify main window of the issue.
+                win.webContents.send('no-installer-found');
+                return;
+            } else {
+                console.info("exeLoc:", executableLocation);
+                console.info("exePath:", executablePath);
+                
+                fs.copyFileSync(executableLocation, executablePath + "/Vircadia_Setup_Latest_READY.exe", (err) => {
+                    if (err) console.log('ERROR ON COPY: ' + err);
+                    console.log('Completed copy operation successfully.');
+                });
+                
+                fs.unlink(executableLocation, (err) => {
+                    if (err) console.log('ERROR ON ORIGINAL INSTALLER DELETE: ' + err);
+                    console.info(executableLocation, 'was deleted after copying.');
+                });
+                
+                exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
+            }
         }
         
         win.webContents.send('silent-installer-running');
-
+        
         console.info("Installing silently, params:", exeLocToInstall, installPath, parameters)
 
         try { 
@@ -690,10 +695,9 @@ async function postInstall() {
         var packageJSONFilename = installPath + "/launcher_settings/interface_package.json";
         
         try {
-            fs.mkdirSync(packageJSONLocation, { recursive: false });
+            fs.mkdirSync(packageJSONLocation, { recursive: true });
             fs.writeFileSync(packageJSONFilename, JSON.stringify(vircadiaPackageJSON));
         } catch {
-            console.error(err);
             win.webContents.send('silent-installer-failed', 'Failed to create Interface metadata post-install.');
             return;
         }
@@ -712,8 +716,11 @@ async function postInstall() {
 ipcMain.on('download-vircadia', async (event, arg) => {
     var libraryPath;
     var downloadURL = await getDownloadURL();
+    var vircadiaMetaJSON = await getLatestMetaJSON();
     var installerName = "Vircadia_Setup_Latest.exe";
+    var installerNamePost = "Vircadia_Setup_Latest_READY.exe";
     console.info("DLURL:", downloadURL);
+    
     if (downloadURL) {
         getSetting('vircadia_interface.library', storagePath.default).then(function(results){
             if(results) {
@@ -722,10 +729,24 @@ ipcMain.on('download-vircadia', async (event, arg) => {
                 libraryPath = storagePath.default;
             }
             
-            fs.unlink(libraryPath + "/" + installerName, (err) => {
-                if (err) console.log("No previous installation to delete.");
-                console.info(installerName, 'was deleted prior to downloading.');
-            });
+            var previousInstaller = libraryPath + "/" + installerNamePost;
+            
+            if (fs.existsSync(previousInstaller)) {
+                var md5current = hasha.fromFileSync(previousInstaller, {algorithm: 'md5'});
+                md5current = md5current.toUpperCase();
+                
+                if (md5current == vircadiaMetaJSON.latest.md5) {
+                    silentInstall(true);
+                    return;
+                } else {
+                    fs.unlink(previousInstaller, (err) => {
+                        if (err) console.log("No previous installation to delete.");
+                        console.info(installerName, 'was deleted prior to downloading.');
+                        console.info("Latest Live MD5:", vircadiaMetaJSON.latest.md5);
+                        console.info(installerName, "MD5:", md5current);
+                    });
+                }
+            }
             
 			electronDl.download(win, downloadURL, {
 				directory: libraryPath,
@@ -746,7 +767,7 @@ ipcMain.on('download-vircadia', async (event, arg) => {
                         if (percent === 1) { // When the setup download completes...
                             electronDlItem = null;
                             // launchInstaller();
-                            silentInstall();
+                            silentInstall(false);
                         }
                     }
 				},
