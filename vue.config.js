@@ -9,40 +9,40 @@
 */
 
 module.exports = {
-	"transpileDependencies": [
-		"vuetify"
-	],
-	pluginOptions: {
-		electronBuilder: {
-			builderOptions: {
-				"nsis": {
-					"artifactName": "VircadiaLauncherSetup.${ext}",
-					"installerIcon": "src/assets/logo_256_256.ico",
-					"uninstallerIcon": "src/assets/logo_256_256.ico",
-					"uninstallDisplayName": "Vircadia Launcher",
+    "transpileDependencies": [
+        "vuetify"
+    ],
+    pluginOptions: {
+        electronBuilder: {
+            builderOptions: {
+                "nsis": {
+                    "artifactName": "VircadiaLauncherSetup.${ext}",
+                    "installerIcon": "src/assets/logo_256_256.ico",
+                    "uninstallerIcon": "src/assets/logo_256_256.ico",
+                    "uninstallDisplayName": "Vircadia Launcher",
                     "createStartMenuShortcut": true,
-				},
-				"win": {
-					"target": "nsis",
-					"icon": "src/assets/logo_256_256.ico",
-					"publisherName": "Vircadia",
-					"requestedExecutionLevel": "requireAdministrator",
+                },
+                "win": {
+                    "target": "nsis",
+                    "icon": "src/assets/logo_256_256.ico",
+                    "publisherName": "Vircadia",
+                    "requestedExecutionLevel": "requireAdministrator",
                     "rfc3161TimeStampServer": "http://timestamp.comodoca.com/",
-				},
-				"linux": {
-					"target": [
-    					"AppImage",
-    					"deb"
-					]
-				},
-				// "extraFiles": [
-				//   "settings.json"
-				// ],
-				"appId": "com.vircadia.pantheon",
-				"productName": "Vircadia Launcher",
+                },
+                "linux": {
+                    "target": [
+                        "AppImage",
+                    "deb"
+                    ]
+                },
+                // "extraFiles": [
+                //   "settings.json"
+                // ],
+                "appId": "com.vircadia.pantheon",
+                "productName": "Vircadia Launcher",
                 "copyright": "Vircadia"
-			},
-		},
-	},
-	runtimeCompiler: true
+            },
+        },
+    },
+    runtimeCompiler: true
 }
