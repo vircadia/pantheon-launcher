@@ -16,6 +16,7 @@ Vue.use(Vuex);
 export const store = new Vuex.Store({
     devtools: true,
     state: {
+        sentryEnabled: false,
         selectedInterface: null,
         interfaceSelectionRequired: true,
         allowMultipleInstances: false,
@@ -23,7 +24,7 @@ export const store = new Vuex.Store({
         populatedInterfaceList: [],
         noSteamVR: false,
         currentLibraryFolder: "No library folder selected.",
-        currentNotice: ""
+        currentNotice: "",
     },
     mutations: {
         mutate(state, payload) {

@@ -29,6 +29,16 @@
 							
 						</v-toolbar>
                         
+                        <h3 class="mx-7 mt-5">Error Reporting</h3>
+                        
+                        <v-checkbox
+                            class="mx-7"
+                            color="primary"
+                            v-model="sentryEnabled"
+                            :disabled="true"
+                            label="Toggle Error Reporting for the launcher (Currently Disabled)"
+                        ></v-checkbox>
+                        
                         <h3 class="mx-7 mt-5">Installation Path</h3>
                         
                         <p class="mx-7 mt-3 bodyText">The installs folder is the directory that your Vircadia installations are located in.<br />
@@ -318,6 +328,7 @@ export default {
 		metaverseServer: "https://metaverse.highfidelity.com", // Default metaverse API URL
         readyToUseAgain: true,
         selectedInterface: "[No Interface Selected]",
+        sentryEnabled: false,
         inactive: false,
 	}),
     computed: {
@@ -326,6 +337,9 @@ export default {
         },
         interfaceSelected () {
             return this.$store.state.selectedInterface;
+        },
+        sentryEnabledToggled () {
+            return this.sentryEnabled;
         }
     },
     watch: {
@@ -335,6 +349,12 @@ export default {
         interfaceSelected (newVal, oldVal) {
             this.selectedInterface = newVal.name;
             console.info("Set selected interface to...", this.selectedInterface, "from...", newVal.name);
+        },
+        sentryEnabledToggled () {
+            this.$store.commit('mutate', {
+                property: 'sentryEnabled', 
+                with: this.sentryEnabled
+            });
         }
     },
 	created: function () {
@@ -352,6 +372,10 @@ export default {
         
         if (this.$store.state.selectedInterface) {
             this.selectedInterface = this.$store.state.selectedInterface.name;
+        }
+        
+        if (this.$store.state.sentryEnabled != null) {
+            this.sentryEnabled = this.$store.state.sentryEnabled;
         }
         
         if (this.$store.state.currentLibraryFolder) {

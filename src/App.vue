@@ -9,8 +9,7 @@
 -->
 
 <script>
-    import * as Sentry from '@sentry/electron';
-    Sentry.init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
+import * as Sentry from '@sentry/electron';
 </script>
 
 <template>
@@ -85,7 +84,7 @@
         
             <v-btn
                 v-if="showDownloadButton"
-                v-on:click.native="downloadInterface()"
+                v-on:click.native="downloadInterface();"
                 :right=true
                 color="blue"
                 :tile=true
@@ -293,6 +292,12 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 			with: arg.results.noSteamVR
 		});
 		vue_this.noSteamVR = arg.results.noSteamVR;
+	}
+    if(arg.results.sentryEnabled != null) {
+		vue_this.$store.commit('mutate', {
+			property: 'sentryEnabled', 
+			with: arg.results.sentryEnabled
+		});
 	}
 	if(arg.results.allowMultipleInstances) {
 		vue_this.$store.commit('mutate', {
@@ -543,6 +548,10 @@ export default {
     created: function () {
         const { ipcRenderer } = require('electron');
         vue_this = this;
+        
+        if (this.$store.state.sentryEnabled === true) {
+            Sentry.init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
+        }
 
         window.onbeforeunload = (e) => {
             e.returnValue = false;

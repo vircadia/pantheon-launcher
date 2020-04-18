@@ -12,7 +12,6 @@
 
 import * as Sentry from '@sentry/electron'
 import { init } from '@sentry/electron/dist/main';
-init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
 
 import { app, protocol, BrowserWindow, DownloadItem } from 'electron'
 import {
@@ -226,14 +225,17 @@ async function getLibraryInterfaces() {
 		var rej_p = rej;
 		getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
 			if(libraryPath) {
-				await getDirectories(libraryPath).then(function(interfacesList){
+				await getDirectories(libraryPath).then(function(interfacesList) {
 					interfaces = interfacesList;
 					res_p();
 				});
 				console.info("Nani Lib Path?", libraryPath);
 			} else {
-				interfaces = ["Select a library folder."];
-				rej_p("Select a library folder.");
+                setLibrary(storagePath.default);
+                await getDirectories(storagePath.default).then(function(interfacesList) {
+                    interfaces = interfacesList;
+                    res_p();
+                });
 			}
 		});
 	});
@@ -413,7 +415,11 @@ ipcMain.on('save-state', (event, arg) => {
 
 ipcMain.on('load-state', (event, arg) => {
 	getSetting('vircadia_launcher.state', storagePath.default).then(function(results) {
-        if (results) {
+        if (results) {    
+            if (results.sentryEnabled === true) {
+                init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
+            }
+            
             win.webContents.send('state-loaded', {
                 results
             });

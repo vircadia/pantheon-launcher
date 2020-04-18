@@ -8,8 +8,8 @@
     See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
 */
 
-import * as Sentry from '@sentry/electron';
-Sentry.init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
+// import * as Sentry from '@sentry/electron';
+// Sentry.init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
 
 import Vue from 'vue'
 import App from './App.vue'
