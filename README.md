@@ -94,5 +94,5 @@ yarn install
 ```
 or if you use NPM:
 ```
-npm update
+npm install
 ```

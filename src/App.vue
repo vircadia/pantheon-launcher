@@ -69,13 +69,13 @@ import * as Sentry from '@sentry/electron';
             <h2 id="titleURL" v-on:click="launchBrowser('https://vircadia.com/')">Vircadia</h2>
 
             <v-btn
-                v-on:click="launchBrowser('https://github.com/kasenvr/project-athena')"
+                v-on:click="launchBrowser('https://github.com/kasenvr/project-athena/issues')"
                 target="_blank"
                 text
                 :left=true
                 class="ml-3"
             >
-                <span class="mr-2">Github</span>
+                <span class="mr-2">Report an issue</span>
                 <v-icon>mdi-open-in-new</v-icon>
             </v-btn>
         </div>
