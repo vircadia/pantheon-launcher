@@ -103,6 +103,15 @@ import * as Sentry from '@sentry/electron';
                     class="ml-2"
                 >
                 </v-progress-circular>
+                <v-progress-circular
+                    :size="25"
+                    :width="5"
+                    indeterminate
+                    color="purple"
+                    v-if="isSilentInstalling"
+                    class="ml-2"
+                >
+                </v-progress-circular>
                 <v-icon class="ml-2" v-if="showCloudIcon">cloud_download</v-icon>
             </v-btn>
 
