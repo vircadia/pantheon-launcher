@@ -295,41 +295,54 @@ ipcRenderer.on('download-installer-failed', (event) => {
 ipcRenderer.on('state-loaded', (event, arg) => {
 	console.info("STATE LOADED:", arg);
 	
-	if(arg.results.noSteamVR) {
+	if (arg.results.noSteamVR) {
 		vue_this.$store.commit('mutate', {
 			property: 'noSteamVR', 
 			with: arg.results.noSteamVR
 		});
 		vue_this.noSteamVR = arg.results.noSteamVR;
 	}
-    if(arg.results.sentryEnabled != null) {
+    
+    if (arg.results.sentryEnabled != null) {
 		vue_this.$store.commit('mutate', {
 			property: 'sentryEnabled', 
 			with: arg.results.sentryEnabled
 		});
 	}
-	if(arg.results.allowMultipleInstances) {
+    
+    if (arg.results.darkMode != null) {
+        vue_this.$store.commit('mutate', {
+            property: 'darkMode', 
+            with: arg.results.darkMode
+        });
+        vue_this.$vuetify.theme.dark = arg.results.darkMode;
+    }
+    
+	if (arg.results.allowMultipleInstances) {
 		vue_this.$store.commit('mutate', {
 			property: 'allowMultipleInstances', 
 			with: arg.results.allowMultipleInstances
 		});
         vue_this.allowMultipleInstances = arg.results.allowMultipleInstances;
 	}
-	if(arg.results.selectedInterface) {
+    
+	if (arg.results.selectedInterface) {
 		vue_this.$store.commit('mutate', {
 			property: 'selectedInterface', 
 			with: arg.results.selectedInterface
 		});
         ipcRenderer.send('set-current-interface', vue_this.$store.state.selectedInterface.folder);
 	}
-	if(arg.results.metaverseServer) {
+    
+	if (arg.results.metaverseServer) {
 		vue_this.$store.commit('mutate', {
 			property: 'metaverseServer', 
 			with: arg.results.metaverseServer
 		});
 		ipcRenderer.send('set-metaverse-server', arg.results.metaverseServer);
 	}
-    if(arg.results.currentLibraryFolder) {
+    
+    if (arg.results.currentLibraryFolder) {
         vue_this.$store.commit('mutate', {
 			property: 'currentLibraryFolder', 
 			with: arg.results.currentLibraryFolder

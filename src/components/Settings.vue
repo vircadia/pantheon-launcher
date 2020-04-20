@@ -29,6 +29,10 @@
 							
 						</v-toolbar>
                         
+                        <h3 class="mx-7 mt-5">Style</h3>
+                        
+                        <v-switch v-model="$vuetify.theme.dark" class="mx-7" label="Use dark mode."></v-switch>
+                        
                         <h3 class="mx-7 mt-5">Error Reporting</h3>
                         
                         <v-checkbox
@@ -36,7 +40,7 @@
                             color="primary"
                             v-model="sentryEnabled"
                             :disabled="true"
-                            label="Toggle Error Reporting for the launcher (Currently Disabled)"
+                            label="Error Reporting for the launcher (Currently Disabled)"
                         ></v-checkbox>
                         
                         <h3 class="mx-7 mt-5">Installation Path</h3>
@@ -340,6 +344,9 @@ export default {
         },
         sentryEnabledToggled () {
             return this.sentryEnabled;
+        },
+        darkModeToggled () {
+            return this.$vuetify.theme.dark;
         }
     },
     watch: {
@@ -354,6 +361,12 @@ export default {
             this.$store.commit('mutate', {
                 property: 'sentryEnabled', 
                 with: this.sentryEnabled
+            });
+        },
+        darkModeToggled () {
+            this.$store.commit('mutate', {
+                property: 'darkMode', 
+                with: this.$vuetify.theme.dark
             });
         }
     },
