@@ -387,7 +387,7 @@ export default {
             this.selectedInterface = this.$store.state.selectedInterface.name;
         }
         
-        if (this.$store.state.sentryEnabled != null) {
+        if (this.$store.state.sentryEnabled !== null) {
             this.sentryEnabled = this.$store.state.sentryEnabled;
         }
         

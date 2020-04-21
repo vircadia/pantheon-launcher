@@ -303,14 +303,14 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 		vue_this.noSteamVR = arg.results.noSteamVR;
 	}
     
-    if (arg.results.sentryEnabled != null) {
+    if (arg.results.sentryEnabled !== null) {
 		vue_this.$store.commit('mutate', {
 			property: 'sentryEnabled', 
 			with: arg.results.sentryEnabled
 		});
 	}
     
-    if (arg.results.darkMode != null) {
+    if (arg.results.darkMode !== null) {
         vue_this.$store.commit('mutate', {
             property: 'darkMode', 
             with: arg.results.darkMode

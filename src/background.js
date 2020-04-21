@@ -656,7 +656,7 @@ async function silentInstall(useOldInstaller) {
                     if (err.code === "EACCES") {
                         errorMessage = "Please run the launcher as an administrator to continue.";
                     } else {
-                        if (err.code == 2) {
+                        if (err.code === 2) {
                             errorMessage = "An instance of Interface is running, please close it before proceeding.";
                         } else {
                             errorMessage = "An error has occurred with code: " + err.code + " Full Error: " + err;                
