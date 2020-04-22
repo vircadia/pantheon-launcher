@@ -438,8 +438,11 @@ ipcRenderer.on('silent-installer-complete', (event, arg) => {
 ipcRenderer.on('silent-installer-failed', (event, arg) => {
     vue_this.downloadText = "Download Interface";
     vue_this.isSilentInstalling = false;
-    vue_this.disableLaunchButton = false;
     vue_this.disableDownloadButton = false;
+    vue_this.showDownloadButton = true;
+    vue_this.showUpdateButton = false;
+    vue_this.showCloudIcon = true;
+    vue_this.disableLaunchButton = false;
     vue_this.$store.commit('mutate', {
         property: 'currentNotice', 
         with: arg

@@ -26,7 +26,7 @@ export default new Vuetify({
                 mainbg: "#0D47A1", // blue-darken-4
             },
             dark: {
-                primary: colors.indigo.base,
+                primary: "#1E88E5",
                 secondary: colors.indigo.accent2,
                 accent: '#311B92',
                 mainbg: "#182b49", // vircadia-navy-blue

@@ -82,7 +82,7 @@
                         
                         <h3 class="mx-7 mt-5">Current Installation Path</h3>
                         
-                        <pre style="width: 100%; overflow: auto; margin-left: 0px;">{{ currentFolder }}</pre>
+                        <pre style="width: 100%; margin-left: 0px;">{{ currentFolder }}</pre>
 						
                         <v-toolbar
                             color="primary"

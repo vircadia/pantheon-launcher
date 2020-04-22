@@ -24,7 +24,7 @@ export const store = new Vuex.Store({
         populatedInterfaceList: [],
         noSteamVR: false,
         currentLibraryFolder: "No library folder selected.",
-        currentNotice: "",
+        currentNotice: null,
         darkMode: true
     },
     mutations: {

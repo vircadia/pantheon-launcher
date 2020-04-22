@@ -594,7 +594,7 @@ async function silentInstall(useOldInstaller) {
     });
     
     if (!canInstall) {
-        win.webContents.send('silent-installer-failed', 'Your server sandbox is running. Please close it before proceeding.');        
+        win.webContents.send('silent-installer-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
         return;
     }
     
@@ -659,11 +659,11 @@ async function silentInstall(useOldInstaller) {
                         if (err.code === 2) {
                             errorMessage = "An instance of Interface is running, please close it before proceeding.";
                         } else {
-                            errorMessage = "An error has occurred with code: " + err.code + " Full Error: " + err;                
+                            errorMessage = "An error has occurred.";                
                         }
                     }
                     
-                    win.webContents.send('silent-installer-failed', errorMessage);
+                    win.webContents.send('silent-installer-failed', { "message": errorMessage, "code": err.code, "fullerr": err });
                 } else {
                     console.info("Installation complete.");
                     console.info("Running post-install.");
@@ -673,13 +673,13 @@ async function silentInstall(useOldInstaller) {
         } catch (e) {
             console.info("Try block: Silent installation failed.")
             var errorMessage = "An error has occurred: " + e;
-            win.webContents.send('silent-installer-failed', errorMessage);
+            win.webContents.send('silent-installer-failed', { "message": errorMessage });
         }
         
     }).catch(function(e) {
         console.info("Failed to fetch library for silent install. Error:", e);
         var errorMessage = "An error has occurred: " + e;
-        win.webContents.send('silent-installer-failed', errorMessage);
+        win.webContents.send('silent-installer-failed', { "message": errorMessage, "fullerr": e });
     });
 }
 
@@ -708,7 +708,7 @@ async function postInstall() {
             fs.mkdirSync(packageJSONLocation, { recursive: true });
             fs.writeFileSync(packageJSONFilename, JSON.stringify(vircadiaPackageJSON));
         } catch {
-            win.webContents.send('silent-installer-failed', 'Failed to create Interface metadata post-install.');
+            win.webContents.send('silent-installer-failed', { "message": 'Failed to create Interface metadata post-install.' });
             return;
         }
         

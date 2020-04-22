@@ -24,7 +24,19 @@
             </v-card-title>
     
             <v-card-text>
-                {{installFailedMessage}}
+                {{installFailedMessage}}<br />
+                <v-expansion-panels
+                    v-model="panel"
+                >
+                    <v-expansion-panel>
+                        <v-expansion-panel-header>Error Information</v-expansion-panel-header>
+                        <v-expansion-panel-content>
+                            Error code <pre>{{installFailedCode}}</pre> <br />
+                            The full error is shown below: <br />
+                            <pre>{{installFailedError}}</pre>
+                        </v-expansion-panel-content>
+                    </v-expansion-panel>
+                </v-expansion-panels>
             </v-card-text>
     
             <v-divider></v-divider>
@@ -50,11 +62,13 @@ export default {
 
     data: () => ({
         showInstallFailed: true,
-        installFailedMessage: ""
+        panel: false,
     }),
     created: function () {
         var vue_this = this;
-        this.installFailedMessage = this.$store.state.currentNotice;
+        this.installFailedMessage = this.$store.state.currentNotice.message;
+        this.installFailedCode = this.$store.state.currentNotice.code;
+        this.installFailedError = this.$store.state.currentNotice.fullerr;
     }
 };
 </script>
