@@ -32,12 +32,11 @@ h2 {
 
 #topMenuBar {
     height: 25px !important;
-    background-color: var(--vircadia-navy);
     -webkit-app-region: drag;
 }
 
 #bottomAppBar {
-    background-color: var(--vircadia-navy);
+
 }
 
 #navBar {

@@ -11,10 +11,26 @@
 import Vue from 'vue';
 import Vuetify from 'vuetify/lib';
 
+import colors from 'vuetify/lib/util/colors'
+
 Vue.use(Vuetify);
 
 export default new Vuetify({
     theme: {
-        dark: true
+        dark: true,
+        themes: {
+            light: {
+                primary: colors.blue.accent2, 
+                secondary: colors.indigo.darken4, 
+                accent: '#673AB7',
+                mainbg: "#0D47A1", // blue-darken-4
+            },
+            dark: {
+                primary: colors.indigo.base,
+                secondary: colors.indigo.accent2,
+                accent: '#311B92',
+                mainbg: "#182b49", // vircadia-navy-blue
+            }
+        }
     },
 });

@@ -15,7 +15,7 @@ import * as Sentry from '@sentry/electron';
 <template>
     <v-app>
         <v-system-bar
-            dark
+            color="mainbg"
             :top=true
             :fixed=true
             style="top: initial !important;"
@@ -53,6 +53,7 @@ import * as Sentry from '@sentry/electron';
         :fixed=true
         style="top: initial !important;"
         id="bottomAppBar"
+        color="mainbg"
     >
         <div class="d-flex align-center">
             <v-img
@@ -86,7 +87,7 @@ import * as Sentry from '@sentry/electron';
                 v-if="showDownloadButton"
                 v-on:click.native="downloadInterface();"
                 :right=true
-                color="blue"
+                color="primary"
                 :tile=true
                 :depressed="isDownloading"
                 :disabled="isSilentInstalling || disableDownloadButton"
@@ -120,7 +121,7 @@ import * as Sentry from '@sentry/electron';
                 :disabled="disableUpdateButton"
                 v-on:click.native="checkForUpdates()"
                 :right=true
-                color="blue"
+                color="primary"
                 :tile=true
                 id="updateButton"
             >
@@ -146,69 +147,69 @@ import * as Sentry from '@sentry/electron';
                 <span>Install</span>
             </v-tooltip> -->
 
-            <div class="text-center">
-            <v-menu top offset-y :close-on-content-click="false">
-                <template v-slot:activator="{ on }">
-                    <v-btn
-                        color="primary"
-                        dark
-                        :tile=true
-                        v-on="on"
+            <div class="text-center mx-2">
+                <v-menu top offset-y :close-on-content-click="false">
+                    <template v-slot:activator="{ on }">
+                        <v-btn
+                            color="primary"
+                            dark
+                            :tile=true
+                            v-on="on"
+                        >
+                        Options
+                        </v-btn>
+                    </template>
+                    <div style="background: rgba(255,255,255,0.8);">
+                    </div>
+                    <v-list
+                        subheader
+                        two-line
+                        flat
                     >
-                    Options
-                    </v-btn>
-                </template>
-                <div style="background: rgba(255,255,255,0.8);">
-                </div>
-                <v-list
-                    subheader
-                    two-line
-                    flat
-                >
-                    <v-subheader>Launch Options</v-subheader>
+                        <v-subheader>Launch Options</v-subheader>
 
-                    <v-list-item-group
-                        multiple
-                        v-model="launchOptions"
-                    >
-                        <v-list-item>
-                            <template>
-                                <v-list-item-action>
-                                    <v-checkbox
-                                        color="primary"
-                                        :true-value="allowMultipleInstances"
-                                        :input-value="allowMultipleInstances"
-                                        v-model="allowMultipleInstances"
-                                    ></v-checkbox>
-                                </v-list-item-action>
+                        <v-list-item-group
+                            multiple
+                            v-model="launchOptions"
+                        >
+                            <v-list-item>
+                                <template>
+                                    <v-list-item-action>
+                                        <v-checkbox
+                                            color="primary"
+                                            :true-value="allowMultipleInstances"
+                                            :input-value="allowMultipleInstances"
+                                            v-model="allowMultipleInstances"
+                                        ></v-checkbox>
+                                    </v-list-item-action>
 
-                                <v-list-item-content @click="allowMultipleInstances = !allowMultipleInstances">
-                                    <v-list-item-title>Simultaneous Interfaces</v-list-item-title>
-                                    <v-list-item-subtitle>Allow multiple interfaces to be run simultaneously.</v-list-item-subtitle>
-                                </v-list-item-content>
-                            </template>
-                        </v-list-item>
-                        <v-list-item>
-                            <template>
-                                <v-list-item-action>
-                                    <v-checkbox
-                                        color="primary"
-                                        :true-value="noSteamVR"
-                                        :input-value="noSteamVR"
-                                        v-model="noSteamVR"
-                                    ></v-checkbox>
-                                </v-list-item-action>
+                                    <v-list-item-content @click="allowMultipleInstances = !allowMultipleInstances">
+                                        <v-list-item-title>Simultaneous Interfaces</v-list-item-title>
+                                        <v-list-item-subtitle>Allow multiple interfaces to be run simultaneously.</v-list-item-subtitle>
+                                    </v-list-item-content>
+                                </template>
+                            </v-list-item>
+                            <v-list-item>
+                                <template>
+                                    <v-list-item-action>
+                                        <v-checkbox
+                                            color="primary"
+                                            :true-value="noSteamVR"
+                                            :input-value="noSteamVR"
+                                            v-model="noSteamVR"
+                                        ></v-checkbox>
+                                    </v-list-item-action>
 
-                                <v-list-item-content @click="noSteamVR = !noSteamVR">
-                                    <v-list-item-title>Disable SteamVR</v-list-item-title>
-                                    <v-list-item-subtitle>Disable launching and attaching SteamVR with interface.</v-list-item-subtitle>
-                                </v-list-item-content>
-                            </template>
-                        </v-list-item>
+                                    <v-list-item-content @click="noSteamVR = !noSteamVR">
+                                        <v-list-item-title>Disable SteamVR</v-list-item-title>
+                                        <v-list-item-subtitle>Disable launching and attaching SteamVR with interface.</v-list-item-subtitle>
+                                    </v-list-item-content>
+                                </template>
+                            </v-list-item>
 
-                    </v-list-item-group>
-                </v-list>
-            </v-menu>
+                        </v-list-item-group>
+                    </v-list>
+                </v-menu>
             </div>
 
             <v-btn
@@ -216,7 +217,7 @@ import * as Sentry from '@sentry/electron';
                 :disabled="disableLaunchButton"
                 :right=true
                 class=""
-                color="rgba(133, 0, 140, 0.8)"
+                color="purple darken-3"
                 :tile=true
             >
                 <span class="mr-2">Launch</span>

@@ -80,7 +80,7 @@
                             </v-flex>
 						</v-layout> 
                         
-                        <h3 class="mx-7 mt-5">Current Path</h3>
+                        <h3 class="mx-7 mt-5">Current Installation Path</h3>
                         
                         <pre style="width: 100%; overflow: auto; margin-left: 0px;">{{ currentFolder }}</pre>
 						
@@ -169,7 +169,7 @@
 						
 						<v-card-text>
 							<v-form>
-								<v-text-field
+								<!-- <v-text-field
 									label="Username"
 									name="username"
 									prepend-icon="person"
@@ -184,7 +184,7 @@
 									prepend-icon="lock"
 									type="password"
 									disabled
-								/>
+								/> -->
 								
 								<v-text-field
 									label="Metaverse Server"
@@ -197,7 +197,7 @@
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
-							<v-btn @click="setMetaverseServer()" color="primary">Save Metaverse Settings</v-btn>
+							<v-btn @click="setMetaverseServer()" color="accent">Save Metaverse Settings</v-btn>
 						</v-card-actions>
 					</v-card>
 				</v-row>

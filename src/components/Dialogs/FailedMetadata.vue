@@ -1,7 +1,7 @@
 <!--
 //  FailedMetadata.vue
 //
-//  Created by KasenVR on 28 Mar 2020.
+//  Created by KasenVR on 17 Apr 2020.
 //  Copyright 2020 Vircadia and contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
