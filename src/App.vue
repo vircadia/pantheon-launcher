@@ -44,6 +44,11 @@ import * as Sentry from '@sentry/electron';
                 <span>Settings</span>
                 <v-icon>mdi-settings-outline</v-icon>
             </v-btn>
+            
+            <v-btn v-on:click="toggleTab('News')" value="news">
+                <span>News</span>
+                <v-icon>mdi-newspaper-variant</v-icon>
+            </v-btn>
         </v-bottom-navigation>
 		
     <v-app-bar
@@ -225,15 +230,16 @@ import * as Sentry from '@sentry/electron';
             </v-btn>
 
         </v-app-bar>
-		
-    <v-content class="" id="mainContent">
-			<!-- <iframe id="mainIframe" src="https://vircadia.com/" style="width: 100%; height: 100%;"></iframe>  -->
-			<transition name="fade" mode="out-in">
-				<component v-bind:is="showTab"></component>
-			</transition>
-    </v-content>
+	
+    <div id="background">
+        <v-content class="" id="mainContent">
+            <transition name="fade" mode="out-in">
+                <component v-bind:is="showTab" id=""></component>
+            </transition>
+        </v-content>
+    </div>
     
-    <v-content class="">
+    <v-content id="dialogContent">
         <transition name="fade" mode="out-in">
             <component @hideDialog="shouldShowDialog = false" v-if="shouldShowDialog" v-bind:is="showDialog"></component>
         </transition>
@@ -464,6 +470,7 @@ ipcRenderer.on('checked-for-updates', (event, arg) => {
 import HelloWorld from './components/HelloWorld';
 import FavoriteWorlds from './components/FavoriteWorlds';
 import Settings from './components/Settings';
+import News from './components/News';
 // Dialogs
 import CancelDownload from './components/Dialogs/CancelDownload'
 import DownloadComplete from './components/Dialogs/DownloadComplete'
@@ -484,6 +491,7 @@ export default {
         HelloWorld,
         FavoriteWorlds,
         Settings,
+        News,
         // Dialogs
         CancelDownload,
         DownloadComplete,

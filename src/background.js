@@ -10,8 +10,9 @@
 
 'use strict'
 
-import * as Sentry from '@sentry/electron'
-import { init } from '@sentry/electron/dist/main';
+// import * as Sentry from '@sentry/electron'
+// import { init } from '@sentry/electron/dist/main';
+// init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
 
 import { app, protocol, BrowserWindow, DownloadItem } from 'electron'
 import {
@@ -19,7 +20,8 @@ import {
 	createProtocol,
 } from 'vue-cli-plugin-electron-builder/lib'
 import path from 'path'
-const isDevelopment = process.env.NODE_ENV !== 'production'
+var forceDevelopment = false;
+const isDevelopment = forceDevelopment === true || process.env.NODE_ENV !== 'production';
 const storage = require('electron-json-storage');
 const { shell } = require('electron')
 const electronDl = require('electron-dl');

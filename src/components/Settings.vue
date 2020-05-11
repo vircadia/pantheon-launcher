@@ -8,8 +8,8 @@
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
 -->
 <template>
-	<v-app id="settingsContainer">
-		<v-content>
+	<v-app>
+		<v-content class="mainContentContainer">
 			<v-container
 				class="pt-8"
 				fluid
@@ -25,8 +25,7 @@
 							flat
 						>
 							<v-toolbar-title>Settings</v-toolbar-title>
-							<v-spacer />
-							
+							<v-spacer />	
 						</v-toolbar>
                         
                         <h3 class="mx-7 mt-5">Style</h3>
