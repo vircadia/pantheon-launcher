@@ -54,6 +54,22 @@ import * as Sentry from '@sentry/electron';
                 
             </v-btn-toggle>
         </v-bottom-navigation>
+        
+    <v-snackbar
+        v-model="interfaceBusyLaunching"
+        style="margin-bottom: 75px;"
+        color="#34323e"
+        :timeout="7500"
+    >
+        The Interface is starting.
+        <v-btn
+            color="white"
+            text
+            @click="interfaceBusyLaunching = false; disableLaunchButton = false;"
+        >
+            Close
+        </v-btn>
+    </v-snackbar>
 		
     <v-app-bar
         app
@@ -245,7 +261,14 @@ import * as Sentry from '@sentry/electron';
                 color="purple darken-3"
                 :tile=true
             >
-                <span class="mr-2">Launch</span>
+                <span class="mr-2">
+                    Launch
+                    <v-progress-linear
+                        v-show="interfaceBusyLaunching"
+                        indeterminate
+                        color="green"
+                    ></v-progress-linear>
+                </span>
                 <v-icon>mdi-play</v-icon>
             </v-btn>
 
@@ -392,6 +415,15 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 
 ipcRenderer.on('development-mode', (event, arg) => {
     vue_this.isDevelopment = arg;
+});
+
+ipcRenderer.on('launching-interface', (event, arg) => {
+    vue_this.disableLaunchButton = true;
+    clearTimeout(vue_this.interfaceBusyLaunching);
+    vue_this.interfaceBusyLaunching = setTimeout(function() { 
+        vue_this.interfaceBusyLaunching = false;
+        vue_this.disableLaunchButton = false;
+    }, 10000); // 10 seconds
 });
 
 ipcRenderer.on('current-library-folder', (event, arg) => {
@@ -679,6 +711,7 @@ export default {
         allowMultipleInstances: false,
         autoRestartInterface: false,
         disableLaunchButton: false,
+        interfaceBusyLaunching: false,
         // Download & Install Data
         downloadProgress: 0,
         isDownloading: false,

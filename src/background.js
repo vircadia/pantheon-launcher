@@ -411,6 +411,7 @@ const { ipcMain } = require('electron')
 
 ipcMain.on('save-state', (event, arg) => {
     storage.set('vircadia_launcher.state', arg, {dataPath: storagePath.default}, function(error) {
+        console.info("Saving state.", error);
         if (error) throw error;
     });
 })
@@ -464,6 +465,8 @@ ipcMain.on('launch-interface', (event, arg) => {
 })
 
 function launchInterface(executablePath, parameters, autoRestartInterface) {
+    win.webContents.send('launching-interface');
+    
     var interface_exe = require('child_process').execFile;
     
     interface_exe(executablePath, parameters, { windowsVerbatimArguments: true }, function(err, stdout, data) {
