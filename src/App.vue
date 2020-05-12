@@ -25,30 +25,34 @@ import * as Sentry from '@sentry/electron';
         </v-system-bar>
         
         <v-bottom-navigation id="navBar">
-            <v-btn disabled value="recent">
-                <span>Recent</span>
-                <v-icon>mdi-history</v-icon>
-            </v-btn>
+            <v-btn-toggle dense tile borderless v-model="showTab">
+                
+                <v-btn disabled value="Recent">
+                    <span>Recent</span>
+                    <v-icon>mdi-history</v-icon>
+                </v-btn>
 
-            <v-btn disabled v-on:click="toggleTab('Settings')" value="favorites">
-                <span>Favorites</span>
-                <v-icon>mdi-heart</v-icon>
-            </v-btn>
+                <v-btn disabled value="Favorites">
+                    <span>Favorites</span>
+                    <v-icon>mdi-heart</v-icon>
+                </v-btn>
 
-            <v-btn disabled v-on:click="toggleTab('Settings')" value="nearby">
-                <span>Worlds</span>
-                <v-icon>mdi-map-search-outline</v-icon>
-            </v-btn>
+                <v-btn disabled value="Nearby">
+                    <span>Worlds</span>
+                    <v-icon>mdi-map-search-outline</v-icon>
+                </v-btn>
 
-            <v-btn v-on:click="toggleTab('Settings')" value="settings">
-                <span>Settings</span>
-                <v-icon>mdi-settings-outline</v-icon>
-            </v-btn>
-            
-            <v-btn v-on:click="toggleTab('News')" value="news">
-                <span>News</span>
-                <v-icon>mdi-newspaper-variant</v-icon>
-            </v-btn>
+                <v-btn value="Settings">
+                    <span>Settings</span>
+                    <v-icon>mdi-settings-outline</v-icon>
+                </v-btn>
+                
+                <v-btn value="News">
+                    <span>News</span>
+                    <v-icon>mdi-newspaper-variant</v-icon>
+                </v-btn>
+                
+            </v-btn-toggle>
         </v-bottom-navigation>
 		
     <v-app-bar
@@ -507,13 +511,6 @@ export default {
         FailedMetadata
     },
     methods: {
-        toggleTab: function(tab) {
-            if(this.showTab == tab) {
-                this.showTab = "";
-            } else {
-                this.showTab = tab;
-            }
-        },
         openDialog: function(which, shouldShow) {
             // We want to reset the element first.
             this.showDialog = "";
@@ -626,7 +623,7 @@ export default {
         }
     },
     data: () => ({
-        showTab: '',
+        showTab: 'News',
         // Dialog Data
         showDialog: '',
         shouldShowDialog: false,

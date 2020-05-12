@@ -15,7 +15,7 @@
                 class="fill-container"
                 fluid
             >
-                <iframe id="mainIframe" src="https://vircadia.com/news" style="width: 100%; height: 100%;"></iframe> 
+                <iframe id="mainIframe" src="https://vircadia.com/#news" style="width: 100%; height: 100%;"></iframe> 
             </v-container>
         </v-content>
     </v-app>
