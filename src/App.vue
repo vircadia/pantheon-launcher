@@ -215,7 +215,23 @@ import * as Sentry from '@sentry/electron';
                                     </v-list-item-content>
                                 </template>
                             </v-list-item>
-
+                            <v-list-item>
+                                <template>
+                                    <v-list-item-action>
+                                        <v-checkbox
+                                            color="primary"
+                                            :true-value="autoRestartInterface"
+                                            :input-value="autoRestartInterface"
+                                            v-model="autoRestartInterface"
+                                        ></v-checkbox>
+                                    </v-list-item-action>
+                            
+                                    <v-list-item-content @click="autoRestartInterface = !autoRestartInterface">
+                                        <v-list-item-title>Auto Restart Interface</v-list-item-title>
+                                        <v-list-item-subtitle>The launcher will auto-restart Interface if it closes with an exit code.</v-list-item-subtitle>
+                                    </v-list-item-content>
+                                </template>
+                            </v-list-item>
                         </v-list-item-group>
                     </v-list>
                 </v-menu>
@@ -240,7 +256,7 @@ import * as Sentry from '@sentry/electron';
             <transition name="fade" mode="out-in">
                 <component v-bind:is="showTab" id=""></component>
             </transition>
-            <pre id="development-output" v-bind:if="isDevelopment">
+            <pre id="development-output" v-if="isDevelopment">
             
             </pre>
         </v-content>
@@ -338,6 +354,14 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 			with: arg.results.allowMultipleInstances
 		});
         vue_this.allowMultipleInstances = arg.results.allowMultipleInstances;
+	}
+    
+    if (arg.results.autoRestartInterface) {
+		vue_this.$store.commit('mutate', {
+			property: 'autoRestartInterface', 
+			with: arg.results.autoRestartInterface
+		});
+        vue_this.autoRestartInterface = arg.results.autoRestartInterface;
 	}
     
 	if (arg.results.selectedInterface) {
@@ -548,7 +572,7 @@ export default {
             }
 		},
         launchInterface: function(exeLoc) {
-            ipcRenderer.send('launch-interface', { "exec": exeLoc, "steamVR": this.noSteamVR, "allowMultipleInstances": this.allowMultipleInstances });
+            ipcRenderer.send('launch-interface', { "exec": exeLoc, "steamVR": this.noSteamVR, "allowMultipleInstances": this.allowMultipleInstances, "autoRestartInterface": this.autoRestartInterface });
         },
 		launchBrowser: function(url) {
 			const { shell } = require('electron');
@@ -624,6 +648,14 @@ export default {
                 });
             }
         },
+        autoRestartInterface: function (newValue, oldValue) {
+            if(newValue != oldValue) {
+                this.$store.commit('mutate', {
+                    property: 'autoRestartInterface', 
+                    with: newValue
+                });
+            }
+        },
         interfaceSelected (newVal, oldVal) {
             console.info("Interface selected:", newVal);
             if (newVal) {
@@ -645,6 +677,7 @@ export default {
         launchOptions: [],
         noSteamVR: false,
         allowMultipleInstances: false,
+        autoRestartInterface: false,
         disableLaunchButton: false,
         // Download & Install Data
         downloadProgress: 0,

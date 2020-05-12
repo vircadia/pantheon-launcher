@@ -443,7 +443,6 @@ ipcMain.on('set-metaverse-server', (event, arg) => {
 })
 
 ipcMain.on('launch-interface', (event, arg) => {
-    var interface_exe = require('child_process').execFile;
     // var executablePath = "E:\\Development\\High_Fidelity\\v0860-kasen-VS-release+freshstart\\build\\interface\\Packaged_Release\\Release\\interface.exe";
     var executablePath = arg.exec;
     var parameters = [];
@@ -459,13 +458,22 @@ ipcMain.on('launch-interface', (event, arg) => {
     }
 	
     console.info("Nani?", parameters, "type?", Array.isArray(parameters));
-
-    interface_exe(executablePath, parameters, { windowsVerbatimArguments: true }, function(err, stdout, data) {
-        console.log(err)
-        console.log(stdout.toString());
-    });
+    
+    launchInterface(executablePath, parameters, arg.autoRestartInterface);
   
 })
+
+function launchInterface(executablePath, parameters, autoRestartInterface) {
+    var interface_exe = require('child_process').execFile;
+    
+    interface_exe(executablePath, parameters, { windowsVerbatimArguments: true }, function(err, stdout, data) {
+        console.info("Interface.exe exited with code:", err);
+        if (autoRestartInterface == true && err && !err.killed) {
+            launchInterface(executablePath, parameters, autoRestartInterface);
+        }
+        // console.log(stdout.toString());
+    });
+}
 
 ipcMain.on('get-vircadia-location', async (event, arg) => {
     var vircadiaLocation = await getSetting('vircadia_interface.location', storagePath.interfaceSettings);

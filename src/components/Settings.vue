@@ -140,9 +140,9 @@
                             class="mx-3"
                         ></v-divider>
 						
-                        <h3 class="mx-7 mt-5">Settings for {{ selectedInterface }}</h3>
+                        <h3 v-show="false" class="mx-7 mt-5">Settings for {{ selectedInterface }}</h3>
                         
-						<v-layout row pr-5 pt-5 pl-12>
+						<v-layout v-show="false" row pr-5 pt-5 pl-12>
 							<v-flex md6>
 								<v-btn 
 									v-on:click.native="selectInterfaceExe()"

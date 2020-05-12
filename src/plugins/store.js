@@ -23,6 +23,7 @@ export const store = new Vuex.Store({
         metaverseServer: "",
         populatedInterfaceList: [],
         noSteamVR: false,
+        autoRestartInterface: false,
         currentLibraryFolder: "No library folder selected.",
         currentNotice: null,
         darkMode: true
