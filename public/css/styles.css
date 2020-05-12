@@ -113,6 +113,17 @@ pre {
 	background-color: rgba(0, 0, 0, 0.85);
 }
 
+#development-output {
+    font-family: "Electrolize", sans-serif;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    color: #ababab;
+    font-weight: normal;
+    padding-top: 100px;
+    font-size: 0.8em;
+    z-index: 9001;
+}
+
 /* HelloWorld.vue */
 
 #helloWorldContainer {

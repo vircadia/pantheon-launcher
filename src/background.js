@@ -429,6 +429,8 @@ ipcMain.on('load-state', (event, arg) => {
             win.webContents.send('first-time-user');
         }
 	});
+    
+    win.webContents.send('development-mode', isDevelopment);
 })
 
 ipcMain.on('set-metaverse-server', (event, arg) => {

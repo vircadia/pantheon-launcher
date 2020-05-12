@@ -240,6 +240,9 @@ import * as Sentry from '@sentry/electron';
             <transition name="fade" mode="out-in">
                 <component v-bind:is="showTab" id=""></component>
             </transition>
+            <pre id="development-output" v-bind:if="isDevelopment">
+            
+            </pre>
         </v-content>
     </div>
     
@@ -361,6 +364,10 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 	} else {
         ipcRenderer.send('set-library-folder-default');
     }
+});
+
+ipcRenderer.on('development-mode', (event, arg) => {
+    vue_this.isDevelopment = arg;
 });
 
 ipcRenderer.on('current-library-folder', (event, arg) => {
@@ -591,12 +598,15 @@ export default {
 
         ipcRenderer.send('load-state');
         ipcRenderer.send('get-library-folder');
+    },
+    computed: {
+        interfaceSelected() {
+            return this.$store.state.selectedInterface;
         },
-        computed: {
-            interfaceSelected() {
-                return this.$store.state.selectedInterface;
-            }
-        },
+        watchStoreAndData() {
+            return JSON.stringify(Object.assign({}, this.$data, this.$store.state), 0, 2);
+        }
+    },
 	watch: {
         noSteamVR: function (newValue, oldValue) {
             if(newValue != oldValue) {
@@ -620,10 +630,14 @@ export default {
                 this.showDownloadButton = false;
                 this.showUpdateButton = true;
             }
+        },
+        watchStoreAndData (newVal, oldVal) {
+            document.querySelector("#development-output").innerText = newVal;
         }
     },
     data: () => ({
         showTab: 'News',
+        isDevelopment: false,
         // Dialog Data
         showDialog: '',
         shouldShowDialog: false,
