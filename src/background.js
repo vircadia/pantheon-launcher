@@ -346,8 +346,11 @@ async function getLatestMetaJSON() {
 async function checkForInterfaceUpdates() {
 	var vircadiaMeta = await getLatestMetaJSON();
     // var interfacePackage = await getCurrentInterfaceJSON();
-    var interfacePackage = { package: versionPaths.fromPath(storagePath.interfaceSettings.replace("//launcher_settings", "")) };
+    storagePath.interfaceSettings = storagePath.interfaceSettings.replace("//launcher_settings", "");
+    storagePath.interfaceSettings = storagePath.interfaceSettings.replace("\\/launcher_settings", "");
+    var interfacePackage = { package: versionPaths.fromPath(storagePath.interfaceSettings) };
     console.info("interfacePackage.package", interfacePackage.package);
+    
     if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.package.version) {
         var versionCompare = compareVersions(vircadiaMeta.latest.version, interfacePackage.package.version);
         console.info("Compare Versions: ", versionCompare);
@@ -610,12 +613,22 @@ ipcMain.handle('populateInterfaceList', async (event, arg) => {
     // });
 })
 
-ipcMain.handle('get-interface-list-for-launch', (event, arg) => {
-	getLibraryInterfaces().then(async function(results) {
-		var generatedList = await generateInterfaceList(results);
-		// console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
-		event.sender.send('interface-list-for-launch', generatedList);
-	});
+ipcMain.handle('get-interface-list-for-launch', async (event, arg) => {
+    var interface_exes = await getLibraryInterfaces();
+    var list = interface_exes.map(function(filename) {
+        // :)
+        var nv = versionPaths.fromPath(filename);
+        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, '') } }
+    });
+    event.sender.send('interface-list', list);
+    
+    // COMMENT ABOVE, UNCOMMENT BELOW
+    
+	// getLibraryInterfaces().then(async function(results) {
+	// 	var generatedList = await generateInterfaceList(results);
+	// 	console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
+	// 	event.sender.send('interface-list-for-launch', generatedList);
+	// });
 })
 
 
