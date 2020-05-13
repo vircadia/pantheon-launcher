@@ -364,6 +364,18 @@ async function checkForInterfaceUpdates() {
 }
 
 async function checkForUpdates() {
+    var checkPrereqs = await checkRunningApps();
+    console.info(checkPrereqs)
+    if (checkPrereqs.sandbox === true) {
+        win.webContents.send('check-for-updates-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
+        return;
+    }
+    
+    if (checkPrereqs.interface === true) {
+        win.webContents.send('check-for-updates-failed', { "message": 'An instance of Interface is running. Please close it before proceeding.' });
+        return;
+    }
+    
     if (storagePath.interfaceSettings) {
         // This means to update because an interface exists and is selected.
         console.info("Checking for updates.");
@@ -373,6 +385,24 @@ async function checkForUpdates() {
             win.webContents.send('checked-for-updates', { checkForUpdates }); 
         }
     }
+}
+
+async function checkRunningApps() {
+    var list = await tasklist();
+    var runningApps = { "sandbox": false, "interface": false };
+    
+    list.forEach((task) => {
+        if (task.imageName === "server-console.exe") {
+            console.log("SANDBOX RUNNING!");
+            runningApps.sandbox = true;
+        }
+        if (task.imageName === "interface.exe") {
+            console.log("INTERFACE RUNNING!");
+            runningApps.interface = true;
+        }
+    });
+    
+    return runningApps;
 }
 
 async function getDownloadURL() {
@@ -461,6 +491,10 @@ ipcMain.on('launch-interface', (event, arg) => {
 
     if (arg.allowMultipleInstances) {
         parameters.push('--allowMultipleInstances');
+    }
+    
+    if (arg.autoRestartInterface) {
+        parameters.push('--suppress-settings-reset');
     }
 	
     console.info("Nani?", parameters, "type?", Array.isArray(parameters));
@@ -616,18 +650,15 @@ async function silentInstall(useOldInstaller) {
     console.info("silentInstall: installFolderName:", installFolderName);
     var executablePath; // This is the location that the installer exe is located in after being downloaded.
     var exeLocToInstall; // This is what gets installed.
-    var list = await tasklist();
-    var canInstall = true;
-    
-    list.forEach((task) => {
-        if (task.imageName === "server-console.exe") {
-            console.log("SANDBOX FOUND!");
-            canInstall = false;
-        }
-    });
-    
-    if (!canInstall) {
+    var checkPrereqs = await checkRunningApps();
+
+    if (checkPrereqs.sandbox === true) {
         win.webContents.send('silent-installer-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
+        return;
+    }
+    
+    if (checkPrereqs.interface === true) {
+        win.webContents.send('silent-installer-failed', { "message": 'An instance of Interface is running, please close it before proceeding.' });
         return;
     }
     

@@ -1,5 +1,5 @@
 <!--
-//  InstallFailed.vue
+//  CheckForUpdatesFailed.vue
 //
 //  Created by Kalila L. on 22 Feb 2020.
 //  Copyright 2020 Project Athena and contributors.
@@ -11,7 +11,7 @@
     <v-dialog
         width="500"
         persistent
-        v-model="showInstallFailed"
+        v-model="showCheckForUpdatesFailed"
     >
         <v-card>
             <v-card-title
@@ -20,21 +20,21 @@
                 dark
             >
                 <v-icon color="red" class="mr-2">mdi-message-alert</v-icon>
-                Installation Failed
+                Cannot Update
             </v-card-title>
     
             <v-card-text>
-                {{installFailedMessage}}<br />
+                {{CheckForUpdatesFailedMessage}}<br />
                 <v-expansion-panels
                     v-model="panel"
-                    v-if="this.installFailedCode"
+                    v-if="this.CheckForUpdatesFailedCode"
                 >
                     <v-expansion-panel>
                         <v-expansion-panel-header>Error Information</v-expansion-panel-header>
                         <v-expansion-panel-content>
-                            Error code <pre>{{installFailedCode}}</pre> <br />
+                            Error code <pre>{{CheckForUpdatesFailedCode}}</pre> <br />
                             The full error is shown below: <br />
-                            <pre>{{installFailedError}}</pre>
+                            <pre>{{CheckForUpdatesFailedError}}</pre>
                         </v-expansion-panel-content>
                     </v-expansion-panel>
                 </v-expansion-panels>
@@ -59,17 +59,17 @@
 
 <script>
 export default {
-    name: 'InstallFailed',
+    name: 'CheckForUpdatesFailed',
 
     data: () => ({
-        showInstallFailed: true,
+        showCheckForUpdatesFailed: true,
         panel: false,
     }),
     created: function () {
         var vue_this = this;
-        this.installFailedMessage = this.$store.state.currentNotice.message;
-        this.installFailedCode = this.$store.state.currentNotice.code;
-        this.installFailedError = this.$store.state.currentNotice.fullerr;
+        this.CheckForUpdatesFailedMessage = this.$store.state.currentNotice.message;
+        this.CheckForUpdatesFailedCode = this.$store.state.currentNotice.code;
+        this.CheckForUpdatesFailedError = this.$store.state.currentNotice.fullerr;
     }
 };
 </script>

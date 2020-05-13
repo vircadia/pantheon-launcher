@@ -515,6 +515,17 @@ ipcRenderer.on('silent-installer-failed', (event, arg) => {
     vue_this.openDialog('InstallFailed', true);
 });
 
+ipcRenderer.on('check-for-updates-failed', (event, arg) => {
+    vue_this.disableUpdateButton = false;
+    vue_this.resetUpdateButton();
+    
+    vue_this.$store.commit('mutate', {
+        property: 'currentNotice', 
+        with: arg
+    });
+    vue_this.openDialog('CheckForUpdatesFailed', true);
+});
+
 ipcRenderer.on('checked-for-updates', (event, arg) => {
     vue_this.disableUpdateButton = false;
     vue_this.disableLaunchButton = false;
@@ -539,6 +550,7 @@ import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
 import InstallComplete from './components/Dialogs/InstallComplete'
 import InstallFailed from './components/Dialogs/InstallFailed'
 import WantToClose from './components/Dialogs/WantToClose'
+import CheckForUpdatesFailed from './components/Dialogs/CheckForUpdatesFailed'
 import UpdateAvailable from './components/Dialogs/UpdateAvailable'
 import NoUpdateAvailable from './components/Dialogs/NoUpdateAvailable'
 import FirstTimeUser from './components/Dialogs/FirstTimeUser'
@@ -560,6 +572,7 @@ export default {
         InstallComplete,
         InstallFailed,
         WantToClose,
+        CheckForUpdatesFailed,
         UpdateAvailable,
         NoUpdateAvailable,
         FirstTimeUser,
@@ -634,7 +647,17 @@ export default {
             this.downloadText = "Download Interface";
             this.isSilentInstalling = false;
             this.disableDownloadButton = false;
+            this.showDownloadButton = true;
+            this.showUpdateButton = false;
+            this.showCloudIcon = true;
+            this.disableLaunchButton = false;
+        },
+        resetUpdateButton: function() {
+            this.downloadText = "Download Interface";
+            this.isSilentInstalling = false;
+            this.disableDownloadButton = false;
             this.showDownloadButton = false;
+            this.showUpdateButton = true;
             this.showCloudIcon = true;
             this.disableLaunchButton = false;
         }
