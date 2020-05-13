@@ -283,25 +283,26 @@ function setLibraryDialog() {
 	})
 }
 
-async function getCurrentInterfaceJSON() {
-    var interfacePackageJSON = storagePath.interfaceSettings + '/interface_package.json';
-    let rawdata;
-    try {
-        rawdata = fs.readFileSync(interfacePackageJSON);
-    } catch {
-        // win.webContents.send('failed-to-retrieve-interface-metadata', "We failed to get the current selected Interface metadata to perform the requested action.");
-        return false;
-    }
-    
-    let interfaceJSON = JSON.parse(rawdata);
-    
-    if (interfaceJSON) {
-        console.info("Interface Package JSON:", interfaceJSON);
-        return interfaceJSON;
-    } else {
-        return false;
-    }
-}
+// async function getCurrentInterfaceJSON() {
+//     var interfacePackageJSON = storagePath.interfaceSettings + '/interface_package.json';
+// 
+//     let rawdata;
+//     try {
+//         rawdata = fs.readFileSync(interfacePackageJSON);
+//     } catch {
+//         // win.webContents.send('failed-to-retrieve-interface-metadata', "We failed to get the current selected Interface metadata to perform the requested action.");
+//         return false;
+//     }
+// 
+//     let interfaceJSON = JSON.parse(rawdata);
+// 
+//     if (interfaceJSON) {
+//         console.info("Interface Package JSON:", interfaceJSON);
+//         return interfaceJSON;
+//     } else {
+//         return false;
+//     }
+// }
 
 async function getLatestMetaJSON() {
 	var metaURL = 'https://cdn.vircadia.com/dist/launcher/vircadiaMeta.json';
@@ -344,8 +345,9 @@ async function getLatestMetaJSON() {
 
 async function checkForInterfaceUpdates() {
 	var vircadiaMeta = await getLatestMetaJSON();
-    var interfacePackage = await getCurrentInterfaceJSON();
-    
+    // var interfacePackage = await getCurrentInterfaceJSON();
+    var interfacePackage = { package: versionPaths.fromPath(storagePath.interfaceSettings.replace("//launcher_settings", "")) };
+    console.info("interfacePackage.package", interfacePackage.package);
     if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.package.version) {
         var versionCompare = compareVersions(vircadiaMeta.latest.version, interfacePackage.package.version);
         console.info("Compare Versions: ", versionCompare);
@@ -699,6 +701,10 @@ async function silentInstall(useOldInstaller) {
                     console.info("Installation complete.");
                     console.info("Running post-install.");
                     // postInstall();
+                    win.webContents.send('silent-installer-complete', {
+                        "name": vircadiaMetaJSON.latest.name,
+                        "folder": installPath,
+                    });
                 }
             });
         } catch (e) {
