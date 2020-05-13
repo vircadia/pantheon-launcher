@@ -142,12 +142,15 @@ var storagePath = {
 	currentLibrary: null,
 };
 
-var installFolderName = "\\Vircadia_Interface_Latest_SILENT\\";
+var versionPaths = {
+    fromPath: function(path) { return { name: path.split(/__+/)[0].split(/[\\/]/).pop().replace(/_/g, ' '), version: path.split(/__+/)[1] }; },
+    toPath: function(nv) { return [ nv.name, nv.version ].join('__').replace(/[^A-Za-z_0-9.]+/g, '_').replace(/___+/g,'__'); },
+}
+
+// var installFolderName = "\\Vircadia_Interface_Latest_SILENT\\";
 
 var currentInterface;
 var requireInterfaceSelection;
-
-// shell.openItem(storagePath.default);
 
 async function generateInterfaceList(interfaces) {
     var interfacesArray = [];
@@ -186,26 +189,11 @@ async function getDirectories (src) {
 		var rej_p = rej;
         
         // THIS CODE ACTUALLY LOOKS FOR A PACKAGE.JSON TO REGISTER
-		glob(src + '/*/launcher_settings/interface_package.json', function(err, folders) {
-			console.log(folders);
-			if(folders) {
-				folders.forEach(function (folder) {
-					var folderToReturn = folder.replace("launcher_settings/interface_package.json", "");
-					interfacesToReturn.push(folderToReturn);
-				});
-				res_p();
-			} else {
-				rej_p("Failed to load directories.");
-			}
-		});
-		
-        // THIS CODE ONLY LOOKS FOR INTERFACE.EXE
-        
-		// glob(src + '/*/interface.exe', function(err, folders) {
+		// glob(src + '/*/launcher_settings/interface_package.json', function(err, folders) {
 		// 	console.log(folders);
 		// 	if(folders) {
 		// 		folders.forEach(function (folder) {
-		// 			var folderToReturn = folder.replace("interface.exe", "");
+		// 			var folderToReturn = folder.replace("launcher_settings/interface_package.json", "");
 		// 			interfacesToReturn.push(folderToReturn);
 		// 		});
 		// 		res_p();
@@ -213,6 +201,21 @@ async function getDirectories (src) {
 		// 		rej_p("Failed to load directories.");
 		// 	}
 		// });
+		
+        // THIS CODE ONLY LOOKS FOR INTERFACE.EXE
+        
+		glob(src + '/*/interface.exe', function(err, folders) {
+			console.log(folders);
+			if(folders) {
+				folders.forEach(function (folder) {
+					var folderToReturn = folder.replace("interface.exe", "");
+					interfacesToReturn.push(folderToReturn);
+				});
+				res_p();
+			} else {
+				rej_p("Failed to load directories.");
+			}
+		});
 	});
 
 	let result = await getDirectoriesPromise; 
@@ -553,12 +556,22 @@ ipcMain.handle('isInterfaceSelectionRequired', (event, arg) => {
     }
 })
 
-ipcMain.handle('populateInterfaceList', (event, arg) => {
-    getLibraryInterfaces().then(async function(results) {
-        var generatedList = await generateInterfaceList(results);
-        console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
-        event.sender.send('interface-list', generatedList);
+ipcMain.handle('populateInterfaceList', async (event, arg) => {
+    var interface_exes = await getLibraryInterfaces();
+    var list = interface_exes.map(function(filename) {
+        // :)
+        var nv = versionPaths.fromPath(filename);
+        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, '') } }
     });
+    event.sender.send('interface-list', list);
+    
+    // COMMENT ABOVE, UNCOMMENT BELOW
+    
+    // getLibraryInterfaces().then(async function(results) {
+    //     var generatedList = await generateInterfaceList(results);
+    //     console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
+    //     event.sender.send('interface-list', generatedList);
+    // });
 })
 
 ipcMain.handle('get-interface-list-for-launch', (event, arg) => {
@@ -594,8 +607,11 @@ function launchInstaller() {
 }
 
 async function silentInstall(useOldInstaller) {
+    var vircadiaMetaJSON = await getLatestMetaJSON();
     var executableLocation; // This is the downloaded installer.
     var installPath; // This is the location to install the application to.
+    var installFolderName = "\\" + versionPaths.toPath(vircadiaMetaJSON.latest) + "\\";
+    console.info("silentInstall: installFolderName:", installFolderName);
     var executablePath; // This is the location that the installer exe is located in after being downloaded.
     var exeLocToInstall; // This is what gets installed.
     var list = await tasklist();
@@ -682,7 +698,7 @@ async function silentInstall(useOldInstaller) {
                 } else {
                     console.info("Installation complete.");
                     console.info("Running post-install.");
-                    postInstall();
+                    // postInstall();
                 }
             });
         } catch (e) {
@@ -698,45 +714,45 @@ async function silentInstall(useOldInstaller) {
     });
 }
 
-async function postInstall() {
-    getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
-        var installPath;
-        var vircadiaMetaJSON = await getLatestMetaJSON();
-        var vircadiaPackageJSON = 
-        {
-            "package": {
-                "name": vircadiaMetaJSON.latest.name,
-                "version": vircadiaMetaJSON.latest.version
-            }
-        };
-        
-        if (libPath) {
-            installPath = libPath + installFolderName;
-        } else {
-            installPath = storagePath.default + installFolderName;
-        }
-        
-        var packageJSONLocation = installPath + "/launcher_settings";
-        var packageJSONFilename = installPath + "/launcher_settings/interface_package.json";
-        
-        try {
-            fs.mkdirSync(packageJSONLocation, { recursive: true });
-            fs.writeFileSync(packageJSONFilename, JSON.stringify(vircadiaPackageJSON));
-        } catch {
-            win.webContents.send('silent-installer-failed', { "message": 'Failed to create Interface metadata post-install.' });
-            return;
-        }
-        
-        var postInstallPackage = {
-            "name": vircadiaMetaJSON.latest.name,
-            "folder": installPath,
-        }
-        
-        win.webContents.send('silent-installer-complete', postInstallPackage);
-    }).catch(function(e) {
-        console.info("Failed to fetch library for post install. Error:", e);
-    });
-}
+// async function postInstall() {
+//     getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
+//         var installPath;
+//         var vircadiaMetaJSON = await getLatestMetaJSON();
+//         var vircadiaPackageJSON = 
+//         {
+//             "package": {
+//                 "name": vircadiaMetaJSON.latest.name,
+//                 "version": vircadiaMetaJSON.latest.version
+//             }
+//         };
+// 
+//         if (libPath) {
+//             installPath = libPath + installFolderName;
+//         } else {
+//             installPath = storagePath.default + installFolderName;
+//         }
+// 
+//         var packageJSONLocation = installPath + "/launcher_settings";
+//         var packageJSONFilename = installPath + "/launcher_settings/interface_package.json";
+// 
+//         try {
+//             fs.mkdirSync(packageJSONLocation, { recursive: true });
+//             fs.writeFileSync(packageJSONFilename, JSON.stringify(vircadiaPackageJSON));
+//         } catch {
+//             win.webContents.send('silent-installer-failed', { "message": 'Failed to create Interface metadata post-install.' });
+//             return;
+//         }
+// 
+//         var postInstallPackage = {
+//             "name": vircadiaMetaJSON.latest.name,
+//             "folder": installPath,
+//         }
+// 
+//         win.webContents.send('silent-installer-complete', postInstallPackage);
+//     }).catch(function(e) {
+//         console.info("Failed to fetch library for post install. Error:", e);
+//     });
+// }
 
 ipcMain.on('download-vircadia', async (event, arg) => {
     var libraryPath;
@@ -808,6 +824,13 @@ ipcMain.on('download-vircadia', async (event, arg) => {
 		console.info("Failed to download.");
         win.webContents.send('download-installer-failed');
 	}
+});
+
+// this can be triggered identically to "launch-interface" -- ie: pass full path to interface.exe within arg.exec
+ipcMain.on('uninstall-interface', (event, folder) => {
+    var uninstallExec = folder + "Uninstall.exe";
+    console.info("[uninstall] uninstaller: ", uninstallExec);
+    require('child_process').execFile(uninstallExec);
 });
 
 ipcMain.on('cancel-download', async (event) => {

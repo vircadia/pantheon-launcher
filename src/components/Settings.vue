@@ -115,11 +115,15 @@
                                     <v-list-item
                                         v-for="(item, i) in interfaceFolders"
                                         :key="i"
-                                        @click="selectInterface(item)"
                                     >
-                                        <v-list-item-content>
+                                        <v-list-item-content @click="selectInterface(item)">
                                             <v-list-item-title v-html="item.name"></v-list-item-title>
                                         </v-list-item-content>
+                                        <v-list-item-action>
+                                            <v-btn icon @click="uninstallInterface(item)">
+                                                <v-icon large color="red">mdi-delete-circle</v-icon>
+                                            </v-btn>
+                                        </v-list-item-action>
                                     </v-list-item>
                                 </v-list-item-group>
                             </div>
@@ -280,6 +284,9 @@ export default {
             
 			ipcRenderer.send('set-current-interface', selected.folder);
 		},
+        uninstallInterface: function(selected) {
+            ipcRenderer.send('uninstall-interface', selected.folder);
+        },
 		selectInterfaceExe: function() {
 			if(this.$store.state.interfaceSelectionRequired) {
 				this.showRequireInterface = true;

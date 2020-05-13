@@ -59,7 +59,7 @@ import * as Sentry from '@sentry/electron';
         v-model="interfaceBusyLaunching"
         style="margin-bottom: 75px;"
         color="#34323e"
-        :timeout="7500"
+        :timeout="interfaceBusyLaunchingTimeout"
     >
         The Interface is starting.
         <v-btn
@@ -423,7 +423,7 @@ ipcRenderer.on('launching-interface', (event, arg) => {
     vue_this.interfaceBusyLaunching = setTimeout(function() { 
         vue_this.interfaceBusyLaunching = false;
         vue_this.disableLaunchButton = false;
-    }, 10000); // 10 seconds
+    }, vue_this.interfaceBusyLaunchingTimeout);
 });
 
 ipcRenderer.on('current-library-folder', (event, arg) => {
@@ -487,13 +487,9 @@ ipcRenderer.on('silent-installer-running', (event, arg) => {
 });
 
 ipcRenderer.on('silent-installer-complete', (event, arg) => {
-    vue_this.downloadText = "Download Interface";
-    vue_this.isSilentInstalling = false;
-    vue_this.disableDownloadButton = false;
-    vue_this.showDownloadButton = false;
     vue_this.showUpdateButton = true;
-    vue_this.showCloudIcon = true;
-    vue_this.disableLaunchButton = false;
+    vue_this.resetDownloadButton();
+    
     vue_this.openDialog('InstallComplete', true);
     
     vue_this.$store.commit('mutate', {
@@ -509,13 +505,9 @@ ipcRenderer.on('silent-installer-complete', (event, arg) => {
 });
 
 ipcRenderer.on('silent-installer-failed', (event, arg) => {
-    vue_this.downloadText = "Download Interface";
-    vue_this.isSilentInstalling = false;
-    vue_this.disableDownloadButton = false;
-    vue_this.showDownloadButton = true;
     vue_this.showUpdateButton = false;
-    vue_this.showCloudIcon = true;
-    vue_this.disableLaunchButton = false;
+    vue_this.resetDownloadButton();
+    
     vue_this.$store.commit('mutate', {
         property: 'currentNotice', 
         with: arg
@@ -637,6 +629,14 @@ export default {
             
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('check-for-updates');            
+        },
+        resetDownloadButton: function() {
+            this.downloadText = "Download Interface";
+            this.isSilentInstalling = false;
+            this.disableDownloadButton = false;
+            this.showDownloadButton = false;
+            this.showCloudIcon = true;
+            this.disableLaunchButton = false;
         }
 	},
     created: function () {
@@ -712,6 +712,7 @@ export default {
         autoRestartInterface: false,
         disableLaunchButton: false,
         interfaceBusyLaunching: false,
+        interfaceBusyLaunchingTimeout: 12000, // 12 seconds
         // Download & Install Data
         downloadProgress: 0,
         isDownloading: false,
