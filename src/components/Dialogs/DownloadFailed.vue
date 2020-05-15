@@ -24,19 +24,31 @@
             </v-card-title>
     
             <v-card-text>
-                The download of the latest version of Interface failed.
+                The download for Interface failed.
+                <v-expansion-panels
+                    v-model="panel"
+                    v-if="this.downloadFailedCode"
+                >
+                    <v-expansion-panel>
+                        <v-expansion-panel-header>Error Information</v-expansion-panel-header>
+                        <v-expansion-panel-content>
+                            Error code <pre>{{downloadFailedCode}}</pre> <br />
+                            The full error is shown below: <br />
+                            <pre>{{downloadFailedError}}</pre>
+                        </v-expansion-panel-content>
+                    </v-expansion-panel>
+                </v-expansion-panels>
             </v-card-text>
     
             <v-divider></v-divider>
-    
+
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    text
                     @click="$emit('hideDialog')"
                 >
-                    Okay
+                    Dismiss
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -50,6 +62,12 @@ export default {
 
   data: () => ({
       showDownloadFailed: true,
+      panel: false,
   }),
+  created: function () {
+      this.downloadFailedMessage = this.$store.state.currentNotice.message;
+      this.downloadFailedCode = this.$store.state.currentNotice.code;
+      this.downloadFailedError = this.$store.state.currentNotice.fullerr;
+  }
 };
 </script>

@@ -28,22 +28,20 @@
             </v-card-text>
     
             <v-divider></v-divider>
-    
+            
             <v-card-actions>
                 <v-btn
-                    color="red"
-                    text
-                    @click="reinstallInterface(); $emit('hideDialog')"
-                >
-                    Reinstall
-                </v-btn>
-                <v-spacer></v-spacer>
-                <v-btn
                     color="primary"
-                    text
                     @click="doNothing(); $emit('hideDialog')"
                 >
                     No
+                </v-btn>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="red"
+                    @click="reinstallInterface(); $emit('hideDialog')"
+                >
+                    Reinstall
                 </v-btn>
             </v-card-actions>
         </v-card>

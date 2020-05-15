@@ -41,12 +41,11 @@
             </v-card-text>
     
             <v-divider></v-divider>
-    
+
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    text
                     @click="$emit('hideDialog')"
                 >
                     Dismiss
@@ -55,7 +54,6 @@
         </v-card>
     </v-dialog>
 </template>
-
 
 <script>
 export default {

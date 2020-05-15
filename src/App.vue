@@ -248,6 +248,23 @@ import * as Sentry from '@sentry/electron';
                                     </v-list-item-content>
                                 </template>
                             </v-list-item>
+                            <v-list-item>
+                                <template>
+                                    <v-list-item-action>
+                                        <v-checkbox
+                                            color="primary"
+                                            :true-value="dontPromptForLogin"
+                                            :input-value="dontPromptForLogin"
+                                            v-model="dontPromptForLogin"
+                                        ></v-checkbox>
+                                    </v-list-item-action>
+                            
+                                    <v-list-item-content @click="dontPromptForLogin = !dontPromptForLogin">
+                                        <v-list-item-title>Don't Prompt for Login</v-list-item-title>
+                                        <v-list-item-subtitle>Do not show the login screen when opening Interface.</v-list-item-subtitle>
+                                    </v-list-item-content>
+                                </template>
+                            </v-list-item>
                         </v-list-item-group>
                     </v-list>
                 </v-menu>
@@ -385,6 +402,14 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 			with: arg.results.autoRestartInterface
 		});
         vue_this.autoRestartInterface = arg.results.autoRestartInterface;
+	}
+    
+    if (arg.results.dontPromptForLogin) {
+		vue_this.$store.commit('mutate', {
+			property: 'dontPromptForLogin', 
+			with: arg.results.dontPromptForLogin
+		});
+        vue_this.dontPromptForLogin = arg.results.dontPromptForLogin;
 	}
     
 	if (arg.results.selectedInterface) {
@@ -537,6 +562,17 @@ ipcRenderer.on('checked-for-updates', (event, arg) => {
     }
 });
 
+/* Debug COMMANDS */
+
+function clearSelectedInterface() {
+    this.$store.commit('mutate', {
+        property: 'selectedInterface', 
+        with: null
+    });
+}
+
+/* END Debug COMMANDS */
+
 import HelloWorld from './components/HelloWorld';
 import FavoriteWorlds from './components/FavoriteWorlds';
 import Settings from './components/Settings';
@@ -596,6 +632,7 @@ export default {
 		attemptLaunchInterface: function() {
 			// var exeLoc = ipcRenderer.sendSync('get-vircadia-location'); // todo: check if that location exists first when using that, we need to default to using folder path + /interface.exe otherwise.
             var exeLoc;
+            
             if (this.$store.state.selectedInterface) {
                 exeLoc = this.$store.state.selectedInterface.folder + "interface.exe";
             }
@@ -609,7 +646,7 @@ export default {
             }
 		},
         launchInterface: function(exeLoc) {
-            ipcRenderer.send('launch-interface', { "exec": exeLoc, "steamVR": this.noSteamVR, "allowMultipleInstances": this.allowMultipleInstances, "autoRestartInterface": this.autoRestartInterface });
+            ipcRenderer.send('launch-interface', { "exec": exeLoc, "steamVR": this.noSteamVR, "allowMultipleInstances": this.allowMultipleInstances, "autoRestartInterface": this.autoRestartInterface, "dontPromptForLogin": this.dontPromptForLogin });
         },
 		launchBrowser: function(url) {
 			const { shell } = require('electron');
@@ -711,6 +748,14 @@ export default {
                 });
             }
         },
+        dontPromptForLogin: function (newValue, oldValue) {
+            if(newValue != oldValue) {
+                this.$store.commit('mutate', {
+                    property: 'dontPromptForLogin', 
+                    with: newValue
+                });
+            }
+        },
         interfaceSelected (newVal, oldVal) {
             console.info("Interface selected:", newVal);
             if (newVal) {
@@ -733,6 +778,7 @@ export default {
         noSteamVR: false,
         allowMultipleInstances: false,
         autoRestartInterface: false,
+        dontPromptForLogin: true,
         disableLaunchButton: false,
         interfaceBusyLaunching: false,
         interfaceBusyLaunchingTimeout: 12000, // 12 seconds

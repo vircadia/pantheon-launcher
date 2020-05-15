@@ -28,22 +28,20 @@
             </v-card-text>
     
             <v-divider></v-divider>
-    
+
             <v-card-actions>
                 <v-btn
                     color="primary"
-                    text
-                    @click="continueClose(); $emit('hideDialog')"
-                >
-                    Yes
-                </v-btn>
-                <v-spacer></v-spacer>
-                <v-btn
-                    color="primary"
-                    text
                     @click="cancelClose(); $emit('hideDialog')"
                 >
                     No
+                </v-btn>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="red"
+                    @click="continueClose(); $emit('hideDialog')"
+                >
+                    Yes
                 </v-btn>
             </v-card-actions>
         </v-card>

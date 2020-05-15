@@ -155,6 +155,12 @@ pre {
 
 }
 
+/* News.vue */
+
+#mainIframe {
+    border: 0;
+}
+
 /* Transitions */
 
 .fade-enter-active, .fade-leave-active {

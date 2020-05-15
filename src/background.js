@@ -31,11 +31,11 @@ const hasha = require('hasha');
 const fs = require('fs');
 const compareVersions = require('compare-versions');
 const tasklist = require('tasklist'); // This is specific to Windows.
-
 var glob = require('glob');
-
 const cp = require('child_process');
- 
+// electron_modules
+import * as versionPaths from './electron_modules/versionPaths.js'
+
 electronDl();
 var electronDlItem = null;
 
@@ -141,11 +141,6 @@ var storagePath = {
 	interfaceSettings: null,
 	currentLibrary: null,
 };
-
-var versionPaths = {
-    fromPath: function(path) { return { name: path.split(/__+/)[0].split(/[\\/]/).pop().replace(/_/g, ' '), version: path.split(/__+/)[1] }; },
-    toPath: function(nv) { return [ nv.name, nv.version ].join('__').replace(/[^A-Za-z_0-9.]+/g, '_').replace(/___+/g,'__'); },
-}
 
 // var installFolderName = "\\Vircadia_Interface_Latest_SILENT\\";
 
@@ -448,6 +443,8 @@ async function getSetting(setting, storageDataPath) {
 const { ipcMain } = require('electron')
 
 ipcMain.on('save-state', (event, arg) => {
+    // FIXME: Find out why your settings keep getting nuked...? Specifically current interface and the library folder sometimes.
+    // create a log file... and logging function to find the source of these issues.
     storage.set('vircadia_launcher.state', arg, {dataPath: storagePath.default}, function(error) {
         console.info("Saving state.", error);
         if (error) throw error;
@@ -499,6 +496,12 @@ ipcMain.on('launch-interface', (event, arg) => {
     if (arg.autoRestartInterface) {
         parameters.push('--suppress-settings-reset');
     }
+    
+    if (arg.dontPromptForLogin) {
+        parameters.push('--no-login-suggestion');
+    }
+    
+    // TODO: Add "QUANTUM_K3_INSTAQUIT" environment variable.
 	
     console.info("Nani?", parameters, "type?", Array.isArray(parameters));
     
@@ -560,6 +563,7 @@ ipcMain.on('set-vircadia-location', async (event, arg) => {
   
 })
 
+// TODO: switch to the proper ipcMain.on convention.
 ipcMain.on('setLibraryFolder', (event, arg) => {
     setLibraryDialog();
 })
@@ -620,7 +624,7 @@ ipcMain.handle('get-interface-list-for-launch', async (event, arg) => {
         var nv = versionPaths.fromPath(filename);
         return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, '') } }
     });
-    event.sender.send('interface-list', list);
+    event.sender.send('interface-list-for-launch', list);
     
     // COMMENT ABOVE, UNCOMMENT BELOW
     
@@ -764,6 +768,8 @@ async function silentInstall(useOldInstaller) {
     });
 }
 
+// TODO: Fix this shit LATER, it's unacceptable.
+
 // async function postInstall() {
 //     getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
 //         var installPath;
@@ -869,7 +875,10 @@ ipcMain.on('download-vircadia', async (event, arg) => {
                 // download interrupted. It would be nicer to display our own, download-installer-failed, message box.
                 // https://github.com/sindresorhus/electron-dl/issues/105
 			});
-		});
+		}).catch(function(error) {
+            console.info("Download library retrieval error:", error);
+            win.webContents.send('download-installer-failed');
+        });
 	} else {
 		console.info("Failed to download.");
         win.webContents.send('download-installer-failed');

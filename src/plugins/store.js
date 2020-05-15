@@ -24,6 +24,7 @@ export const store = new Vuex.Store({
         populatedInterfaceList: [],
         noSteamVR: false,
         autoRestartInterface: false,
+        dontPromptForLogin: true,
         currentLibraryFolder: "No library folder selected.",
         currentNotice: null,
         darkMode: true

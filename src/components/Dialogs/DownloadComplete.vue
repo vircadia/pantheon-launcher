@@ -24,16 +24,15 @@
             </v-card-title>
     
             <v-card-text>
-                The latest version of Interface is done downloading! You can install it by pressing the "Install Interface" button.
+                The latest version of Interface is done downloading!
             </v-card-text>
     
             <v-divider></v-divider>
-    
+
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    text
                     @click="$emit('hideDialog')"
                 >
                     Dismiss
