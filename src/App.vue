@@ -81,25 +81,38 @@ import * as Sentry from '@sentry/electron';
         color="mainbg"
     >
         <div class="d-flex align-center">
-            <v-img
-                alt="Vircadia Logo"
-                id="titleIMG"
-                class="shrink mr-2"
-                v-on:click="launchBrowser('https://vircadia.com/')"
-                contain
-                src="./assets/logo_256_256.png"
-                transition="scale-transition"
-                width="40"
-            />
+            <v-hover
+                v-model="titleHover"
+            >
+                <v-img
+                    alt="Vircadia Logo"
+                    id="titleIMG"
+                    class="shrink mr-2"
+                    v-on:click="launchBrowser('https://vircadia.com/')"
+                    contain
+                    src="./assets/logo_256_256.png"
+                    transition="scale-transition"
+                    width="40"
+                />
+            </v-hover>
             
-            <h2 id="titleURL" v-on:click="launchBrowser('https://vircadia.com/')">Vircadia</h2>
+            <v-slide-x-transition
+                hide-on-leave=true
+            >
+                <h2 class="titleURL" v-show="!titleHover" v-on:click="launchBrowser('https://vircadia.com/')">Early Access</h2>
+            </v-slide-x-transition>
+            <v-slide-x-reverse-transition
+                hide-on-leave=true
+            >
+                <h2 class="titleURL" v-show="titleHover" v-on:click="launchBrowser('https://vircadia.com/')">Vircadia</h2>
+            </v-slide-x-reverse-transition>
 
             <v-btn
                 v-on:click="launchBrowser('https://github.com/kasenvr/project-athena/issues')"
                 target="_blank"
                 text
-                :left=true
-                class="ml-3"
+                absolute
+                style="margin-left: 290px;"
             >
                 <span class="mr-2">Report an issue</span>
                 <v-icon>mdi-open-in-new</v-icon>
@@ -480,8 +493,14 @@ ipcRenderer.on('no-installer-found', (event, arg) => {
     vue_this.openDialog('NoInstallerFound', true);
 });
 
-ipcRenderer.on('interface-running', (event, arg) => {
+ipcRenderer.on('request-close-interface-running', (event, arg) => {
     vue_this.openDialog('WantToClose', true);
+});
+
+ipcRenderer.on('launch-interface-already-running', (event, arg) => {
+    // This only happens if allowMultipleInstances == false and if an instance 
+    // of interface is already running.
+    vue_this.openDialog('LaunchFailedInterfaceRunning', true);
 });
 
 ipcRenderer.on('first-time-user', (event, arg) => {
@@ -581,6 +600,7 @@ import News from './components/News';
 import CancelDownload from './components/Dialogs/CancelDownload'
 import DownloadComplete from './components/Dialogs/DownloadComplete'
 import DownloadFailed from './components/Dialogs/DownloadFailed'
+import LaunchFailedInterfaceRunning from './components/Dialogs/LaunchFailedInterfaceRunning'
 import NoInstallerFound from './components/Dialogs/NoInstallerFound'
 import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
 import InstallComplete from './components/Dialogs/InstallComplete'
@@ -603,6 +623,7 @@ export default {
         CancelDownload,
         DownloadComplete,
         DownloadFailed,
+        LaunchFailedInterfaceRunning,
         NoInstallerFound,
         NoInterfaceFound,
         InstallComplete,
@@ -636,8 +657,10 @@ export default {
             if (this.$store.state.selectedInterface) {
                 exeLoc = this.$store.state.selectedInterface.folder + "interface.exe";
             }
+            
             console.info("Attempting to launch interface, found exeLoc:",exeLoc);
-            if(exeLoc) {
+            
+            if (exeLoc) {
                 this.launchInterface(exeLoc);
             } else {
                 // this.selectInterfaceExe();
@@ -769,6 +792,7 @@ export default {
     },
     data: () => ({
         showTab: 'News',
+        titleHover: false,
         isDevelopment: false,
         // Dialog Data
         showDialog: '',

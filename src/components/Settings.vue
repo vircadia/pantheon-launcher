@@ -195,12 +195,13 @@
 									prepend-icon="mdi-earth"
 									type="text"
 									v-model="metaverseServer"
+                                    disabled
 								/>
 							</v-form>
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
-							<v-btn @click="setMetaverseServer()" color="accent">Save Metaverse Settings</v-btn>
+							<v-btn disabled @click="setMetaverseServer()" color="accent">Save Metaverse Settings</v-btn>
 						</v-card-actions>
 					</v-card>
 				</v-row>
@@ -295,7 +296,7 @@ export default {
 			}
 		},
 		setLibrary: function() {
-			ipcRenderer.send('setLibraryFolder');
+			ipcRenderer.send('set-library-folder');
 		},
         setLibraryDefault: function() {
             ipcRenderer.send('set-library-folder-default');

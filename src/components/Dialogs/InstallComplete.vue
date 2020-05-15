@@ -24,7 +24,8 @@
             </v-card-title>
     
             <v-card-text>
-                The latest version of Interface is done installing! You can now launch it.
+                The latest version of Interface is done installing! <br />
+                You can now launch it.
             </v-card-text>
     
             <v-divider></v-divider>

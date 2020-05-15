@@ -24,7 +24,8 @@
             </v-card-title>
     
             <v-card-text>
-                There is currently no update available. Would you like to reinstall your Interface?
+                There is currently no update available. <br />
+                Would you like to reinstall your Interface?
             </v-card-text>
     
             <v-divider></v-divider>

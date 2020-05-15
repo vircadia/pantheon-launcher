@@ -20,10 +20,14 @@ h2 {
   font-family: 'Raleway', sans-serif;
 }
 
-#titleURL {
-	color: white;
+.titleURL {
+	/* color: white; */
 	cursor: pointer;
 	text-decoration: none;
+    
+    background-image: linear-gradient(to top, #cc208e 0%, #6713d2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 #titleIMG {

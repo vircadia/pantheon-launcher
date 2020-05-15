@@ -24,7 +24,8 @@
             </v-card-title>
     
             <v-card-text>
-                An update is available. Would you like to download and install it?
+                An update is available. <br />
+                Would you like to download and install it?
             </v-card-text>
     
             <v-divider></v-divider>

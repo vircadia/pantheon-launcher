@@ -478,12 +478,21 @@ ipcMain.on('set-metaverse-server', (event, arg) => {
     console.info("Current Metaverse Server:", process.env.HIFI_METAVERSE_URL)
 })
 
-ipcMain.on('launch-interface', (event, arg) => {
+ipcMain.on('launch-interface', async (event, arg) => {
     // var executablePath = "E:\\Development\\High_Fidelity\\v0860-kasen-VS-release+freshstart\\build\\interface\\Packaged_Release\\Release\\interface.exe";
     var executablePath = arg.exec;
     var parameters = [];
+    var list = await tasklist();
+    
+    list.forEach((task) => {
+        if (task.imageName === "interface.exe") {
+            console.log("INTERFACE ALREADY RUNNING WHILE ATTEMPTING TO LAUNCH!");
+            if (!arg.allowMultipleInstances) {
+                win.webContents.send("launch-interface-already-running");
+            }
+        }
+    });
 
-    // arg is expected to be true or false with regards to SteamVR being enabled or not, later on it may be an object or array and we will handle it accordingly.
     if (arg.steamVR) {
         parameters.push('--disable-displays="OpenVR (Vive)"');
         parameters.push('--disable-inputs="OpenVR (Vive)"');
@@ -564,7 +573,7 @@ ipcMain.on('set-vircadia-location', async (event, arg) => {
 })
 
 // TODO: switch to the proper ipcMain.on convention.
-ipcMain.on('setLibraryFolder', (event, arg) => {
+ipcMain.on('set-library-folder', (event, arg) => {
     setLibraryDialog();
 })
 
@@ -768,7 +777,7 @@ async function silentInstall(useOldInstaller) {
     });
 }
 
-// TODO: Fix this shit LATER, it's unacceptable.
+// TODO: Fix this LATER, it's unacceptable.
 
 // async function postInstall() {
 //     getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
@@ -919,7 +928,7 @@ ipcMain.on('request-close', async (event, arg) => {
     });
     
     if (!canClose) {
-        win.webContents.send('interface-running');
+        win.webContents.send('request-close-interface-running');
     } else {
         app.exit();
     }
