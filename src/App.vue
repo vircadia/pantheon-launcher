@@ -112,7 +112,7 @@ import * as Sentry from '@sentry/electron';
                 target="_blank"
                 text
                 absolute
-                style="margin-left: 290px;"
+                style="margin-left: 150px;"
             >
                 <span class="mr-2">Report an issue</span>
                 <v-icon>mdi-open-in-new</v-icon>
