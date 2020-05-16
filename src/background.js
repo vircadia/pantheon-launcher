@@ -516,6 +516,9 @@ ipcMain.on('launch-interface', async (event, arg) => {
         parameters.push('--no-login-suggestion');
     }
     
+    // TODO: Set this dynamically.
+    parameters.push('-qwindowtitle "Vircadia Quantum K3"');
+    
     // TODO: Add "QUANTUM_K3_INSTAQUIT" environment variable.
 	
     console.info("Nani?", parameters, "type?", Array.isArray(parameters));
