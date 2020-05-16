@@ -30,6 +30,12 @@ h2 {
     -webkit-text-fill-color: transparent;
 }
 
+.alternateTitle {
+    background-image: linear-gradient(to top, #4481eb 0%, #04befe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 #titleIMG {
 	cursor: pointer;
 }

@@ -483,15 +483,21 @@ ipcMain.on('launch-interface', async (event, arg) => {
     var executablePath = arg.exec;
     var parameters = [];
     var list = await tasklist();
+    var canLaunch = true;
     
     list.forEach((task) => {
         if (task.imageName === "interface.exe") {
             console.log("INTERFACE ALREADY RUNNING WHILE ATTEMPTING TO LAUNCH!");
             if (!arg.allowMultipleInstances) {
                 win.webContents.send("launch-interface-already-running");
+                canLaunch = false;
             }
         }
     });
+    
+    if (!canLaunch) {
+        return;
+    }
 
     if (arg.steamVR) {
         parameters.push('--disable-displays="OpenVR (Vive)"');
