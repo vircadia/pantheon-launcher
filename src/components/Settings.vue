@@ -91,12 +91,13 @@
                         >
                             <v-toolbar-title>Interface Settings</v-toolbar-title>
                             <v-spacer />
-                            
+                            <span class="mr-2">{{interfaceListLength}} Interfaces Found</span>
                             <v-btn
                                 color="purple"
                                 :tile=true
                                 v-on:click.native="populateInterfaceList()"
                             >
+                                <span class="mr-2">Refresh List</span>
                                 <v-icon>mdi-refresh</v-icon>
                             </v-btn>
                         </v-toolbar>
@@ -110,33 +111,29 @@
                                 class="mx-3"
                             ></v-divider>
                             
-                            <div v-if="interfaceFolders.length > 0">
-                                <v-list-item-group v-model="interfaceFoldersIndex" mandatory color="primary">
-                                    <v-list-item
-                                        v-for="(item, i) in interfaceFolders"
-                                        :key="i"
-                                    >
-                                        <v-list-item-content @click="selectInterface(item)">
-                                            <v-list-item-title v-html="item.name"></v-list-item-title>
-                                        </v-list-item-content>
-                                        <v-list-item-action>
-                                            <v-btn icon @click="uninstallInterface(item)">
-                                                <v-icon large color="red">mdi-delete-circle</v-icon>
-                                            </v-btn>
-                                        </v-list-item-action>
-                                    </v-list-item>
-                                </v-list-item-group>
-                            </div>
-                            <div v-else>
-                                <v-list-item-group v-model="interfaceFoldersIndex" mandatory color="primary">
-                                    <v-list-item>
-                                        <v-list-item-content>
-                                            <v-list-item-title>No Interfaces found.</v-list-item-title>
-                                        </v-list-item-content>
-                                    </v-list-item>
-                                </v-list-item-group>
-                            </div>
+                            <v-list-item-group v-if="interfaceFolders.length > 0" v-model="interfaceFoldersIndex" mandatory color="primary">
+                                <v-list-item
+                                    v-for="(item, i) in interfaceFolders"
+                                    :key="i"
+                                >
+                                    <v-list-item-content @click="selectInterface(item)">
+                                        <v-list-item-title v-html="item.name"></v-list-item-title>
+                                    </v-list-item-content>
+                                    <v-list-item-action>
+                                        <v-btn icon @click="uninstallInterface(item)">
+                                            <v-icon large color="red">mdi-delete-circle</v-icon>
+                                        </v-btn>
+                                    </v-list-item-action>
+                                </v-list-item>
+                            </v-list-item-group>
                             
+                            <v-list-item-group v-else v-model="interfaceFoldersIndex" mandatory color="primary">
+                                <v-list-item>
+                                    <v-list-item-content>
+                                        <v-list-item-title>No Interfaces found.</v-list-item-title>
+                                    </v-list-item-content>
+                                </v-list-item>
+                            </v-list-item-group>
 
                         </v-list>
                         
@@ -354,6 +351,9 @@ export default {
         },
         darkModeToggled () {
             return this.$vuetify.theme.dark;
+        },
+        interfaceListLength () {
+            return this.interfaceFolders.length;
         }
     },
     watch: {
