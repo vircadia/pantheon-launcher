@@ -108,7 +108,7 @@ import * as Sentry from '@sentry/electron';
             </v-slide-x-reverse-transition>
 
             <v-btn
-                v-on:click="launchBrowser('https://github.com/kasenvr/project-athena/issues')"
+                v-on:click="openDialog('ReportAnIssue', true)"
                 target="_blank"
                 text
                 absolute
@@ -204,7 +204,11 @@ import * as Sentry from '@sentry/electron';
                         two-line
                         flat
                     >
-                        <v-subheader>Launch Options</v-subheader>
+                        <v-subheader>
+                            Launch Options 
+                            <v-spacer></v-spacer>
+                            Test
+                        </v-subheader>
 
                         <v-list-item-group
                             multiple
@@ -607,8 +611,9 @@ import InstallComplete from './components/Dialogs/InstallComplete'
 import InstallFailed from './components/Dialogs/InstallFailed'
 import WantToClose from './components/Dialogs/WantToClose'
 import CheckForUpdatesFailed from './components/Dialogs/CheckForUpdatesFailed'
-import UpdateAvailable from './components/Dialogs/UpdateAvailable'
 import NoUpdateAvailable from './components/Dialogs/NoUpdateAvailable'
+import ReportAnIssue from './components/Dialogs/ReportAnIssue'
+import UpdateAvailable from './components/Dialogs/UpdateAvailable'
 import FirstTimeUser from './components/Dialogs/FirstTimeUser'
 import FailedMetadata from './components/Dialogs/FailedMetadata'
 
@@ -630,8 +635,9 @@ export default {
         InstallFailed,
         WantToClose,
         CheckForUpdatesFailed,
-        UpdateAvailable,
         NoUpdateAvailable,
+        ReportAnIssue,
+        UpdateAvailable,
         FirstTimeUser,
         FailedMetadata
     },
@@ -798,6 +804,7 @@ export default {
         showDialog: '',
         shouldShowDialog: false,
         // Launch Data
+        launchOptionsMenu: false,
         launchOptions: [],
         noSteamVR: false,
         allowMultipleInstances: false,
