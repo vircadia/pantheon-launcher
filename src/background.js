@@ -482,19 +482,21 @@ ipcMain.on('launch-interface', async (event, arg) => {
     // var executablePath = "E:\\Development\\High_Fidelity\\v0860-kasen-VS-release+freshstart\\build\\interface\\Packaged_Release\\Release\\interface.exe";
     var executablePath = arg.exec;
     var parameters = [];
-    var list = await tasklist();
     var canLaunch = true;
     
-    list.forEach((task) => {
-        if (task.imageName === "interface.exe") {
-            console.log("INTERFACE ALREADY RUNNING WHILE ATTEMPTING TO LAUNCH!");
-            if (!arg.allowMultipleInstances) {
+    if (arg.allowMultipleInstances) {
+        parameters.push('--allowMultipleInstances');
+    } else {
+        var list = await tasklist();
+        list.forEach((task) => {
+            if (task.imageName === "interface.exe") {
+                console.log("INTERFACE ALREADY RUNNING WHILE ATTEMPTING TO LAUNCH!");
                 win.webContents.send("launch-interface-already-running");
                 canLaunch = false;
             }
-        }
-    });
-    
+        });
+    }
+
     if (!canLaunch) {
         return;
     }
@@ -502,10 +504,6 @@ ipcMain.on('launch-interface', async (event, arg) => {
     if (arg.steamVR) {
         parameters.push('--disable-displays="OpenVR (Vive)"');
         parameters.push('--disable-inputs="OpenVR (Vive)"');
-    }
-
-    if (arg.allowMultipleInstances) {
-        parameters.push('--allowMultipleInstances');
     }
     
     if (arg.autoRestartInterface) {
@@ -517,7 +515,7 @@ ipcMain.on('launch-interface', async (event, arg) => {
     }
     
     // TODO: Set this dynamically.
-    parameters.push('-qwindowtitle "Vircadia Quantum K3"');
+    // parameters.push('-qwindowtitle "Vircadia Quantum K3"');
     
     // TODO: Add "QUANTUM_K3_INSTAQUIT" environment variable.
 	

@@ -186,105 +186,17 @@ import * as Sentry from '@sentry/electron';
             </v-tooltip> -->
 
             <div class="text-center mx-2">
-                <v-menu top offset-y :close-on-content-click="false">
-                    <template v-slot:activator="{ on }">
-                        <v-btn
-                            color="primary"
-                            dark
-                            :tile=true
-                            v-on="on"
-                        >
-                        Options
-                        </v-btn>
-                    </template>
-                    <div style="background: rgba(255,255,255,0.8);">
-                    </div>
-                    <v-list
-                        subheader
-                        two-line
-                        flat
-                    >
-                        <v-subheader>
-                            Launch Options 
-                            <v-spacer></v-spacer>
-                            Test
-                        </v-subheader>
-
-                        <v-list-item-group
-                            multiple
-                            v-model="launchOptions"
-                        >
-                            <v-list-item>
-                                <template>
-                                    <v-list-item-action>
-                                        <v-checkbox
-                                            color="primary"
-                                            :true-value="allowMultipleInstances"
-                                            :input-value="allowMultipleInstances"
-                                            v-model="allowMultipleInstances"
-                                        ></v-checkbox>
-                                    </v-list-item-action>
-
-                                    <v-list-item-content @click="allowMultipleInstances = !allowMultipleInstances">
-                                        <v-list-item-title>Simultaneous Interfaces</v-list-item-title>
-                                        <v-list-item-subtitle>Allow multiple interfaces to be run simultaneously.</v-list-item-subtitle>
-                                    </v-list-item-content>
-                                </template>
-                            </v-list-item>
-                            <v-list-item>
-                                <template>
-                                    <v-list-item-action>
-                                        <v-checkbox
-                                            color="primary"
-                                            :true-value="noSteamVR"
-                                            :input-value="noSteamVR"
-                                            v-model="noSteamVR"
-                                        ></v-checkbox>
-                                    </v-list-item-action>
-
-                                    <v-list-item-content @click="noSteamVR = !noSteamVR">
-                                        <v-list-item-title>Disable SteamVR</v-list-item-title>
-                                        <v-list-item-subtitle>Disable launching and attaching SteamVR with interface.</v-list-item-subtitle>
-                                    </v-list-item-content>
-                                </template>
-                            </v-list-item>
-                            <v-list-item>
-                                <template>
-                                    <v-list-item-action>
-                                        <v-checkbox
-                                            color="primary"
-                                            :true-value="autoRestartInterface"
-                                            :input-value="autoRestartInterface"
-                                            v-model="autoRestartInterface"
-                                        ></v-checkbox>
-                                    </v-list-item-action>
-                            
-                                    <v-list-item-content @click="autoRestartInterface = !autoRestartInterface">
-                                        <v-list-item-title>Auto Restart Interface</v-list-item-title>
-                                        <v-list-item-subtitle>The launcher will auto-restart Interface if it closes with an exit code.</v-list-item-subtitle>
-                                    </v-list-item-content>
-                                </template>
-                            </v-list-item>
-                            <v-list-item>
-                                <template>
-                                    <v-list-item-action>
-                                        <v-checkbox
-                                            color="primary"
-                                            :true-value="dontPromptForLogin"
-                                            :input-value="dontPromptForLogin"
-                                            v-model="dontPromptForLogin"
-                                        ></v-checkbox>
-                                    </v-list-item-action>
-                            
-                                    <v-list-item-content @click="dontPromptForLogin = !dontPromptForLogin">
-                                        <v-list-item-title>Don't Prompt for Login</v-list-item-title>
-                                        <v-list-item-subtitle>Do not show the login screen when opening Interface.</v-list-item-subtitle>
-                                    </v-list-item-content>
-                                </template>
-                            </v-list-item>
-                        </v-list-item-group>
-                    </v-list>
-                </v-menu>
+                <v-btn
+                    color="primary"
+                    dark
+                    :tile=true
+                    @click="openDialog('LaunchOptions', true)"
+                >
+                    Options
+                </v-btn>
+                <div style="background: rgba(255,255,255,0.8);">
+                </div>
+                
             </div>
 
             <v-btn
@@ -387,7 +299,6 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 			property: 'noSteamVR', 
 			with: arg.results.noSteamVR
 		});
-		vue_this.noSteamVR = arg.results.noSteamVR;
 	}
     
     if (arg.results.sentryEnabled !== null) {
@@ -410,7 +321,6 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 			property: 'allowMultipleInstances', 
 			with: arg.results.allowMultipleInstances
 		});
-        vue_this.allowMultipleInstances = arg.results.allowMultipleInstances;
 	}
     
     if (arg.results.autoRestartInterface) {
@@ -418,7 +328,6 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 			property: 'autoRestartInterface', 
 			with: arg.results.autoRestartInterface
 		});
-        vue_this.autoRestartInterface = arg.results.autoRestartInterface;
 	}
     
     if (arg.results.dontPromptForLogin) {
@@ -426,7 +335,6 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 			property: 'dontPromptForLogin', 
 			with: arg.results.dontPromptForLogin
 		});
-        vue_this.dontPromptForLogin = arg.results.dontPromptForLogin;
 	}
     
 	if (arg.results.selectedInterface) {
@@ -606,6 +514,7 @@ import DownloadComplete from './components/Dialogs/DownloadComplete'
 import DownloadFailed from './components/Dialogs/DownloadFailed'
 import LaunchFailedInterfaceRunning from './components/Dialogs/LaunchFailedInterfaceRunning'
 import NoInstallerFound from './components/Dialogs/NoInstallerFound'
+import LaunchOptions from './components/Dialogs/LaunchOptions'
 import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
 import InstallComplete from './components/Dialogs/InstallComplete'
 import InstallFailed from './components/Dialogs/InstallFailed'
@@ -629,6 +538,7 @@ export default {
         DownloadComplete,
         DownloadFailed,
         LaunchFailedInterfaceRunning,
+        LaunchOptions,
         NoInstallerFound,
         NoInterfaceFound,
         InstallComplete,
@@ -675,7 +585,7 @@ export default {
             }
 		},
         launchInterface: function(exeLoc) {
-            ipcRenderer.send('launch-interface', { "exec": exeLoc, "steamVR": this.noSteamVR, "allowMultipleInstances": this.allowMultipleInstances, "autoRestartInterface": this.autoRestartInterface, "dontPromptForLogin": this.dontPromptForLogin });
+            ipcRenderer.send('launch-interface', { "exec": exeLoc, "steamVR": this.$store.state.noSteamVR, "allowMultipleInstances": this.$store.state.allowMultipleInstances, "autoRestartInterface": this.$store.state.autoRestartInterface, "dontPromptForLogin": this.$store.state.dontPromptForLogin });
         },
 		launchBrowser: function(url) {
 			const { shell } = require('electron');
@@ -753,38 +663,6 @@ export default {
         }
     },
 	watch: {
-        noSteamVR: function (newValue, oldValue) {
-            if(newValue != oldValue) {
-                this.$store.commit('mutate', {
-                    property: 'noSteamVR', 
-                    with: newValue
-                });
-            }
-        },
-        allowMultipleInstances: function (newValue, oldValue) {
-            if(newValue != oldValue) {
-                this.$store.commit('mutate', {
-                    property: 'allowMultipleInstances', 
-                    with: newValue
-                });
-            }
-        },
-        autoRestartInterface: function (newValue, oldValue) {
-            if(newValue != oldValue) {
-                this.$store.commit('mutate', {
-                    property: 'autoRestartInterface', 
-                    with: newValue
-                });
-            }
-        },
-        dontPromptForLogin: function (newValue, oldValue) {
-            if(newValue != oldValue) {
-                this.$store.commit('mutate', {
-                    property: 'dontPromptForLogin', 
-                    with: newValue
-                });
-            }
-        },
         interfaceSelected (newVal, oldVal) {
             console.info("Interface selected:", newVal);
             if (newVal) {
@@ -804,12 +682,7 @@ export default {
         showDialog: '',
         shouldShowDialog: false,
         // Launch Data
-        launchOptionsMenu: false,
         launchOptions: [],
-        noSteamVR: false,
-        allowMultipleInstances: false,
-        autoRestartInterface: false,
-        dontPromptForLogin: true,
         disableLaunchButton: false,
         interfaceBusyLaunching: false,
         interfaceBusyLaunchingTimeout: 12000, // 12 seconds
