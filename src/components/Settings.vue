@@ -118,6 +118,7 @@
                                 >
                                     <v-list-item-content @click="selectInterface(item)">
                                         <v-list-item-title v-html="item.name"></v-list-item-title>
+                                        <v-list-item-subtitle v-html="item.version"></v-list-item-subtitle>
                                     </v-list-item-content>
                                     <v-list-item-action>
                                         <v-btn icon @click="uninstallInterface(item)">
@@ -254,7 +255,8 @@ ipcRenderer.on('interface-list', (event, arg) => {
         populatedList.forEach(function(i){
             var appName = Object.keys(i)[0];
             var appLoc = i[appName].location;
-            var appObject = { "name": appName, "folder": appLoc };
+            var appVersion = i[appName].version;
+            var appObject = { "name": appName, "folder": appLoc, "version": appVersion };
             vue_this.interfaceFolders.push(appObject);
             // console.info(i);
             // console.info(Object.keys(i)[0]);

@@ -620,7 +620,7 @@ ipcMain.handle('populateInterfaceList', async (event, arg) => {
     var list = interface_exes.map(function(filename) {
         // :)
         var nv = versionPaths.fromPath(filename);
-        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, '') } }
+        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, ''), "version": nv.version } }
     });
     event.sender.send('interface-list', list);
     
@@ -923,6 +923,7 @@ ipcMain.on('check-for-updates', (event, arg) => {
     checkForUpdates();
 });
 
+// TODO: Ensure this is working effectively to most users.
 ipcMain.on('request-close', async (event, arg) => {
     var list = await tasklist();
     var canClose = true;
