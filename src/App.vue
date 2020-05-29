@@ -308,6 +308,13 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 		});
 	}
     
+    if (arg.results.customLaunchParameters) {
+        vue_this.$store.commit('mutate', {
+            property: 'customLaunchParameters', 
+            with: arg.results.customLaunchParameters
+        });
+    }
+    
     if (arg.results.sentryEnabled !== null) {
 		vue_this.$store.commit('mutate', {
 			property: 'sentryEnabled', 
@@ -592,7 +599,7 @@ export default {
             }
 		},
         launchInterface: function(exeLoc) {
-            ipcRenderer.send('launch-interface', { "exec": exeLoc, "noSteamVR": this.$store.state.noSteamVR, "noOculus": this.$store.state.noOculus, "allowMultipleInstances": this.$store.state.allowMultipleInstances, "autoRestartInterface": this.$store.state.autoRestartInterface, "dontPromptForLogin": this.$store.state.dontPromptForLogin });
+            ipcRenderer.send('launch-interface', { "exec": exeLoc, "customLaunchParameters": this.$store.state.customLaunchParameters, "noSteamVR": this.$store.state.noSteamVR, "noOculus": this.$store.state.noOculus, "allowMultipleInstances": this.$store.state.allowMultipleInstances, "autoRestartInterface": this.$store.state.autoRestartInterface, "dontPromptForLogin": this.$store.state.dontPromptForLogin });
         },
 		launchBrowser: function(url) {
 			const { shell } = require('electron');

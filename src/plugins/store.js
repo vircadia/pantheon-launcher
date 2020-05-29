@@ -24,6 +24,7 @@ export const store = new Vuex.Store({
         allowMultipleInstances: false,
         noSteamVR: false,
         noOculus: false,
+        customLaunchParameters: "",
         autoRestartInterface: false,
         dontPromptForLogin: true,
         currentLibraryFolder: "No library folder selected.",

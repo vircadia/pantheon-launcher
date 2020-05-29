@@ -484,6 +484,11 @@ ipcMain.on('launch-interface', async (event, arg) => {
     var parameters = [];
     var canLaunch = true;
     
+    if (arg.customLaunchParameters) {
+        var splitParameters = arg.customLaunchParameters.split(",");
+        splitParameters.forEach(parameter => parameters.push(parameter));
+    }
+    
     if (arg.allowMultipleInstances) {
         parameters.push('--allowMultipleInstances');
     } else {

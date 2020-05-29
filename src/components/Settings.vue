@@ -201,6 +201,26 @@
 							<v-spacer />
 							<v-btn disabled @click="setMetaverseServer()" color="accent">Save Metaverse Settings</v-btn>
 						</v-card-actions>
+                        
+                        <v-toolbar
+                            color="purple"
+                            dark
+                            flat
+                            class="mt-7"
+                        >
+                            <v-toolbar-title>Developer</v-toolbar-title>
+                        </v-toolbar>
+                        
+                        <v-card-text>
+                            <v-text-field
+                                label="Custom Launch Parameters, comma separated, no spaces in-between"
+                                name="customLaunchParameters"
+                                prepend-icon="mdi-tools"
+                                type="text"
+                                v-model="customLaunchParametersStore"
+                            />
+                        </v-card-text>
+                        
 					</v-card>
 				</v-row>
 			</v-container>
@@ -342,6 +362,17 @@ export default {
         inactive: false,
 	}),
     computed: {
+        customLaunchParametersStore: {
+            get() {
+                return this.$store.state.customLaunchParameters;
+            },
+            set(value) {
+                this.$store.commit('mutate', {
+                    property: 'customLaunchParameters', 
+                    with: value
+                });
+            },
+        },
         librarySelected () {
             return this.$store.state.currentLibraryFolder;
         },
