@@ -4,7 +4,7 @@
     "name": "Vircadia",
     "email": "contact@vircadia.com"
   },
-  "version": "0.0.1j",
+  "version": "0.0.1k",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
