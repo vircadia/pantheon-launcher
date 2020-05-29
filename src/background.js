@@ -501,9 +501,19 @@ ipcMain.on('launch-interface', async (event, arg) => {
         return;
     }
 
-    if (arg.steamVR) {
+    if (arg.noSteamVR && !arg.noOculus) {
         parameters.push('--disable-displays="OpenVR (Vive)"');
         parameters.push('--disable-inputs="OpenVR (Vive)"');
+    }
+    
+    if (arg.noOculus && !arg.noSteamVR) {
+        parameters.push('--disable-displays="Oculus Rift"');
+        parameters.push('--disable-inputs="Oculus Rift"');
+    }
+    
+    if (arg.noOculus && arg.noSteamVR) {
+        parameters.push('--disable-displays="OpenVR (Vive),Oculus Rift"');
+        parameters.push('--disable-inputs="OpenVR (Vive),Oculus Rift"');
     }
     
     if (arg.autoRestartInterface) {
@@ -919,6 +929,10 @@ ipcMain.on('install-vircadia', (event, arg) => {
     launchInstaller();
 });
 
+// TODO: Add version info for local and remote for both update available and 
+//       update not available.
+// TODO: When a new version is downloaded and installed, the old version is no
+//       longer overwritten. What should we do about this?
 ipcMain.on('check-for-updates', (event, arg) => {
     checkForUpdates();
 });

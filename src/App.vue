@@ -301,6 +301,13 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 		});
 	}
     
+    if (arg.results.noOculus) {
+		vue_this.$store.commit('mutate', {
+			property: 'noOculus', 
+			with: arg.results.noOculus
+		});
+	}
+    
     if (arg.results.sentryEnabled !== null) {
 		vue_this.$store.commit('mutate', {
 			property: 'sentryEnabled', 
@@ -585,7 +592,7 @@ export default {
             }
 		},
         launchInterface: function(exeLoc) {
-            ipcRenderer.send('launch-interface', { "exec": exeLoc, "steamVR": this.$store.state.noSteamVR, "allowMultipleInstances": this.$store.state.allowMultipleInstances, "autoRestartInterface": this.$store.state.autoRestartInterface, "dontPromptForLogin": this.$store.state.dontPromptForLogin });
+            ipcRenderer.send('launch-interface', { "exec": exeLoc, "noSteamVR": this.$store.state.noSteamVR, "noOculus": this.$store.state.noOculus, "allowMultipleInstances": this.$store.state.allowMultipleInstances, "autoRestartInterface": this.$store.state.autoRestartInterface, "dontPromptForLogin": this.$store.state.dontPromptForLogin });
         },
 		launchBrowser: function(url) {
 			const { shell } = require('electron');
