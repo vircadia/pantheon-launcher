@@ -20,7 +20,7 @@ import {
 	createProtocol,
 } from 'vue-cli-plugin-electron-builder/lib'
 import path from 'path'
-var forceDevelopment = false;
+const forceDevelopment = false;
 const isDevelopment = forceDevelopment === true || process.env.NODE_ENV !== 'production';
 const storage = require('electron-json-storage');
 const { shell } = require('electron')
@@ -201,7 +201,7 @@ async function getDirectories (src) {
         
 		glob(src + '/*/interface.exe', function(err, folders) {
 			console.log(folders);
-			if(folders) {
+			if (folders) {
 				folders.forEach(function (folder) {
 					var folderToReturn = folder.replace("interface.exe", "");
 					interfacesToReturn.push(folderToReturn);
@@ -432,11 +432,11 @@ async function getSetting(setting, storageDataPath) {
         });
     }).catch(err => {
         console.info("Attempted to retrieve:", setting, "from:", storageDataPath, "but got:", err)
-    })
+    });
 
     // because async won't work otherwise. 
     let result = await storagePromise; 
-    console.info("getSetting Return Value:",returnValue)
+    console.info("getSetting Return Value:", returnValue);
     return returnValue;
 }
 
@@ -475,7 +475,7 @@ ipcMain.on('set-metaverse-server', (event, arg) => {
     } else {
         delete process.env.HIFI_METAVERSE_URL;
     }
-    console.info("Current Metaverse Server:", process.env.HIFI_METAVERSE_URL)
+    console.info("Current Metaverse Server:", process.env.HIFI_METAVERSE_URL);
 })
 
 ipcMain.on('launch-interface', async (event, arg) => {
@@ -635,7 +635,7 @@ ipcMain.handle('populateInterfaceList', async (event, arg) => {
     var list = interface_exes.map(function(filename) {
         // :)
         var nv = versionPaths.fromPath(filename);
-        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, ''), "version": nv.version } }
+        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, ''), "version": nv.version } };
     });
     event.sender.send('interface-list', list);
     
@@ -653,7 +653,7 @@ ipcMain.handle('get-interface-list-for-launch', async (event, arg) => {
     var list = interface_exes.map(function(filename) {
         // :)
         var nv = versionPaths.fromPath(filename);
-        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, '') } }
+        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, '') } };
     });
     event.sender.send('interface-list-for-launch', list);
     
@@ -752,7 +752,6 @@ async function silentInstall(useOldInstaller) {
         }
         
         win.webContents.send('silent-installer-running');
-        
         console.info("Installing silently, params:", exeLocToInstall, installPath, parameters)
 
         try { 
@@ -775,7 +774,11 @@ async function silentInstall(useOldInstaller) {
                         }
                     }
                     
-                    win.webContents.send('silent-installer-failed', { "message": errorMessage, "code": err.code, "fullerr": err });
+                    win.webContents.send('silent-installer-failed', { 
+                        "message": errorMessage, 
+                        "code": err.code, 
+                        "fullerr": err 
+                    });
                 } else {
                     console.info("Installation complete.");
                     console.info("Running post-install.");

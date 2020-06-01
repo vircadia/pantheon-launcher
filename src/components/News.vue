@@ -29,14 +29,10 @@ const { ipcRenderer } = require('electron');
 
 export default {	
 	name: 'News',
-	methods: {
-	},
-	data: () => ({
-	}),
-    computed: {
-    },
-    watch: {
-    },
+    methods: { },
+    data: () => ({ }),
+    computed: { },
+    watch: { },
 	created: function () {
         store_p = this.$store;
         vue_this = this;

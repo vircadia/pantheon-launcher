@@ -61,7 +61,7 @@ import * as Sentry from '@sentry/electron';
         color="#34323e"
         :timeout="interfaceBusyLaunchingTimeout"
     >
-        The Interface is starting.
+        Interface is starting.
         <v-btn
             color="white"
             text
@@ -633,7 +633,7 @@ export default {
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('check-for-updates');            
         },
-        resetDownloadButton: function() {
+        resetDownloadButton: function () {
             this.downloadText = "Download Interface";
             this.isSilentInstalling = false;
             this.disableDownloadButton = false;
