@@ -144,19 +144,19 @@
 						
                         <h3 v-show="false" class="mx-7 mt-5">Settings for {{ selectedInterface }}</h3>
                         
-						<v-layout v-show="false" row pr-5 pt-5 pl-12>
-							<v-flex md6>
-								<v-btn 
-									v-on:click.native="selectInterfaceExe()"
-									:right=true
-									class=""
-									:tile=true
-								>
-									<span class="mr-2">Locate Interface .exe</span>
-									<v-icon>settings_applications</v-icon>
-								</v-btn>
-							</v-flex>
-						</v-layout>
+                        <v-layout v-show="false" row pr-5 pt-5 pl-12>
+                            <v-flex md6>
+                                <v-btn 
+                                    v-on:click.native="selectInterfaceExe()"
+                                    :right=true
+                                    class=""
+                                    :tile=true
+                                >
+                                    <span class="mr-2">Locate Interface .exe</span>
+                                    <v-icon>settings_applications</v-icon>
+                                </v-btn>
+                            </v-flex>
+                        </v-layout>
 						
                         <v-toolbar
                             color="primary"
