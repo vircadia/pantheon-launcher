@@ -97,12 +97,12 @@ import * as Sentry from '@sentry/electron';
             </v-hover>
             
             <v-slide-x-transition
-                hide-on-leave=true
+                :hide-on-leave=true
             >
                 <h2 class="titleURL" v-show="!titleHover" v-on:click="launchBrowser('https://vircadia.com/')">Alpha</h2>
             </v-slide-x-transition>
             <v-slide-x-reverse-transition
-                hide-on-leave=true
+                :hide-on-leave=true
             >
                 <h2 class="titleURL alternateTitle" v-show="titleHover" v-on:click="launchBrowser('https://vircadia.com/')">Vircadia</h2>
             </v-slide-x-reverse-transition>

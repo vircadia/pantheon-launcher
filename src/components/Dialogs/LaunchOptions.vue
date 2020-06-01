@@ -29,6 +29,7 @@
                 <template>
                     <v-list-item-action>
                         <v-checkbox
+                            :readonly=true
                             color="primary"
                             :true-value="allowMultipleInstancesStore"
                             :input-value="allowMultipleInstancesStore"
@@ -46,6 +47,7 @@
                 <template>
                     <v-list-item-action>
                         <v-checkbox
+                            :readonly=true
                             color="primary"
                             :true-value="noOculusStore"
                             :input-value="noOculusStore"
@@ -63,6 +65,7 @@
                 <template>
                     <v-list-item-action>
                         <v-checkbox
+                            :readonly=true
                             color="primary"
                             :true-value="noSteamVRStore"
                             :input-value="noSteamVRStore"
@@ -80,6 +83,7 @@
                 <template>
                     <v-list-item-action>
                         <v-checkbox
+                            :readonly=true
                             color="primary"
                             :true-value="autoRestartInterfaceStore"
                             :input-value="autoRestartInterfaceStore"
@@ -97,6 +101,7 @@
                 <template>
                     <v-list-item-action>
                         <v-checkbox
+                            :readonly=true
                             color="primary"
                             :true-value="dontPromptForLoginStore"
                             :input-value="dontPromptForLoginStore"
