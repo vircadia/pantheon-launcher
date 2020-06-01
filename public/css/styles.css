@@ -21,10 +21,9 @@ h2 {
 }
 
 .titleURL {
-	/* color: white; */
-	cursor: pointer;
-	text-decoration: none;
-    
+    cursor: pointer;
+    text-decoration: none;
+
     background-image: linear-gradient(to top, #cc208e 0%, #6713d2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -37,7 +36,7 @@ h2 {
 }
 
 #titleIMG {
-	cursor: pointer;
+    cursor: pointer;
 }
 
 #topMenuBar {
@@ -50,16 +49,12 @@ h2 {
 }
 
 #navBar {
-	position: fixed;
-	top: 25px;
-	z-index: 99;
+    position: fixed;
+    top: 25px;
+    z-index: 99;
 }
 
 #background {
-    /* background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite; */
-
     background-image: url('../resources/mtnbg.jpg');
     background-attachment: fixed;
     background-position: center;
@@ -76,8 +71,6 @@ h2 {
 
 #mainContent {	  
     box-sizing: border-box;
-    /* padding-top: 81px !important;
-    padding-bottom: 64px !important; */
     padding-top: 0px !important;
     padding-bottom: 0px !important;
 	margin: 0px;
@@ -106,21 +99,21 @@ h2 {
 } */
 
 .bodyText {
-	font-size: 15px;
-	font-family: 'Raleway', sans-serif;
+    font-size: 15px;
+    font-family: 'Raleway', sans-serif;
 }
 
 pre {
-	font-family: "Ubuntu" Ubuntu monospace;
-	color: #f45905;
-	font-weight: bolder;
-	margin-left: 12px;
-	margin-top: 6px;
-	margin-bottom: 6px;
-	padding: 10px;
-	font-size: 14px;
+    font-family: "Ubuntu" Ubuntu monospace;
+    color: #f45905;
+    font-weight: bolder;
+    margin-left: 12px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    padding: 10px;
+    font-size: 14px;
     overflow: auto;
-	background-color: rgba(0, 0, 0, 0.85);
+    background-color: rgba(0, 0, 0, 0.85);
 }
 
 #development-output {
@@ -137,26 +130,26 @@ pre {
 /* HelloWorld.vue */
 
 #helloWorldContainer {
-	padding-left: 60px;
+    padding-left: 60px;
 }
 
 /* Cards */
 
 .world-cards {
-	margin-top: 20px;
-	margin-left: auto;
-	margin-right: auto;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* FavoriteWorlds.vue */
 
 #favoriteWorldsContainer {
-	background-image: url('../resources/mtnbg.jpg');
-	background-attachment: fixed;
-	background-position: center;
-	background-repeat: no-repeat;
-	background-size: cover;
-	max-width: none !important;
+    background-image: url('../resources/mtnbg.jpg');
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    max-width: none !important;
 }
 
 /* Settings.vue */

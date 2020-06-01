@@ -294,19 +294,19 @@ ipcRenderer.on('download-installer-failed', (event) => {
 ipcRenderer.on('state-loaded', (event, arg) => {
 	console.info("STATE LOADED:", arg);
 	
-	if (arg.results.noSteamVR) {
-		vue_this.$store.commit('mutate', {
-			property: 'noSteamVR', 
-			with: arg.results.noSteamVR
-		});
-	}
+    if (arg.results.noSteamVR) {
+        vue_this.$store.commit('mutate', {
+            property: 'noSteamVR', 
+            with: arg.results.noSteamVR
+        });
+    }
     
     if (arg.results.noOculus) {
-		vue_this.$store.commit('mutate', {
-			property: 'noOculus', 
-			with: arg.results.noOculus
-		});
-	}
+        vue_this.$store.commit('mutate', {
+            property: 'noOculus', 
+            with: arg.results.noOculus
+        });
+    }
     
     if (arg.results.customLaunchParameters) {
         vue_this.$store.commit('mutate', {
@@ -316,11 +316,11 @@ ipcRenderer.on('state-loaded', (event, arg) => {
     }
     
     if (arg.results.sentryEnabled !== null) {
-		vue_this.$store.commit('mutate', {
-			property: 'sentryEnabled', 
-			with: arg.results.sentryEnabled
-		});
-	}
+        vue_this.$store.commit('mutate', {
+            property: 'sentryEnabled', 
+            with: arg.results.sentryEnabled
+        });
+    }
     
     if (arg.results.darkMode !== null) {
         vue_this.$store.commit('mutate', {
@@ -330,26 +330,26 @@ ipcRenderer.on('state-loaded', (event, arg) => {
         vue_this.$vuetify.theme.dark = arg.results.darkMode;
     }
     
-	if (arg.results.allowMultipleInstances) {
-		vue_this.$store.commit('mutate', {
-			property: 'allowMultipleInstances', 
-			with: arg.results.allowMultipleInstances
-		});
-	}
+    if (arg.results.allowMultipleInstances) {
+        vue_this.$store.commit('mutate', {
+            property: 'allowMultipleInstances', 
+            with: arg.results.allowMultipleInstances
+        });
+    }
     
     if (arg.results.autoRestartInterface) {
-		vue_this.$store.commit('mutate', {
-			property: 'autoRestartInterface', 
-			with: arg.results.autoRestartInterface
-		});
-	}
+        vue_this.$store.commit('mutate', {
+            property: 'autoRestartInterface', 
+            with: arg.results.autoRestartInterface
+        });
+    }
     
     if (arg.results.dontPromptForLogin) {
-		vue_this.$store.commit('mutate', {
-			property: 'dontPromptForLogin', 
-			with: arg.results.dontPromptForLogin
-		});
-	}
+        vue_this.$store.commit('mutate', {
+            property: 'dontPromptForLogin', 
+            with: arg.results.dontPromptForLogin
+        });
+    }
     
 	if (arg.results.selectedInterface) {
 		vue_this.$store.commit('mutate', {

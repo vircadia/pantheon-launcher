@@ -60,17 +60,15 @@ const { ipcRenderer } = require('electron');
 
 export default {
     name: 'ReportAnIssue',
-	methods: {
+    methods: {
         reportAnIssue: function (url) {
             const { shell } = require('electron');
-			shell.openExternal(url);
+            shell.openExternal(url);
         }
-     },
+    },
     data: () => ({
         showReportAnIssue: true,
     }),
-    created: function () {
-        
-    }
+    created: function () {}
 };
 </script>

@@ -33,10 +33,10 @@ export default {
     data: () => ({ }),
     computed: { },
     watch: { },
-	created: function () {
+    created: function () {
         store_p = this.$store;
         vue_this = this;
         const { ipcRenderer } = require('electron');
-	}
+    }
 };
 </script>

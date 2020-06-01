@@ -142,8 +142,6 @@ var storagePath = {
 	currentLibrary: null,
 };
 
-// var installFolderName = "\\Vircadia_Interface_Latest_SILENT\\";
-
 var currentInterface;
 var requireInterfaceSelection;
 
@@ -177,11 +175,11 @@ async function generateInterfaceList(interfaces) {
 }
 
 async function getDirectories (src) {
-	var interfacesToReturn = [];
-	
-	let getDirectoriesPromise = new Promise((res, rej) => {
-		var res_p = res;
-		var rej_p = rej;
+    var interfacesToReturn = [];
+
+    let getDirectoriesPromise = new Promise((res, rej) => {
+        var res_p = res;
+        var rej_p = rej;
         
         // THIS CODE ACTUALLY LOOKS FOR A PACKAGE.JSON TO REGISTER
 		// glob(src + '/*/launcher_settings/interface_package.json', function(err, folders) {
@@ -199,49 +197,49 @@ async function getDirectories (src) {
 		
         // THIS CODE ONLY LOOKS FOR INTERFACE.EXE
         
-		glob(src + '/*/interface.exe', function(err, folders) {
-			console.log(folders);
-			if (folders) {
-				folders.forEach(function (folder) {
-					var folderToReturn = folder.replace("interface.exe", "");
-					interfacesToReturn.push(folderToReturn);
-				});
-				res_p();
-			} else {
-				rej_p("Failed to load directories.");
-			}
-		});
-	});
+        glob(src + '/*/interface.exe', function(err, folders) {
+            console.log(folders);
+            if (folders) {
+                folders.forEach(function (folder) {
+                    var folderToReturn = folder.replace("interface.exe", "");
+                    interfacesToReturn.push(folderToReturn);
+                });
+                res_p();
+            } else {
+                rej_p("Failed to load directories.");
+            }
+        });
+    });
 
-	let result = await getDirectoriesPromise; 
-	return interfacesToReturn;
+    let result = await getDirectoriesPromise; 
+    return interfacesToReturn;
 }
 
 async function getLibraryInterfaces() {
-	var interfaces = [];
+    var interfaces = [];
 
-	let getLibraryPromise = new Promise((res, rej) => {
-		var res_p = res;
-		var rej_p = rej;
-		getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
-			if(libraryPath) {
-				await getDirectories(libraryPath).then(function(interfacesList) {
-					interfaces = interfacesList;
-					res_p();
-				});
-				console.info("Nani Lib Path?", libraryPath);
-			} else {
+    let getLibraryPromise = new Promise((res, rej) => {
+        var res_p = res;
+        var rej_p = rej;
+        getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
+            if(libraryPath) {
+                await getDirectories(libraryPath).then(function(interfacesList) {
+                    interfaces = interfacesList;
+                    res_p();
+                });
+                console.info("Nani Lib Path?", libraryPath);
+            } else {
                 setLibrary(storagePath.default);
                 await getDirectories(storagePath.default).then(function(interfacesList) {
                     interfaces = interfacesList;
                     res_p();
                 });
-			}
-		});
-	});
+            }
+        });
+    });
 
-	let result = await getLibraryPromise; 
-	return interfaces;
+    let result = await getLibraryPromise; 
+    return interfaces;
 }
 
 function setLibrary(libPath) {
@@ -479,7 +477,6 @@ ipcMain.on('set-metaverse-server', (event, arg) => {
 })
 
 ipcMain.on('launch-interface', async (event, arg) => {
-    // var executablePath = "E:\\Development\\High_Fidelity\\v0860-kasen-VS-release+freshstart\\build\\interface\\Packaged_Release\\Release\\interface.exe";
     var executablePath = arg.exec;
     var parameters = [];
     var canLaunch = true;
@@ -550,7 +547,6 @@ function launchInterface(executablePath, parameters, autoRestartInterface) {
         if (autoRestartInterface == true && err && !err.killed) {
             launchInterface(executablePath, parameters, autoRestartInterface);
         }
-        // console.log(stdout.toString());
     });
 }
 

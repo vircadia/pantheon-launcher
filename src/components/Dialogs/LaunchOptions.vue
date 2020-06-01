@@ -197,8 +197,6 @@ export default {
             },
         },
     },
-    created: function () {
-        
-    }
+    created: function () {}
 };
 </script>

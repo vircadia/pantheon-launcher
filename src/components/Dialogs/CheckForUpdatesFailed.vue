@@ -1,7 +1,7 @@
 <!--
 //  CheckForUpdatesFailed.vue
 //
-//  Created by Kalila L. on 22 Feb 2020.
+//  Created by Kalila L. on 1 May 2020.
 //  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
