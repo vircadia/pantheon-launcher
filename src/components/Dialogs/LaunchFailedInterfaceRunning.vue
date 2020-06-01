@@ -2,7 +2,7 @@
 //  LaunchFailedInterfaceRunning.vue
 //
 //  Created by KasenVR on 15 May 2020.
-//  Copyright 2020 Vircadia and contributors.
+//  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
