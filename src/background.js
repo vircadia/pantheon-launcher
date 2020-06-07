@@ -297,7 +297,7 @@ function setLibraryDialog() {
 //     }
 // }
 
-async function getLatestMetaJSON() {
+async function getCDNMetaJSON() {
 	var metaURL = 'https://cdn.vircadia.com/dist/launcher/vircadiaMeta.json';
 		
 	await electronDl.download(win, metaURL, {
@@ -337,7 +337,7 @@ async function getLatestMetaJSON() {
 }
 
 async function checkForInterfaceUpdates() {
-	var vircadiaMeta = await getLatestMetaJSON();
+	var vircadiaMeta = await getCDNMetaJSON();
     // var interfacePackage = await getCurrentInterfaceJSON();
     storagePath.interfaceSettings = storagePath.interfaceSettings.replace("//launcher_settings", "");
     storagePath.interfaceSettings = storagePath.interfaceSettings.replace("\\/launcher_settings", "");
@@ -345,7 +345,9 @@ async function checkForInterfaceUpdates() {
     console.info("interfacePackage.package", interfacePackage.package);
     
     if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.package.version) {
-        var versionCompare = compareVersions(vircadiaMeta.latest.version, interfacePackage.package.version);
+        var cleanedLocalMeta = interfacePackage.package.version.replace(/_/g, '-');
+        var versionCompare = compareVersions(vircadiaMeta.latest.version, cleanedLocalMeta);
+        
         console.info("Compare Versions: ", versionCompare);
         if (versionCompare == 1) {
             return 1; // An update is available.
@@ -402,7 +404,7 @@ async function checkRunningApps() {
 }
 
 async function getDownloadURL() {
-    var metaJSON = await getLatestMetaJSON();
+    var metaJSON = await getCDNMetaJSON();
     if (metaJSON) {
         return metaJSON.latest.url;
     } else {
@@ -687,7 +689,7 @@ function launchInstaller() {
 }
 
 async function silentInstall(useOldInstaller) {
-    var vircadiaMetaJSON = await getLatestMetaJSON();
+    var vircadiaMetaJSON = await getCDNMetaJSON();
     var executableLocation; // This is the downloaded installer.
     var installPath; // This is the location to install the application to.
     var installFolderName = "\\" + versionPaths.toPath(vircadiaMetaJSON.latest) + "\\";
@@ -803,7 +805,7 @@ async function silentInstall(useOldInstaller) {
 // async function postInstall() {
 //     getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
 //         var installPath;
-//         var vircadiaMetaJSON = await getLatestMetaJSON();
+//         var vircadiaMetaJSON = await getCDNMetaJSON();
 //         var vircadiaPackageJSON = 
 //         {
 //             "package": {
@@ -843,7 +845,7 @@ async function silentInstall(useOldInstaller) {
 ipcMain.on('download-vircadia', async (event, arg) => {
     var libraryPath;
     var downloadURL = await getDownloadURL();
-    var vircadiaMetaJSON = await getLatestMetaJSON();
+    var vircadiaMetaJSON = await getCDNMetaJSON();
     var installerName = "Vircadia_Setup_Latest.exe";
     var installerNamePost = "Vircadia_Setup_Latest_READY.exe";
     console.info("DLURL:", downloadURL);

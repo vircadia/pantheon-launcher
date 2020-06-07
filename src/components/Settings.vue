@@ -104,7 +104,7 @@
                         
 						<h2 class="ml-3 mt-3">Interface List</h2>
                         
-                        <v-list style="max-height: 275px" class="overflow-y-auto">
+                        <v-list style="max-height: 300px" class="overflow-y-auto">
                             <v-subheader>
                                 Select an Interface to use. Scroll down for more.<br/>
                             </v-subheader>
