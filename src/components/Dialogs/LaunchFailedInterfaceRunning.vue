@@ -24,8 +24,8 @@
             </v-card-title>
     
             <v-card-text>
-                An instance of Interface appears to be already running. <br />
-                Check "Allow Multiple Instances" in the Launch Options to open another instance.
+                Interface appears to be already running. <br />
+                Check "Allow Multiple Instances" in the launch Options to open another instance.
             </v-card-text>
     
             <v-divider></v-divider>

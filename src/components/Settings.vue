@@ -104,14 +104,25 @@
                         
 						<h2 class="ml-3 mt-3">Interface List</h2>
                         
-                        <v-list style="max-height: 200px" class="overflow-y-auto">
-                            <v-subheader>Select an Interface to use. Scroll down for more.</v-subheader>
-                            
+                        <v-list style="max-height: 275px" class="overflow-y-auto">
+                            <v-subheader>
+                                Select an Interface to use. Scroll down for more.<br/>
+                            </v-subheader>
+                            <v-banner double-line>
+                                <v-icon
+                                    slot="icon"
+                                    size="36"
+                                >
+                                    mdi-cube
+                                </v-icon>
+                                <p class="font-weight-thin">Currently selected:</p>
+                                {{ selectedInterface }}
+                            </v-banner>
                             <v-divider
                                 class="mx-3"
                             ></v-divider>
                             
-                            <v-list-item-group v-if="interfaceFolders.length > 0" v-model="interfaceFoldersIndex" mandatory color="primary">
+                            <v-list-item-group v-if="interfaceFolders.length > 0" color="primary">
                                 <v-list-item
                                     v-for="(item, i) in interfaceFolders"
                                     :key="i"
@@ -128,7 +139,7 @@
                                 </v-list-item>
                             </v-list-item-group>
                             
-                            <v-list-item-group v-else v-model="interfaceFoldersIndex" mandatory color="primary">
+                            <v-list-item-group v-else v-model="interfaceFoldersIndex" color="primary">
                                 <v-list-item>
                                     <v-list-item-content>
                                         <v-list-item-title>No Interfaces found.</v-list-item-title>

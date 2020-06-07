@@ -21,7 +21,8 @@ import * as Sentry from '@sentry/electron';
             style="top: initial !important;"
             id="topMenuBar"
         >    
-            
+            <span v-if="interfaceSelected != null">Current interface version: <b>{{ interfaceSelected.name }}</b></span>
+            <span v-else>No selected interface.</span>
         </v-system-bar>
         
         <v-bottom-navigation id="navBar">
