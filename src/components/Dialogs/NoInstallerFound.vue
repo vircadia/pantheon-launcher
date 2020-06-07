@@ -2,7 +2,7 @@
 //  NoInstallerFound.vue
 //
 //  Created by Kalila L. on 15 Dec 2019.
-//  Copyright 2020 Project Athena and contributors.
+//  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -24,16 +24,14 @@
             </v-card-title>
     
             <v-card-text>
-                An installer for interface was not found. Try downloading it by pressing the "Download Interface" button.
+                An installer for Interface was not found.
             </v-card-text>
     
             <v-divider></v-divider>
-    
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    text
                     @click="$emit('hideDialog')"
                 >
                     Dismiss

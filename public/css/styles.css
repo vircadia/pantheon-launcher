@@ -2,7 +2,7 @@
     styles.css
 
     Created by Kalila L. on 15 Dec 2019.
-    Copyright 2020 Project Athena and contributors.
+    Copyright 2020 Vircadia contributors.
     
     Distributed under the Apache License, Version 2.0.
     See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -20,48 +20,70 @@ h2 {
   font-family: 'Raleway', sans-serif;
 }
 
-#titleURL {
-	color: white;
-	cursor: pointer;
-	text-decoration: none;
+.titleURL {
+    cursor: pointer;
+    text-decoration: none;
+
+    background-image: linear-gradient(to top, #cc208e 0%, #6713d2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.alternateTitle {
+    background-image: linear-gradient(to top, #4481eb 0%, #04befe 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 #titleIMG {
-	cursor: pointer;
+    cursor: pointer;
 }
 
 #topMenuBar {
     height: 25px !important;
-    background-color: var(--vircadia-navy);
     -webkit-app-region: drag;
 }
 
 #bottomAppBar {
-    background-color: var(--vircadia-navy);
+
 }
 
 #navBar {
-	position: fixed;
-	top: 25px;
-	z-index: 99;
+    position: fixed;
+    top: 25px;
+    z-index: 99;
+}
+
+#background {
+    background-image: url('../resources/mtnbg.jpg');
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    max-width: none !important;
+    
+    height: 100vh;
+}
+
+#dialogContent {
+    padding-bottom: 0px !important;
 }
 
 #mainContent {	  
-	/* background: linear-gradient(90deg, #00d2ff 0%, #3a47d5 100%);
-	background-size: 400% 400%;
-	animation: gradientBG 15s ease infinite; */
+    box-sizing: border-box;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+	margin: 0px;
+}
 
-	background-image: url('../resources/mtnbg.jpg');
-	background-attachment: fixed;
-	background-position: center;
-	background-repeat: no-repeat;
-	background-size: cover;
-	max-width: none !important;
-	min-height: 100vh;
+.mainContentContainer {
+    padding-top: 81px !important;
+    padding-bottom: 64px !important;
+}
 
-	padding-top: 50px !important;
-	padding-bottom: 0px !important;
-	margin: 0;
+.fill-container {
+    padding: 0px !important;
+    height: 100%;
 }
 
 /* @keyframes gradientBG {
@@ -77,45 +99,69 @@ h2 {
 } */
 
 .bodyText {
-	font-size: 15px;
-	font-family: 'Raleway', sans-serif;
+    font-size: 15px;
+    font-family: 'Raleway', sans-serif;
 }
 
 pre {
-	font-family: "Ubuntu" Ubuntu monospace;
-	color: #f45905;
-	font-weight: bolder;
-	margin-left: 12px;
-	margin-top: 6px;
-	margin-bottom: 6px;
-	padding: 10px;
-	font-size: 14px;
-	background-color: rgba(0, 0, 0, 0.85);
+    font-family: "Ubuntu" Ubuntu monospace;
+    color: #f45905;
+    font-weight: bolder;
+    margin-left: 12px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    padding: 10px;
+    font-size: 14px;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.85);
+}
+
+#development-output {
+    font-family: "Electrolize", sans-serif;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 8px;
+    color: #ababab;
+    font-weight: normal;
+    padding-top: 100px;
+    font-size: 0.8em;
+    z-index: 9001;
 }
 
 /* HelloWorld.vue */
 
 #helloWorldContainer {
-	padding-left: 60px;
+    padding-left: 60px;
 }
 
 /* Cards */
 
 .world-cards {
-	margin-top: 20px;
-	margin-left: auto;
-	margin-right: auto;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 /* FavoriteWorlds.vue */
 
 #favoriteWorldsContainer {
-	background-image: url('../resources/mtnbg.jpg');
-	background-attachment: fixed;
-	background-position: center;
-	background-repeat: no-repeat;
-	background-size: cover;
-	max-width: none !important;
+    background-image: url('../resources/mtnbg.jpg');
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    max-width: none !important;
+}
+
+/* Settings.vue */
+
+#settingsContainer {
+
+}
+
+/* News.vue */
+
+#mainIframe {
+    border: 0;
 }
 
 /* Transitions */

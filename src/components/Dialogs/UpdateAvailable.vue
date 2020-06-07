@@ -2,7 +2,7 @@
 //  UpdateAvailable.vue
 //
 //  Created by KasenVR on 28 Mar 2020.
-//  Copyright 2020 Vircadia and contributors.
+//  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -24,26 +24,25 @@
             </v-card-title>
     
             <v-card-text>
-                An update is available. Would you like to download and install it?
+                An update is available. <br />
+                Would you like to download and install it?
             </v-card-text>
     
             <v-divider></v-divider>
-    
+
             <v-card-actions>
-                <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    text
-                    @click="continueUpdate(); $emit('hideDialog')"
-                >
-                    Yes
-                </v-btn>
-                <v-btn
-                    color="primary"
-                    text
                     @click="cancelUpdate(); $emit('hideDialog')"
                 >
                     No
+                </v-btn>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="primary"
+                    @click="continueUpdate(); $emit('hideDialog')"
+                >
+                    Yes
                 </v-btn>
             </v-card-actions>
         </v-card>

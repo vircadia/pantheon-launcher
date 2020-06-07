@@ -2,14 +2,14 @@
 //  Settings.vue
 //
 //  Created by Kalila L. on 15 Dec 2019.
-//  Copyright 2020 Project Athena and contributors.
+//  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
 -->
 <template>
-	<v-app id="settingsContainer">
-		<v-content>
+	<v-app>
+		<v-content class="mainContentContainer">
 			<v-container
 				class="pt-8"
 				fluid
@@ -25,9 +25,22 @@
 							flat
 						>
 							<v-toolbar-title>Settings</v-toolbar-title>
-							<v-spacer />
-							
+							<v-spacer />	
 						</v-toolbar>
+                        
+                        <h3 class="mx-7 mt-5">Style</h3>
+                        
+                        <v-switch v-model="$vuetify.theme.dark" class="mx-7" label="Use dark mode."></v-switch>
+                        
+                        <h3 class="mx-7 mt-5">Error Reporting</h3>
+                        
+                        <v-checkbox
+                            class="mx-7"
+                            color="primary"
+                            v-model="sentryEnabled"
+                            :disabled="true"
+                            label="Error Reporting for the launcher (Currently Disabled)"
+                        ></v-checkbox>
                         
                         <h3 class="mx-7 mt-5">Installation Path</h3>
                         
@@ -66,9 +79,9 @@
                             </v-flex>
 						</v-layout> 
                         
-                        <h3 class="mx-7 mt-5">Current Path</h3>
+                        <h3 class="mx-7 mt-5">Current Installation Path</h3>
                         
-                        <pre style="width: 100%; overflow: auto; margin-left: 0px;">{{ currentFolder }}</pre>
+                        <pre style="width: 100%; margin-left: 0px;">{{ currentFolder }}</pre>
 						
                         <v-toolbar
                             color="primary"
@@ -78,48 +91,61 @@
                         >
                             <v-toolbar-title>Interface Settings</v-toolbar-title>
                             <v-spacer />
-                            
+                            <span class="mr-2">{{interfaceListLength}} Interfaces Found</span>
                             <v-btn
                                 color="purple"
                                 :tile=true
                                 v-on:click.native="populateInterfaceList()"
                             >
+                                <span class="mr-2">Refresh List</span>
                                 <v-icon>mdi-refresh</v-icon>
                             </v-btn>
                         </v-toolbar>
                         
 						<h2 class="ml-3 mt-3">Interface List</h2>
                         
-                        <v-list style="max-height: 200px" class="overflow-y-auto">
-                            <v-subheader>Select an Interface to use. Scroll down for more.</v-subheader>
-                            
+                        <v-list style="max-height: 275px" class="overflow-y-auto">
+                            <v-subheader>
+                                Select an Interface to use. Scroll down for more.<br/>
+                            </v-subheader>
+                            <v-banner double-line>
+                                <v-icon
+                                    slot="icon"
+                                    size="36"
+                                >
+                                    mdi-cube
+                                </v-icon>
+                                <p class="font-weight-thin">Currently selected:</p>
+                                {{ selectedInterface }}
+                            </v-banner>
                             <v-divider
                                 class="mx-3"
                             ></v-divider>
                             
-                            <div v-if="interfaceFolders.length > 0">
-                                <v-list-item-group v-model="interfaceFoldersIndex" mandatory color="primary">
-                                    <v-list-item
-                                        v-for="(item, i) in interfaceFolders"
-                                        :key="i"
-                                        @click="selectInterface(item)"
-                                    >
-                                        <v-list-item-content>
-                                            <v-list-item-title v-html="item.name"></v-list-item-title>
-                                        </v-list-item-content>
-                                    </v-list-item>
-                                </v-list-item-group>
-                            </div>
-                            <div v-else>
-                                <v-list-item-group v-model="interfaceFoldersIndex" mandatory color="primary">
-                                    <v-list-item>
-                                        <v-list-item-content>
-                                            <v-list-item-title>No Interfaces found.</v-list-item-title>
-                                        </v-list-item-content>
-                                    </v-list-item>
-                                </v-list-item-group>
-                            </div>
+                            <v-list-item-group v-if="interfaceFolders.length > 0" color="primary">
+                                <v-list-item
+                                    v-for="(item, i) in interfaceFolders"
+                                    :key="i"
+                                >
+                                    <v-list-item-content @click="selectInterface(item)">
+                                        <v-list-item-title v-html="item.name"></v-list-item-title>
+                                        <v-list-item-subtitle v-html="item.version"></v-list-item-subtitle>
+                                    </v-list-item-content>
+                                    <v-list-item-action>
+                                        <v-btn icon @click="uninstallInterface(item)">
+                                            <v-icon large color="red">mdi-delete-circle</v-icon>
+                                        </v-btn>
+                                    </v-list-item-action>
+                                </v-list-item>
+                            </v-list-item-group>
                             
+                            <v-list-item-group v-else v-model="interfaceFoldersIndex" color="primary">
+                                <v-list-item>
+                                    <v-list-item-content>
+                                        <v-list-item-title>No Interfaces found.</v-list-item-title>
+                                    </v-list-item-content>
+                                </v-list-item>
+                            </v-list-item-group>
 
                         </v-list>
                         
@@ -127,21 +153,21 @@
                             class="mx-3"
                         ></v-divider>
 						
-                        <h3 class="mx-7 mt-5">Settings for {{ selectedInterface }}</h3>
+                        <h3 v-show="false" class="mx-7 mt-5">Settings for {{ selectedInterface }}</h3>
                         
-						<v-layout row pr-5 pt-5 pl-12>
-							<v-flex md6>
-								<v-btn 
-									v-on:click.native="selectInterfaceExe()"
-									:right=true
-									class=""
-									:tile=true
-								>
-									<span class="mr-2">Locate Interface .exe</span>
-									<v-icon>settings_applications</v-icon>
-								</v-btn>
-							</v-flex>
-						</v-layout>
+                        <v-layout v-show="false" row pr-5 pt-5 pl-12>
+                            <v-flex md6>
+                                <v-btn 
+                                    v-on:click.native="selectInterfaceExe()"
+                                    :right=true
+                                    class=""
+                                    :tile=true
+                                >
+                                    <span class="mr-2">Locate Interface .exe</span>
+                                    <v-icon>settings_applications</v-icon>
+                                </v-btn>
+                            </v-flex>
+                        </v-layout>
 						
                         <v-toolbar
                             color="primary"
@@ -155,7 +181,7 @@
 						
 						<v-card-text>
 							<v-form>
-								<v-text-field
+								<!-- <v-text-field
 									label="Username"
 									name="username"
 									prepend-icon="person"
@@ -170,7 +196,7 @@
 									prepend-icon="lock"
 									type="password"
 									disabled
-								/>
+								/> -->
 								
 								<v-text-field
 									label="Metaverse Server"
@@ -178,13 +204,34 @@
 									prepend-icon="mdi-earth"
 									type="text"
 									v-model="metaverseServer"
+                                    disabled
 								/>
 							</v-form>
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
-							<v-btn @click="setMetaverseServer()" color="primary">Save Metaverse Settings</v-btn>
+							<v-btn disabled @click="setMetaverseServer()" color="accent">Save Metaverse Settings</v-btn>
 						</v-card-actions>
+                        
+                        <v-toolbar
+                            color="purple"
+                            dark
+                            flat
+                            class="mt-7"
+                        >
+                            <v-toolbar-title>Developer</v-toolbar-title>
+                        </v-toolbar>
+                        
+                        <v-card-text>
+                            <v-text-field
+                                label="Custom Launch Parameters, comma separated, no spaces in-between"
+                                name="customLaunchParameters"
+                                prepend-icon="mdi-tools"
+                                type="text"
+                                v-model="customLaunchParametersStore"
+                            />
+                        </v-card-text>
+                        
 					</v-card>
 				</v-row>
 			</v-container>
@@ -239,7 +286,8 @@ ipcRenderer.on('interface-list', (event, arg) => {
         populatedList.forEach(function(i){
             var appName = Object.keys(i)[0];
             var appLoc = i[appName].location;
-            var appObject = { "name": appName, "folder": appLoc };
+            var appVersion = i[appName].version;
+            var appObject = { "name": appName, "folder": appLoc, "version": appVersion };
             vue_this.interfaceFolders.push(appObject);
             // console.info(i);
             // console.info(Object.keys(i)[0]);
@@ -264,10 +312,12 @@ export default {
 				property: 'selectedInterface', 
 				with: { name: selected.name, folder: selected.folder }
 			});
-            this.selectedInterface = selected.name;
-            console.info("Set", this.selectedInterface, "from...", selected.name);
+            
 			ipcRenderer.send('set-current-interface', selected.folder);
 		},
+        uninstallInterface: function(selected) {
+            ipcRenderer.send('uninstall-interface', selected.folder);
+        },
 		selectInterfaceExe: function() {
 			if(this.$store.state.interfaceSelectionRequired) {
 				this.showRequireInterface = true;
@@ -276,7 +326,7 @@ export default {
 			}
 		},
 		setLibrary: function() {
-			ipcRenderer.send('setLibraryFolder');
+			ipcRenderer.send('set-library-folder');
 		},
         setLibraryDefault: function() {
             ipcRenderer.send('set-library-folder-default');
@@ -319,16 +369,56 @@ export default {
 		metaverseServer: "https://metaverse.highfidelity.com", // Default metaverse API URL
         readyToUseAgain: true,
         selectedInterface: "[No Interface Selected]",
+        sentryEnabled: false,
         inactive: false,
 	}),
     computed: {
+        customLaunchParametersStore: {
+            get() {
+                return this.$store.state.customLaunchParameters;
+            },
+            set(value) {
+                this.$store.commit('mutate', {
+                    property: 'customLaunchParameters', 
+                    with: value
+                });
+            },
+        },
         librarySelected () {
             return this.$store.state.currentLibraryFolder;
+        },
+        interfaceSelected () {
+            return this.$store.state.selectedInterface;
+        },
+        sentryEnabledToggled () {
+            return this.sentryEnabled;
+        },
+        darkModeToggled () {
+            return this.$vuetify.theme.dark;
+        },
+        interfaceListLength () {
+            return this.interfaceFolders.length;
         }
     },
     watch: {
         librarySelected (newVal, oldVal) {
             this.currentFolder = newVal;
+        },
+        interfaceSelected (newVal, oldVal) {
+            this.selectedInterface = newVal.name;
+            console.info("Set selected interface to...", this.selectedInterface, "from...", newVal.name);
+        },
+        sentryEnabledToggled () {
+            this.$store.commit('mutate', {
+                property: 'sentryEnabled', 
+                with: this.sentryEnabled
+            });
+        },
+        darkModeToggled () {
+            this.$store.commit('mutate', {
+                property: 'darkMode', 
+                with: this.$vuetify.theme.dark
+            });
         }
     },
 	created: function () {
@@ -346,6 +436,10 @@ export default {
         
         if (this.$store.state.selectedInterface) {
             this.selectedInterface = this.$store.state.selectedInterface.name;
+        }
+        
+        if (this.$store.state.sentryEnabled !== null) {
+            this.sentryEnabled = this.$store.state.sentryEnabled;
         }
         
         if (this.$store.state.currentLibraryFolder) {

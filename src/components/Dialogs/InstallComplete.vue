@@ -2,7 +2,7 @@
 //  InstallComplete.vue
 //
 //  Created by Kalila L. on 19 Feb 2020.
-//  Copyright 2020 Project Athena and contributors.
+//  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -24,16 +24,16 @@
             </v-card-title>
     
             <v-card-text>
-                The latest version of Interface is done installing! You can now launch it.
+                The latest version of Interface is done installing! <br />
+                You can now launch it.
             </v-card-text>
     
             <v-divider></v-divider>
-    
+
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    text
                     @click="$emit('hideDialog')"
                 >
                     Dismiss

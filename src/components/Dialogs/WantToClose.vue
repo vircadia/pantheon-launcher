@@ -2,7 +2,7 @@
 //  WantToClose.vue
 //
 //  Created by KasenVR on 19 Mar 2020.
-//  Copyright 2020 Vircadia and contributors.
+//  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -24,26 +24,25 @@
             </v-card-title>
     
             <v-card-text>
-                Are you sure you want to quit? Closing the launcher may close your Interface.
+                Are you sure you want to quit? <br />
+                Closing the launcher may close your Interface.
             </v-card-text>
     
             <v-divider></v-divider>
-    
+
             <v-card-actions>
-                <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    text
-                    @click="continueClose(); $emit('hideDialog')"
-                >
-                    Yes
-                </v-btn>
-                <v-btn
-                    color="primary"
-                    text
                     @click="cancelClose(); $emit('hideDialog')"
                 >
                     No
+                </v-btn>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="red"
+                    @click="continueClose(); $emit('hideDialog')"
+                >
+                    Close
                 </v-btn>
             </v-card-actions>
         </v-card>

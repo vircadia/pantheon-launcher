@@ -2,7 +2,7 @@
     background.js
 
     Created by Kalila L. on 15 Dec 2019.
-    Copyright 2020 Project Athena and contributors.
+    Copyright 2020 Vircadia contributors.
     
     Distributed under the Apache License, Version 2.0.
     See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -10,26 +10,32 @@
 
 'use strict'
 
+// import * as Sentry from '@sentry/electron'
+// import { init } from '@sentry/electron/dist/main';
+// init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
+
 import { app, protocol, BrowserWindow, DownloadItem } from 'electron'
 import {
 	installVueDevtools,
 	createProtocol,
 } from 'vue-cli-plugin-electron-builder/lib'
 import path from 'path'
-const isDevelopment = process.env.NODE_ENV !== 'production'
+const forceDevelopment = false;
+const isDevelopment = forceDevelopment === true || process.env.NODE_ENV !== 'production';
 const storage = require('electron-json-storage');
 const { shell } = require('electron')
 const electronDl = require('electron-dl');
 const { readdirSync } = require('fs')
 const { forEach } = require('p-iteration');
+const hasha = require('hasha');
 const fs = require('fs');
 const compareVersions = require('compare-versions');
 const tasklist = require('tasklist'); // This is specific to Windows.
-
 var glob = require('glob');
-
 const cp = require('child_process');
- 
+// electron_modules
+import * as versionPaths from './electron_modules/versionPaths.js'
+
 electronDl();
 var electronDlItem = null;
 
@@ -136,12 +142,8 @@ var storagePath = {
 	currentLibrary: null,
 };
 
-var installFolderName = "\\Vircadia_Interface_Latest_SILENT";
-
 var currentInterface;
 var requireInterfaceSelection;
-
-// shell.openItem(storagePath.default);
 
 async function generateInterfaceList(interfaces) {
     var interfacesArray = [];
@@ -173,33 +175,18 @@ async function generateInterfaceList(interfaces) {
 }
 
 async function getDirectories (src) {
-	var interfacesToReturn = [];
-	
-	let getDirectoriesPromise = new Promise((res, rej) => {
-		var res_p = res;
-		var rej_p = rej;
+    var interfacesToReturn = [];
+
+    let getDirectoriesPromise = new Promise((res, rej) => {
+        var res_p = res;
+        var rej_p = rej;
         
         // THIS CODE ACTUALLY LOOKS FOR A PACKAGE.JSON TO REGISTER
-		glob(src + '/*/launcher_settings/interface_package.json', function(err, folders) {
-			console.log(folders);
-			if(folders) {
-				folders.forEach(function (folder) {
-					var folderToReturn = folder.replace("launcher_settings/interface_package.json", "");
-					interfacesToReturn.push(folderToReturn);
-				});
-				res_p();
-			} else {
-				rej_p("Failed to load directories.");
-			}
-		});
-		
-        // THIS CODE ONLY LOOKS FOR INTERFACE.EXE
-        
-		// glob(src + '/*/interface.exe', function(err, folders) {
+		// glob(src + '/*/launcher_settings/interface_package.json', function(err, folders) {
 		// 	console.log(folders);
 		// 	if(folders) {
 		// 		folders.forEach(function (folder) {
-		// 			var folderToReturn = folder.replace("interface.exe", "");
+		// 			var folderToReturn = folder.replace("launcher_settings/interface_package.json", "");
 		// 			interfacesToReturn.push(folderToReturn);
 		// 		});
 		// 		res_p();
@@ -207,34 +194,52 @@ async function getDirectories (src) {
 		// 		rej_p("Failed to load directories.");
 		// 	}
 		// });
-	});
+		
+        // THIS CODE ONLY LOOKS FOR INTERFACE.EXE
+        
+        glob(src + '/*/interface.exe', function(err, folders) {
+            console.log(folders);
+            if (folders) {
+                folders.forEach(function (folder) {
+                    var folderToReturn = folder.replace("interface.exe", "");
+                    interfacesToReturn.push(folderToReturn);
+                });
+                res_p();
+            } else {
+                rej_p("Failed to load directories.");
+            }
+        });
+    });
 
-	let result = await getDirectoriesPromise; 
-	return interfacesToReturn;
+    let result = await getDirectoriesPromise; 
+    return interfacesToReturn;
 }
 
 async function getLibraryInterfaces() {
-	var interfaces = [];
+    var interfaces = [];
 
-	let getLibraryPromise = new Promise((res, rej) => {
-		var res_p = res;
-		var rej_p = rej;
-		getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
-			if(libraryPath) {
-				await getDirectories(libraryPath).then(function(interfacesList){
-					interfaces = interfacesList;
-					res_p();
-				});
-				console.info("Nani Lib Path?", libraryPath);
-			} else {
-				interfaces = ["Select a library folder."];
-				rej_p("Select a library folder.");
-			}
-		});
-	});
+    let getLibraryPromise = new Promise((res, rej) => {
+        var res_p = res;
+        var rej_p = rej;
+        getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
+            if(libraryPath) {
+                await getDirectories(libraryPath).then(function(interfacesList) {
+                    interfaces = interfacesList;
+                    res_p();
+                });
+                console.info("Nani Lib Path?", libraryPath);
+            } else {
+                setLibrary(storagePath.default);
+                await getDirectories(storagePath.default).then(function(interfacesList) {
+                    interfaces = interfacesList;
+                    res_p();
+                });
+            }
+        });
+    });
 
-	let result = await getLibraryPromise; 
-	return interfaces;
+    let result = await getLibraryPromise; 
+    return interfaces;
 }
 
 function setLibrary(libPath) {
@@ -271,18 +276,26 @@ function setLibraryDialog() {
 	})
 }
 
-async function getCurrentInterfaceJSON() {
-    var interfacePackageJSON = storagePath.interfaceSettings + '/interface_package.json';
-    let rawdata = fs.readFileSync(interfacePackageJSON);
-    let interfaceJSON = JSON.parse(rawdata);
-    
-    if (interfaceJSON) {
-        console.info("Interface Package JSON:", interfaceJSON);
-        return interfaceJSON;
-    } else {
-        return false;
-    }
-}
+// async function getCurrentInterfaceJSON() {
+//     var interfacePackageJSON = storagePath.interfaceSettings + '/interface_package.json';
+// 
+//     let rawdata;
+//     try {
+//         rawdata = fs.readFileSync(interfacePackageJSON);
+//     } catch {
+//         // win.webContents.send('failed-to-retrieve-interface-metadata', "We failed to get the current selected Interface metadata to perform the requested action.");
+//         return false;
+//     }
+// 
+//     let interfaceJSON = JSON.parse(rawdata);
+// 
+//     if (interfaceJSON) {
+//         console.info("Interface Package JSON:", interfaceJSON);
+//         return interfaceJSON;
+//     } else {
+//         return false;
+//     }
+// }
 
 async function getLatestMetaJSON() {
 	var metaURL = 'https://cdn.vircadia.com/dist/launcher/vircadiaMeta.json';
@@ -325,7 +338,11 @@ async function getLatestMetaJSON() {
 
 async function checkForInterfaceUpdates() {
 	var vircadiaMeta = await getLatestMetaJSON();
-    var interfacePackage = await getCurrentInterfaceJSON();
+    // var interfacePackage = await getCurrentInterfaceJSON();
+    storagePath.interfaceSettings = storagePath.interfaceSettings.replace("//launcher_settings", "");
+    storagePath.interfaceSettings = storagePath.interfaceSettings.replace("\\/launcher_settings", "");
+    var interfacePackage = { package: versionPaths.fromPath(storagePath.interfaceSettings) };
+    console.info("interfacePackage.package", interfacePackage.package);
     
     if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.package.version) {
         var versionCompare = compareVersions(vircadiaMeta.latest.version, interfacePackage.package.version);
@@ -343,6 +360,18 @@ async function checkForInterfaceUpdates() {
 }
 
 async function checkForUpdates() {
+    var checkPrereqs = await checkRunningApps();
+    console.info(checkPrereqs)
+    if (checkPrereqs.sandbox === true) {
+        win.webContents.send('check-for-updates-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
+        return;
+    }
+    
+    if (checkPrereqs.interface === true) {
+        win.webContents.send('check-for-updates-failed', { "message": 'An instance of Interface is running. Please close it before proceeding.' });
+        return;
+    }
+    
     if (storagePath.interfaceSettings) {
         // This means to update because an interface exists and is selected.
         console.info("Checking for updates.");
@@ -352,6 +381,24 @@ async function checkForUpdates() {
             win.webContents.send('checked-for-updates', { checkForUpdates }); 
         }
     }
+}
+
+async function checkRunningApps() {
+    var list = await tasklist();
+    var runningApps = { "sandbox": false, "interface": false };
+    
+    list.forEach((task) => {
+        if (task.imageName === "server-console.exe") {
+            console.log("SANDBOX RUNNING!");
+            runningApps.sandbox = true;
+        }
+        if (task.imageName === "interface.exe") {
+            console.log("INTERFACE RUNNING!");
+            runningApps.interface = true;
+        }
+    });
+    
+    return runningApps;
 }
 
 async function getDownloadURL() {
@@ -364,89 +411,149 @@ async function getDownloadURL() {
 }
 
 async function getSetting(setting, storageDataPath) {
-	var returnValue;
+    var returnValue;
 
-	let storagePromise = new Promise((res, rej) => {
-		storage.get(setting, {dataPath: storageDataPath}, function(error, data) {
-			if (error) {
-				returnValue = false;
-				rej("Error: " + error);
-				throw error;
-			} else if (Object.entries(data).length==0) {
-				// console.info("Requested:", setting, "Got data:", data, "Object.entries:", Object.entries(data).length);
-				returnValue = false;
-				rej("Not found.")
-			} else {
-				returnValue = data;
-				res("Success!");
-			}
-		});
-	}).catch(err => {
-		console.info("Attempted to retrieve:", setting, "from:", storageDataPath, "but got:", err)
-	})
+    let storagePromise = new Promise((res, rej) => {
+        storage.get(setting, {dataPath: storageDataPath}, function(error, data) {
+            if (error) {
+                returnValue = false;
+                rej("Error: " + error);
+                throw error;
+            } else if (Object.entries(data).length === 0) {
+                // console.info("Requested:", setting, "Got data:", data, "Object.entries:", Object.entries(data).length);
+                returnValue = false;
+                rej("Not found.")
+            } else {
+                returnValue = data;
+                res("Success!");
+            }
+        });
+    }).catch(err => {
+        console.info("Attempted to retrieve:", setting, "from:", storageDataPath, "but got:", err)
+    });
 
-	// because async won't work otherwise. 
-	let result = await storagePromise; 
-	console.info("getSetting Return Value:",returnValue)
-	return returnValue;
+    // because async won't work otherwise. 
+    let result = await storagePromise; 
+    console.info("getSetting Return Value:", returnValue);
+    return returnValue;
 }
 
 const { ipcMain } = require('electron')
 
 ipcMain.on('save-state', (event, arg) => {
-	storage.set('vircadia_launcher.state', arg, {dataPath: storagePath.default}, function(error) {
-		if (error) throw error;
-	});
+    // FIXME: Find out why your settings keep getting nuked...? Specifically current interface and the library folder sometimes.
+    // create a log file... and logging function to find the source of these issues.
+    storage.set('vircadia_launcher.state', arg, {dataPath: storagePath.default}, function(error) {
+        console.info("Saving state.", error);
+        if (error) throw error;
+    });
 })
 
 ipcMain.on('load-state', (event, arg) => {
-	getSetting('vircadia_launcher.state', storagePath.default).then(function(results){
-		if(results) {
-			win.webContents.send('state-loaded', {
-				results
-			});
-		}
+	getSetting('vircadia_launcher.state', storagePath.default).then(function(results) {
+        if (results) {    
+            if (results.sentryEnabled === true) {
+                init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
+            }
+            
+            win.webContents.send('state-loaded', {
+                results
+            });
+        } else {
+            win.webContents.send('first-time-user');
+        }
 	});
+    
+    win.webContents.send('development-mode', isDevelopment);
 })
 
 ipcMain.on('set-metaverse-server', (event, arg) => {
-	if(arg != "") {
-		process.env.HIFI_METAVERSE_URL = arg;
-	} else {
-		delete process.env.HIFI_METAVERSE_URL;
-	}
-	console.info("Current Metaverse Server:", process.env.HIFI_METAVERSE_URL)
+    if (arg !== "") {
+        process.env.HIFI_METAVERSE_URL = arg;
+    } else {
+        delete process.env.HIFI_METAVERSE_URL;
+    }
+    console.info("Current Metaverse Server:", process.env.HIFI_METAVERSE_URL);
 })
 
-ipcMain.on('launch-interface', (event, arg) => {
-	var interface_exe = require('child_process').execFile;
-	// var executablePath = "E:\\Development\\High_Fidelity\\v0860-kasen-VS-release+freshstart\\build\\interface\\Packaged_Release\\Release\\interface.exe";
-	var executablePath = arg.exec;
-	var parameters = [];
+ipcMain.on('launch-interface', async (event, arg) => {
+    var executablePath = arg.exec;
+    var parameters = [];
+    var canLaunch = true;
+    
+    if (arg.customLaunchParameters) {
+        var splitParameters = arg.customLaunchParameters.split(",");
+        splitParameters.forEach(parameter => parameters.push(parameter));
+    }
+    
+    if (arg.allowMultipleInstances) {
+        parameters.push('--allowMultipleInstances');
+    } else {
+        var list = await tasklist();
+        list.forEach((task) => {
+            if (task.imageName === "interface.exe") {
+                console.log("INTERFACE ALREADY RUNNING WHILE ATTEMPTING TO LAUNCH!");
+                win.webContents.send("launch-interface-already-running");
+                canLaunch = false;
+            }
+        });
+    }
 
-	// arg is expected to be true or false with regards to SteamVR being enabled or not, later on it may be an object or array and we will handle it accordingly.
-	if (arg.steamVR) {
-		parameters.push('--disable-displays="OpenVR (Vive)"');
-		parameters.push('--disable-inputs="OpenVR (Vive)"');
-	}
+    if (!canLaunch) {
+        return;
+    }
+
+    if (arg.noSteamVR && !arg.noOculus) {
+        parameters.push('--disable-displays="OpenVR (Vive)"');
+        parameters.push('--disable-inputs="OpenVR (Vive)"');
+    }
+    
+    if (arg.noOculus && !arg.noSteamVR) {
+        parameters.push('--disable-displays="Oculus Rift"');
+        parameters.push('--disable-inputs="Oculus Rift"');
+    }
+    
+    if (arg.noOculus && arg.noSteamVR) {
+        parameters.push('--disable-displays="OpenVR (Vive),Oculus Rift"');
+        parameters.push('--disable-inputs="OpenVR (Vive),Oculus Rift"');
+    }
+    
+    if (arg.autoRestartInterface) {
+        parameters.push('--suppress-settings-reset');
+    }
+    
+    if (arg.dontPromptForLogin) {
+        parameters.push('--no-login-suggestion');
+    }
+    
+    // TODO: Set this dynamically.
+    // parameters.push('-qwindowtitle "Vircadia Quantum K3"');
+    
+    // TODO: Add "QUANTUM_K3_INSTAQUIT" environment variable.
 	
-	if (arg.allowMultipleInstances) {
-		parameters.push('--allowMultipleInstances');
-	}
-		
-	console.info("Nani?", parameters, "type?", Array.isArray(parameters));
-
-	interface_exe(executablePath, parameters, { windowsVerbatimArguments: true }, function(err, stdout, data) {
-		console.log(err)
-		console.log(stdout.toString());
-	});
+    console.info("Nani?", parameters, "type?", Array.isArray(parameters));
+    
+    launchInterface(executablePath, parameters, arg.autoRestartInterface);
   
 })
+
+function launchInterface(executablePath, parameters, autoRestartInterface) {
+    win.webContents.send('launching-interface');
+    
+    var interface_exe = require('child_process').execFile;
+    
+    interface_exe(executablePath, parameters, { windowsVerbatimArguments: true }, function(err, stdout, data) {
+        console.info("Interface.exe exited with code:", err);
+        if (autoRestartInterface == true && err && !err.killed) {
+            launchInterface(executablePath, parameters, autoRestartInterface);
+        }
+    });
+}
 
 ipcMain.on('get-vircadia-location', async (event, arg) => {
     var vircadiaLocation = await getSetting('vircadia_interface.location', storagePath.interfaceSettings);
     var vircadiaLocationExe = vircadiaLocation.toString();
-    console.info("VircadiaLocationExe:",vircadiaLocationExe);
+    console.info("VircadiaLocationExe:", vircadiaLocationExe);
     event.returnValue = vircadiaLocationExe;
 })
 
@@ -483,7 +590,8 @@ ipcMain.on('set-vircadia-location', async (event, arg) => {
   
 })
 
-ipcMain.on('setLibraryFolder', (event, arg) => {
+// TODO: switch to the proper ipcMain.on convention.
+ipcMain.on('set-library-folder', (event, arg) => {
     setLibraryDialog();
 })
 
@@ -518,20 +626,40 @@ ipcMain.handle('isInterfaceSelectionRequired', (event, arg) => {
     }
 })
 
-ipcMain.handle('populateInterfaceList', (event, arg) => {
-    getLibraryInterfaces().then(async function(results) {
-        var generatedList = await generateInterfaceList(results);
-        console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
-        event.sender.send('interface-list', generatedList);
+ipcMain.handle('populateInterfaceList', async (event, arg) => {
+    var interface_exes = await getLibraryInterfaces();
+    var list = interface_exes.map(function(filename) {
+        // :)
+        var nv = versionPaths.fromPath(filename);
+        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, ''), "version": nv.version } };
     });
+    event.sender.send('interface-list', list);
+    
+    // COMMENT ABOVE, UNCOMMENT BELOW
+    
+    // getLibraryInterfaces().then(async function(results) {
+    //     var generatedList = await generateInterfaceList(results);
+    //     console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
+    //     event.sender.send('interface-list', generatedList);
+    // });
 })
 
-ipcMain.handle('get-interface-list-for-launch', (event, arg) => {
-	getLibraryInterfaces().then(async function(results) {
-		var generatedList = await generateInterfaceList(results);
-		// console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
-		event.sender.send('interface-list-for-launch', generatedList);
-	});
+ipcMain.handle('get-interface-list-for-launch', async (event, arg) => {
+    var interface_exes = await getLibraryInterfaces();
+    var list = interface_exes.map(function(filename) {
+        // :)
+        var nv = versionPaths.fromPath(filename);
+        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, '') } };
+    });
+    event.sender.send('interface-list-for-launch', list);
+    
+    // COMMENT ABOVE, UNCOMMENT BELOW
+    
+	// getLibraryInterfaces().then(async function(results) {
+	// 	var generatedList = await generateInterfaceList(results);
+	// 	console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
+	// 	event.sender.send('interface-list-for-launch', generatedList);
+	// });
 })
 
 
@@ -558,23 +686,23 @@ function launchInstaller() {
     });
 }
 
-async function silentInstall() {
+async function silentInstall(useOldInstaller) {
+    var vircadiaMetaJSON = await getLatestMetaJSON();
     var executableLocation; // This is the downloaded installer.
     var installPath; // This is the location to install the application to.
+    var installFolderName = "\\" + versionPaths.toPath(vircadiaMetaJSON.latest) + "\\";
+    console.info("silentInstall: installFolderName:", installFolderName);
     var executablePath; // This is the location that the installer exe is located in after being downloaded.
     var exeLocToInstall; // This is what gets installed.
-    var list = await tasklist();
-    var canInstall = true;
+    var checkPrereqs = await checkRunningApps();
+
+    if (checkPrereqs.sandbox === true) {
+        win.webContents.send('silent-installer-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
+        return;
+    }
     
-    list.forEach((task) => {
-        if (task.imageName === "server-console.exe") {
-            console.log("SANDBOX FOUND!");
-            canInstall = false;
-        }
-    });
-    
-    if (!canInstall) {
-        win.webContents.send('silent-installer-failed', 'Your server sandbox is running. Please close it before proceeding.');        
+    if (checkPrereqs.interface === true) {
+        win.webContents.send('silent-installer-failed', { "message": 'An instance of Interface is running, please close it before proceeding.' });
         return;
     }
     
@@ -593,30 +721,33 @@ async function silentInstall() {
         
         parameters.push("/S");
         parameters.push("/D=" + installPath);
-
-        if (!fs.existsSync(executableLocation)) {
-            // Notify main window of the issue.
-            win.webContents.send('no-installer-found');
-            return;
-        } else {
-            console.info("exeLoc:", executableLocation);
-            console.info("exePath:", executablePath);
-            
-            fs.copyFileSync(executableLocation, executablePath + "/Vircadia_Setup_Latest_READY.exe", (err) => {
-                if (err) console.log('ERROR ON COPY: ' + err);
-                console.log('Completed copy operation successfully.');
-            });
-            
-            fs.unlink(executableLocation, (err) => {
-                if (err) console.log('ERROR ON ORIGINAL INSTALLER DELETE: ' + err);
-                console.info(executableLocation, 'was deleted after copying.');
-            });
-            
+        
+        if (useOldInstaller === true) {
             exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
+        } else {
+            if (!fs.existsSync(executableLocation)) {
+                // Notify main window of the issue.
+                win.webContents.send('no-installer-found');
+                return;
+            } else {
+                console.info("exeLoc:", executableLocation);
+                console.info("exePath:", executablePath);
+                
+                fs.copyFileSync(executableLocation, executablePath + "/Vircadia_Setup_Latest_READY.exe", (err) => {
+                    if (err) console.log('ERROR ON COPY: ' + err);
+                    console.log('Completed copy operation successfully.');
+                });
+                
+                fs.unlink(executableLocation, (err) => {
+                    if (err) console.log('ERROR ON ORIGINAL INSTALLER DELETE: ' + err);
+                    console.info(executableLocation, 'was deleted after copying.');
+                });
+                
+                exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
+            }
         }
         
         win.webContents.send('silent-installer-running');
-
         console.info("Installing silently, params:", exeLocToInstall, installPath, parameters)
 
         try { 
@@ -627,65 +758,96 @@ async function silentInstall() {
                 // On installer exit...
                 if (err) {
                     console.info("Installation failed.");
-                    win.webContents.send('silent-installer-failed');
-                    // throw err;
+                    var errorMessage;
+                    
+                    if (err.code === "EACCES") {
+                        errorMessage = "Please run the launcher as an administrator to continue.";
+                    } else {
+                        if (err.code === 2) {
+                            errorMessage = "An instance of Interface is running, please close it before proceeding.";
+                        } else {
+                            errorMessage = "An error has occurred.";                
+                        }
+                    }
+                    
+                    win.webContents.send('silent-installer-failed', { 
+                        "message": errorMessage, 
+                        "code": err.code, 
+                        "fullerr": err 
+                    });
                 } else {
                     console.info("Installation complete.");
                     console.info("Running post-install.");
-                    postInstall();
+                    // postInstall();
+                    win.webContents.send('silent-installer-complete', {
+                        "name": vircadiaMetaJSON.latest.name,
+                        "folder": installPath,
+                    });
                 }
             });
         } catch (e) {
             console.info("Try block: Silent installation failed.")
-            win.webContents.send('silent-installer-failed');    
+            var errorMessage = "An error has occurred: " + e;
+            win.webContents.send('silent-installer-failed', { "message": errorMessage });
         }
         
     }).catch(function(e) {
         console.info("Failed to fetch library for silent install. Error:", e);
-        win.webContents.send('silent-installer-failed');
+        var errorMessage = "An error has occurred: " + e;
+        win.webContents.send('silent-installer-failed', { "message": errorMessage, "fullerr": e });
     });
 }
 
-async function postInstall() {
-    getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
-        var installPath;
-        var vircadiaMetaJSON = await getLatestMetaJSON();
-        var vircadiaPackageJSON = 
-        {
-            "package": {
-                "name": vircadiaMetaJSON.latest.name,
-                "version": vircadiaMetaJSON.latest.version
-            }
-        };
-        
-        if (libPath) {
-            installPath = libPath + installFolderName;
-        } else {
-            installPath = storagePath.default + installFolderName;
-        }
-        
-        var packageJSONFilename = installPath + "/launcher_settings/interface_package.json";
-        
-        fs.writeFileSync(packageJSONFilename, JSON.stringify(vircadiaPackageJSON), err => {
-            if (err) {
-                console.error(err);
-                win.webContents.send('silent-installer-failed', 'Failed to create Interface metadata post-install.');
-                return
-            }
-            //file written successfully
-        });
-        
-        win.webContents.send('silent-installer-complete');
-    }).catch(function(e) {
-        console.info("Failed to fetch library for post install. Error:", e);
-    });
-}
+// TODO: Fix this LATER, it's unacceptable.
+
+// async function postInstall() {
+//     getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
+//         var installPath;
+//         var vircadiaMetaJSON = await getLatestMetaJSON();
+//         var vircadiaPackageJSON = 
+//         {
+//             "package": {
+//                 "name": vircadiaMetaJSON.latest.name,
+//                 "version": vircadiaMetaJSON.latest.version
+//             }
+//         };
+// 
+//         if (libPath) {
+//             installPath = libPath + installFolderName;
+//         } else {
+//             installPath = storagePath.default + installFolderName;
+//         }
+// 
+//         var packageJSONLocation = installPath + "/launcher_settings";
+//         var packageJSONFilename = installPath + "/launcher_settings/interface_package.json";
+// 
+//         try {
+//             fs.mkdirSync(packageJSONLocation, { recursive: true });
+//             fs.writeFileSync(packageJSONFilename, JSON.stringify(vircadiaPackageJSON));
+//         } catch {
+//             win.webContents.send('silent-installer-failed', { "message": 'Failed to create Interface metadata post-install.' });
+//             return;
+//         }
+// 
+//         var postInstallPackage = {
+//             "name": vircadiaMetaJSON.latest.name,
+//             "folder": installPath,
+//         }
+// 
+//         win.webContents.send('silent-installer-complete', postInstallPackage);
+//     }).catch(function(e) {
+//         console.info("Failed to fetch library for post install. Error:", e);
+//     });
+// }
 
 ipcMain.on('download-vircadia', async (event, arg) => {
     var libraryPath;
     var downloadURL = await getDownloadURL();
+    var vircadiaMetaJSON = await getLatestMetaJSON();
     var installerName = "Vircadia_Setup_Latest.exe";
+    var installerNamePost = "Vircadia_Setup_Latest_READY.exe";
     console.info("DLURL:", downloadURL);
+    
     if (downloadURL) {
         getSetting('vircadia_interface.library', storagePath.default).then(function(results){
             if(results) {
@@ -694,10 +856,24 @@ ipcMain.on('download-vircadia', async (event, arg) => {
                 libraryPath = storagePath.default;
             }
             
-            fs.unlink(libraryPath + "/" + installerName, (err) => {
-                if (err) console.log("No previous installation to delete.");
-                console.info(installerName, 'was deleted prior to downloading.');
-            });
+            var previousInstaller = libraryPath + "/" + installerNamePost;
+            
+            if (fs.existsSync(previousInstaller)) {
+                var md5current = hasha.fromFileSync(previousInstaller, {algorithm: 'md5'});
+                md5current = md5current.toUpperCase();
+                
+                if (md5current === vircadiaMetaJSON.latest.md5) {
+                    silentInstall(true);
+                    return;
+                } else {
+                    fs.unlink(previousInstaller, (err) => {
+                        if (err) console.log("No previous installation to delete.");
+                        console.info(installerName, 'was deleted prior to downloading.');
+                        console.info("Latest Live MD5:", vircadiaMetaJSON.latest.md5);
+                        console.info(installerName, "MD5:", md5current);
+                    });
+                }
+            }
             
 			electronDl.download(win, downloadURL, {
 				directory: libraryPath,
@@ -718,7 +894,7 @@ ipcMain.on('download-vircadia', async (event, arg) => {
                         if (percent === 1) { // When the setup download completes...
                             electronDlItem = null;
                             // launchInstaller();
-                            silentInstall();
+                            silentInstall(false);
                         }
                     }
 				},
@@ -729,11 +905,21 @@ ipcMain.on('download-vircadia', async (event, arg) => {
                 // download interrupted. It would be nicer to display our own, download-installer-failed, message box.
                 // https://github.com/sindresorhus/electron-dl/issues/105
 			});
-		});
+		}).catch(function(error) {
+            console.info("Download library retrieval error:", error);
+            win.webContents.send('download-installer-failed');
+        });
 	} else {
 		console.info("Failed to download.");
         win.webContents.send('download-installer-failed');
 	}
+});
+
+// this can be triggered identically to "launch-interface" -- ie: pass full path to interface.exe within arg.exec
+ipcMain.on('uninstall-interface', (event, folder) => {
+    var uninstallExec = folder + "Uninstall.exe";
+    console.info("[uninstall] uninstaller: ", uninstallExec);
+    require('child_process').execFile(uninstallExec);
 });
 
 ipcMain.on('cancel-download', async (event) => {
@@ -747,10 +933,15 @@ ipcMain.on('install-vircadia', (event, arg) => {
     launchInstaller();
 });
 
+// TODO: Add version info for local and remote for both update available and 
+//       update not available.
+// TODO: When a new version is downloaded and installed, the old version is no
+//       longer overwritten. What should we do about this?
 ipcMain.on('check-for-updates', (event, arg) => {
     checkForUpdates();
 });
 
+// TODO: Ensure this is working effectively to most users.
 ipcMain.on('request-close', async (event, arg) => {
     var list = await tasklist();
     var canClose = true;
@@ -763,7 +954,7 @@ ipcMain.on('request-close', async (event, arg) => {
     });
     
     if (!canClose) {
-        win.webContents.send('interface-running');
+        win.webContents.send('request-close-interface-running');
     } else {
         app.exit();
     }

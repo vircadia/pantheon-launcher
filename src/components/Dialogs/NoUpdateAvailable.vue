@@ -2,7 +2,7 @@
 //  NoUpdateAvailable.vue
 //
 //  Created by KasenVR on 28 Mar 2020.
-//  Copyright 2020 Vircadia and contributors.
+//  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -24,26 +24,25 @@
             </v-card-title>
     
             <v-card-text>
-                There is currently no update available. Would you like to reinstall your Interface?
+                There is currently no update available. <br />
+                Would you like to reinstall your Interface?
             </v-card-text>
     
             <v-divider></v-divider>
-    
+            
             <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn
-                    color="red"
-                    text
-                    @click="reinstallInterface(); $emit('hideDialog')"
-                >
-                    Reinstall
-                </v-btn>
                 <v-btn
                     color="primary"
-                    text
                     @click="doNothing(); $emit('hideDialog')"
                 >
                     No
+                </v-btn>
+                <v-spacer></v-spacer>
+                <v-btn
+                    color="red"
+                    @click="reinstallInterface(); $emit('hideDialog')"
+                >
+                    Reinstall
                 </v-btn>
             </v-card-actions>
         </v-card>

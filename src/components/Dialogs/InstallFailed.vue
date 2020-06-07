@@ -2,7 +2,7 @@
 //  InstallFailed.vue
 //
 //  Created by Kalila L. on 22 Feb 2020.
-//  Copyright 2020 Project Athena and contributors.
+//  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
@@ -24,16 +24,28 @@
             </v-card-title>
     
             <v-card-text>
-                {{installFailedMessage}}
+                {{installFailedMessage}}<br />
+                <v-expansion-panels
+                    v-model="panel"
+                    v-if="this.installFailedCode"
+                >
+                    <v-expansion-panel>
+                        <v-expansion-panel-header>Error Information</v-expansion-panel-header>
+                        <v-expansion-panel-content>
+                            Error code <pre>{{installFailedCode}}</pre> <br />
+                            The full error is shown below: <br />
+                            <pre>{{installFailedError}}</pre>
+                        </v-expansion-panel-content>
+                    </v-expansion-panel>
+                </v-expansion-panels>
             </v-card-text>
     
             <v-divider></v-divider>
-    
+
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    text
                     @click="$emit('hideDialog')"
                 >
                     Dismiss
@@ -43,18 +55,19 @@
     </v-dialog>
 </template>
 
-
 <script>
 export default {
     name: 'InstallFailed',
 
     data: () => ({
         showInstallFailed: true,
-        installFailedMessage: ""
+        panel: false,
     }),
     created: function () {
         var vue_this = this;
-        this.installFailedMessage = this.$store.state.currentNotice;
+        this.installFailedMessage = this.$store.state.currentNotice.message;
+        this.installFailedCode = this.$store.state.currentNotice.code;
+        this.installFailedError = this.$store.state.currentNotice.fullerr;
     }
 };
 </script>
