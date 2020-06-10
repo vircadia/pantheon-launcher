@@ -42,15 +42,20 @@ import * as Sentry from '@sentry/electron';
                     <span>Worlds</span>
                     <v-icon>mdi-map-search-outline</v-icon>
                 </v-btn>
-
-                <v-btn value="Settings">
-                    <span>Settings</span>
-                    <v-icon>mdi-settings-outline</v-icon>
+                
+                <v-btn value="Events">
+                    <span>Events</span>
+                    <v-icon>mdi-calendar-star</v-icon>
                 </v-btn>
                 
                 <v-btn value="News">
                     <span>News</span>
                     <v-icon>mdi-newspaper-variant</v-icon>
+                </v-btn>
+                
+                <v-btn value="Settings">
+                    <span>Settings</span>
+                    <v-icon>mdi-settings-outline</v-icon>
                 </v-btn>
                 
             </v-btn-toggle>
@@ -519,7 +524,7 @@ function clearSelectedInterface() {
 
 /* END Debug COMMANDS */
 
-import HelloWorld from './components/HelloWorld';
+import Events from './components/Events';
 import FavoriteWorlds from './components/FavoriteWorlds';
 import Settings from './components/Settings';
 import News from './components/News';
@@ -544,7 +549,7 @@ import FailedMetadata from './components/Dialogs/FailedMetadata'
 export default {
     name: 'App',
     components: {
-        HelloWorld,
+        Events,
         FavoriteWorlds,
         Settings,
         News,
@@ -690,7 +695,7 @@ export default {
         }
     },
     data: () => ({
-        showTab: 'News',
+        showTab: 'Events', // Filling this in sets the default tab to show on startup.
         titleHover: false,
         isDevelopment: false,
         // Dialog Data
