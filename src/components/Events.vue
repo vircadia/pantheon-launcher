@@ -41,7 +41,7 @@
                                 lg="3"
                             >
 
-                                <v-card class="world-cards" width="230">
+                                <v-card class="event-cards" width="230">
                                     <v-img
                                         :src="item.img"
                                         height="200px"
@@ -50,13 +50,22 @@
                                     <v-card-title>
                                         {{ item.name }}
                                     </v-card-title>
-
+                                    <v-card-subtitle>
+                                        {{ item.date.time }} {{ item.date.timeZone }}<br />
+                                        {{ item.date.day }}, {{ item.date.date }}
+                                    </v-card-subtitle>
+                                    
+                                    <v-divider></v-divider>
+                                    
                                     <v-card-actions>
-
+                                        <v-btn color="primary" text v-on:click="openURL(item.links.help)">
+                                            Help
+                                        </v-btn>
+                                        
                                         <v-spacer></v-spacer>
 
-                                        <v-btn color="purple" text v-on:click="openURL(item.url)">
-                                            Explore
+                                        <v-btn color="purple" v-on:click="openURL(item.links.join)">
+                                            Join
                                         </v-btn>
 
                                     </v-card-actions>
@@ -88,7 +97,12 @@ export default {
     methods: {
         openURL: function(url) {
             const { shell } = require('electron');
-            shell.openExternal(url);
+            
+            if (url.indexOf("hifi://") === 0) { // If trying to launch Interface
+                
+            } else { // Else it's just a normal link, pass to the OS.
+                shell.openExternal(url);    
+            }
         },
     },
     created: function () { 
@@ -100,16 +114,16 @@ export default {
     data: () => ({
         // Data like this is a default, it will be replaced once a function replaces it.
         events: [
-            {
-                name: 'The-Spot',
-                url: 'hifi://the-spot.projectathena.dev',
-                img: 'https://images.pexels.com/photos/220201/pexels-photo-220201.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260'
-            },
-            {
-                name: 'Franny',
-                url: 'hifi://franny.projectathena.dev',
-                img: 'https://images.pexels.com/photos/220201/pexels-photo-220201.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260'
-            },
+            // {
+            //     name: 'Community Meeting',
+            //     url: 'hifi://the-spot.projectathena.dev',
+            //     img: 'https://images.pexels.com/photos/220201/pexels-photo-220201.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260'
+            // },
+            // {
+            //     name: 'DocSalon',
+            //     url: 'hifi://franny.projectathena.dev',
+            //     img: 'https://images.pexels.com/photos/220201/pexels-photo-220201.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260'
+            // },
         ]
     }),
 };
