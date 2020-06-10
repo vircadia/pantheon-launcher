@@ -152,6 +152,17 @@ pre {
     max-width: none !important;
 }
 
+/* Events.vue */
+
+#eventsContainer {
+    background-image: url('../resources/mtnbg.jpg');
+    background-attachment: fixed;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    max-width: none !important;
+}
+
 /* Settings.vue */
 
 #settingsContainer {

@@ -98,11 +98,6 @@ export default {
   data: () => ({
     show: false,
 		worlds: [
-			// {
-			// 	name: 'Athena Start',
-			// 	url: 'serverless',
-			// 	img: 'http://virtualrealitytimes.com/wp-content/uploads/2017/08/high-fidelity-og.jpg'
-			// },
 			{
 				name: 'The-Spot',
 				url: 'hifi://the-spot.projectathena.dev',

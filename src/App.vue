@@ -94,7 +94,7 @@ import * as Sentry from '@sentry/electron';
                     alt="Vircadia Logo"
                     id="titleIMG"
                     class="shrink mr-2"
-                    v-on:click="launchBrowser('https://vircadia.com/')"
+                    v-on:click="openURL('https://vircadia.com/')"
                     contain
                     src="./assets/logo_256_256.png"
                     transition="scale-transition"
@@ -105,12 +105,12 @@ import * as Sentry from '@sentry/electron';
             <v-slide-x-transition
                 :hide-on-leave=true
             >
-                <h2 class="titleURL" v-show="!titleHover" v-on:click="launchBrowser('https://vircadia.com/')">Alpha</h2>
+                <h2 class="titleURL" v-show="!titleHover" v-on:click="openURL('https://vircadia.com/')">Alpha</h2>
             </v-slide-x-transition>
             <v-slide-x-reverse-transition
                 :hide-on-leave=true
             >
-                <h2 class="titleURL alternateTitle" v-show="titleHover" v-on:click="launchBrowser('https://vircadia.com/')">Vircadia</h2>
+                <h2 class="titleURL alternateTitle" v-show="titleHover" v-on:click="openURL('https://vircadia.com/')">Vircadia</h2>
             </v-slide-x-reverse-transition>
 
             <v-btn
@@ -607,7 +607,7 @@ export default {
         launchInterface: function(exeLoc) {
             ipcRenderer.send('launch-interface', { "exec": exeLoc, "customLaunchParameters": this.$store.state.customLaunchParameters, "noSteamVR": this.$store.state.noSteamVR, "noOculus": this.$store.state.noOculus, "allowMultipleInstances": this.$store.state.allowMultipleInstances, "autoRestartInterface": this.$store.state.autoRestartInterface, "dontPromptForLogin": this.$store.state.dontPromptForLogin });
         },
-		launchBrowser: function(url) {
+		openURL: function(url) {
 			const { shell } = require('electron');
 			shell.openExternal(url);
 		},

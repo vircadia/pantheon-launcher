@@ -336,6 +336,45 @@ async function getCDNMetaJSON() {
 	}
 }
 
+async function getCDNEventsJSON() {
+	var eventsURL = 'https://cdn.vircadia.com/dist/launcher/vircadiaEvents.json';
+		
+	await electronDl.download(win, eventsURL, {
+		directory: storagePath.default,
+		showBadge: false,
+		filename: "vircadiaEvents.json",
+        // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
+        // downloadItem to check which download is progressing.
+        onStarted: downloadItem => {
+            electronDlItem = downloadItem;
+        },
+		onProgress: currentProgress => {
+			var percent = currentProgress.percent;
+            if (electronDlItem && electronDlItem.getURL() === eventsURL) {
+                if (percent === 1) {
+                    electronDlItem = null;
+                }
+                // console.info("DLing events:", percent);
+            }
+		},
+        onCancel: downloadItem => {
+            electronDlItem = null;
+        }
+	});
+	
+	var vircadiaEventsFile = storagePath.default + '/vircadiaEvents.json';
+	let rawdata = fs.readFileSync(vircadiaEventsFile);
+	let vircadiaEventsJSON = JSON.parse(rawdata);
+	
+	if (vircadiaEventsJSON) {
+		console.info("Vircadia Events JSON:", vircadiaEventsJSON);
+		return vircadiaEventsJSON;
+	} else {
+        console.error("Failed to download Vircadia Events JSON.");
+		return false;
+	}
+}
+
 async function checkForInterfaceUpdates() {
 	var vircadiaMeta = await getCDNMetaJSON();
     // var interfacePackage = await getCurrentInterfaceJSON();
@@ -941,6 +980,11 @@ ipcMain.on('install-vircadia', (event, arg) => {
 //       longer overwritten. What should we do about this?
 ipcMain.on('check-for-updates', (event, arg) => {
     checkForUpdates();
+});
+
+ipcMain.on('check-for-events', async (event, arg) => {
+    var fetchEvents = await getCDNEventsJSON();
+    win.webContents.send('events-list', fetchEvents);
 });
 
 // TODO: Ensure this is working effectively to most users.
