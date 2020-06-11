@@ -521,6 +521,12 @@ ipcMain.on('launch-interface', async (event, arg) => {
     var executablePath = arg.exec;
     var parameters = [];
     var canLaunch = true;
+    var isPathSet = false;
+    
+    if (arg.customPath) {
+        isPathSet = true;
+        parameters.push('--url="' + arg.customPath + '"');
+    }
     
     if (arg.customLaunchParameters) {
         var splitParameters = arg.customLaunchParameters.split(",");
@@ -529,12 +535,17 @@ ipcMain.on('launch-interface', async (event, arg) => {
     
     if (arg.allowMultipleInstances) {
         parameters.push('--allowMultipleInstances');
-    } else {
+    } else { // If a link is being opened, don't warn as we may be trying to send to the current interface running.
         var list = await tasklist();
         list.forEach((task) => {
             if (task.imageName === "interface.exe") {
                 console.log("INTERFACE ALREADY RUNNING WHILE ATTEMPTING TO LAUNCH!");
-                win.webContents.send("launch-interface-already-running");
+                if (isPathSet === true) {
+                    console.log("A goto URL was set, we will redirect this to the operating system.");
+                    shell.openExternal(arg.customPath);
+                } else {
+                    win.webContents.send("launch-interface-already-running");
+                }
                 canLaunch = false;
             }
         });

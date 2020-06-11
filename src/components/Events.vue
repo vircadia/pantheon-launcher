@@ -58,13 +58,13 @@
                                     <v-divider></v-divider>
                                     
                                     <v-card-actions>
-                                        <v-btn color="primary" text v-on:click="openURL(item.links.help)">
+                                        <v-btn color="primary" text v-on:click="sendEvent('open-url', item.links.help)">
                                             Help
                                         </v-btn>
                                         
                                         <v-spacer></v-spacer>
 
-                                        <v-btn color="purple" v-on:click="openURL(item.links.join)">
+                                        <v-btn color="purple" v-on:click="sendEvent('open-url', item.links.join)">
                                             Join
                                         </v-btn>
 
@@ -85,6 +85,8 @@
 <script>
 
 var vue_this;
+import { EventBus } from '../plugins/event-bus.js';
+
 
 require('electron').ipcRenderer.on('events-list', (event, message) => {
     console.info("Before:", vue_this.events);
@@ -95,15 +97,9 @@ require('electron').ipcRenderer.on('events-list', (event, message) => {
 export default {
     name: 'Events',
     methods: {
-        openURL: function(url) {
-            const { shell } = require('electron');
-            
-            if (url.indexOf("hifi://") === 0) { // If trying to launch Interface
-                
-            } else { // Else it's just a normal link, pass to the OS.
-                shell.openExternal(url);    
-            }
-        },
+        sendEvent: function(command, data) {
+            EventBus.$emit(command, data);
+        }
     },
     created: function () { 
         vue_this = this;

@@ -239,7 +239,7 @@ import * as Sentry from '@sentry/electron';
     
     <v-content id="dialogContent">
         <transition name="fade" mode="out-in">
-            <component @hideDialog="shouldShowDialog = false" v-if="shouldShowDialog" v-bind:is="showDialog"></component>
+            <component @hideDialog="shouldShowDialog = false" v-if="shouldShowDialog" v-bind:is="showDialog" @open-url="openURL"></component>
         </transition>
     </v-content>
 		
@@ -249,6 +249,11 @@ import * as Sentry from '@sentry/electron';
 <script>
 var vue_this;
 const { ipcRenderer } = require('electron');
+import { EventBus } from './plugins/event-bus.js';
+
+EventBus.$on('open-url', url => {
+    vue_this.openURL(url);
+});
 
 ipcRenderer.on('download-installer-progress', (event, arg) => {
     var downloadProgress = arg.percent;
@@ -586,7 +591,7 @@ export default {
             this.showDialog = "";
             this.shouldShowDialog = false;
         },
-		attemptLaunchInterface: function() {
+		attemptLaunchInterface: function(goto) {
 			// var exeLoc = ipcRenderer.sendSync('get-vircadia-location'); // todo: check if that location exists first when using that, we need to default to using folder path + /interface.exe otherwise.
             var exeLoc;
             
@@ -594,23 +599,28 @@ export default {
                 exeLoc = this.$store.state.selectedInterface.folder + "interface.exe";
             }
             
-            console.info("Attempting to launch interface, found exeLoc:",exeLoc);
+            console.info("Attempting to launch interface, found exeLoc:", exeLoc);
             
             if (exeLoc) {
-                this.launchInterface(exeLoc);
+                this.launchInterface(exeLoc, goto);
             } else {
                 // this.selectInterfaceExe();
                 // No, no more... we'll just default to selecting the first interface we find. You can select on your own time. UX baby.
                 ipcRenderer.invoke('get-interface-list-for-launch');
             }
 		},
-        launchInterface: function(exeLoc) {
-            ipcRenderer.send('launch-interface', { "exec": exeLoc, "customLaunchParameters": this.$store.state.customLaunchParameters, "noSteamVR": this.$store.state.noSteamVR, "noOculus": this.$store.state.noOculus, "allowMultipleInstances": this.$store.state.allowMultipleInstances, "autoRestartInterface": this.$store.state.autoRestartInterface, "dontPromptForLogin": this.$store.state.dontPromptForLogin });
+        launchInterface: function(exeLoc, goto) {
+            ipcRenderer.send('launch-interface', { "exec": exeLoc, "customPath": goto, "customLaunchParameters": this.$store.state.customLaunchParameters, "noSteamVR": this.$store.state.noSteamVR, "noOculus": this.$store.state.noOculus, "allowMultipleInstances": this.$store.state.allowMultipleInstances, "autoRestartInterface": this.$store.state.autoRestartInterface, "dontPromptForLogin": this.$store.state.dontPromptForLogin });
         },
-		openURL: function(url) {
-			const { shell } = require('electron');
-			shell.openExternal(url);
-		},
+        openURL: function(url) {
+            const { shell } = require('electron');
+            console.info("URL:", url);
+            if (url.indexOf("hifi://") === 0) { // If trying to launch Interface
+                this.attemptLaunchInterface(url);
+            } else { // Else it's just a normal link, pass to the OS.
+                shell.openExternal(url);    
+            }
+        },
 		downloadInterface: function() {
             this.disableDownloadButton = true;
             this.disableLaunchButton = true;
