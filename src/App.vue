@@ -702,10 +702,16 @@ export default {
         },
         watchStoreAndData (newVal, oldVal) {
             document.querySelector("#development-output").innerText = newVal;
+        },
+        showTab (newVal, oldVal) {
+            if (newVal == null) {
+                this.showTab = this.defaultTab;
+            }
         }
     },
     data: () => ({
         showTab: 'Events', // Filling this in sets the default tab to show on startup.
+        defaultTab: "Events", // The default tab to go to when a user toggles off another.
         titleHover: false,
         isDevelopment: false,
         // Dialog Data

@@ -89,9 +89,7 @@ import { EventBus } from '../plugins/event-bus.js';
 
 
 require('electron').ipcRenderer.on('events-list', (event, message) => {
-    console.info("Before:", vue_this.events);
     vue_this.events = message.eventsList;
-    console.info("After:", vue_this.events);
 })
 
 export default {
