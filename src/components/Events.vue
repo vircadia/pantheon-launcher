@@ -51,8 +51,8 @@
                                         {{ item.name }}
                                     </v-card-title>
                                     <v-card-subtitle>
-                                        {{ item.date.time }} {{ item.date.timeZone }}<br />
-                                        {{ item.date.day }}, {{ item.date.date }}
+                                        {{ getDayAndDate(item.date.fullUTC) }} <br />
+                                        {{ getTimeAndTimezone(item.date.fullUTC) }}
                                     </v-card-subtitle>
                                     
                                     <v-divider></v-divider>
@@ -83,10 +83,8 @@
 </template>
 
 <script>
-
 var vue_this;
 import { EventBus } from '../plugins/event-bus.js';
-
 
 require('electron').ipcRenderer.on('events-list', (event, message) => {
     vue_this.events = message.eventsList;
@@ -97,15 +95,48 @@ export default {
     methods: {
         sendEvent: function(command, data) {
             EventBus.$emit(command, data);
+        },
+        getDayAndDate(dateAndTime) {
+            // We are assuming that the given date and time is in UTC.
+            var baseUTC = this.$moment.utc(dateAndTime);
+            var converted = baseUTC.tz(this.userTimezone.name());
+            var convertedLocale = this.$moment(converted).format('dddd, MMMM Do'); // https://momentjs.com/docs/#/displaying/format/
+            return convertedLocale;
+        },
+        getTimeAndTimezone(dateAndTime) {
+            // We are assuming that the given date and time is in UTC.
+            var baseUTC = this.$moment.utc(dateAndTime);
+            var converted = baseUTC.tz(this.userTimezone.name());
+            var convertedLocale = this.$moment(converted).format('h:mmA zz'); // https://momentjs.com/docs/#/displaying/format/
+            return convertedLocale;
         }
+    },
+    computed: {
+        
+    },
+    mounted() {
+        // let jstzScript = document.createElement('script');
+        // jstzScript.setAttribute('src', './js_modules/jstz.min.js');
+        // document.head.appendChild(jstzScript);
+        // 
+        // let mwlScript = document.createElement('script');
+        // mwlScript.setAttribute('src', './js_modules/mwl.min.js');
+        // document.head.appendChild(mwlScript);
+        // 
+        // let mtwdScript = document.createElement('script');
+        // mtwdScript.setAttribute('src', '../js_modules/mtwd.min.js');
+        // document.head.appendChild(mtwdScript);
     },
     created: function () { 
         vue_this = this;
         const { ipcRenderer } = require('electron');
         
         ipcRenderer.send('check-for-events');
+        
+        this.userTimezone = this.$jstz.determine();
     },
     data: () => ({
+        userTimezone: null,
         // Data like this is a default, it will be replaced once a function replaces it.
         events: [
             // {
