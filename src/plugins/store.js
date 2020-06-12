@@ -26,7 +26,7 @@ export const store = new Vuex.Store({
         noOculus: false,
         customLaunchParameters: "",
         autoRestartInterface: false,
-        dontPromptForLogin: true,
+        dontPromptForLogin: false,
         currentLibraryFolder: "No library folder selected.",
         currentNotice: null,
         darkMode: true
