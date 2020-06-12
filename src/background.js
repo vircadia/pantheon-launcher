@@ -525,6 +525,7 @@ ipcMain.on('launch-interface', async (event, arg) => {
     
     if (arg.customPath) {
         isPathSet = true;
+        // var convertProtocol = arg.customPath.replace("hifi://", "http://")
         parameters.push('--url="' + arg.customPath + '"');
     }
     

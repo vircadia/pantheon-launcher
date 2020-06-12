@@ -251,8 +251,8 @@ var vue_this;
 const { ipcRenderer } = require('electron');
 import { EventBus } from './plugins/event-bus.js';
 
-EventBus.$on('open-url', url => {
-    vue_this.openURL(url);
+EventBus.$on('open-interface-url', url => {
+    vue_this.openInterfaceURL(url);
 });
 
 ipcRenderer.on('download-installer-progress', (event, arg) => {
@@ -614,12 +614,10 @@ export default {
         },
         openURL: function(url) {
             const { shell } = require('electron');
-            console.info("URL:", url);
-            if (url.indexOf("hifi://") === 0) { // If trying to launch Interface
-                this.attemptLaunchInterface(url);
-            } else { // Else it's just a normal link, pass to the OS.
-                shell.openExternal(url);    
-            }
+            shell.openExternal(url);    
+        },
+        openInterfaceURL: function(url) {
+            this.attemptLaunchInterface(url);
         },
 		downloadInterface: function() {
             this.disableDownloadButton = true;

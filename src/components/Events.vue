@@ -64,7 +64,7 @@
                                         
                                         <v-spacer></v-spacer>
 
-                                        <v-btn color="purple" v-on:click="sendEvent('open-url', item.links.join)">
+                                        <v-btn color="purple" v-on:click="sendEvent('open-interface-url', item.links.join)">
                                             Join
                                         </v-btn>
 
