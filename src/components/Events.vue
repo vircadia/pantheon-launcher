@@ -98,14 +98,14 @@ export default {
         },
         getDayAndDate(dateAndTime) {
             // We are assuming that the given date and time is in UTC.
-            var baseUTC = this.$moment.utc(dateAndTime, "YYYY-MM-DD HH-MM");
+            var baseUTC = this.$moment.utc(dateAndTime);
             var converted = baseUTC.tz(this.userTimezone.name());
             var convertedLocale = this.$moment(converted).format('dddd, MMMM Do'); // https://momentjs.com/docs/#/displaying/format/
             return convertedLocale;
         },
         getTimeAndTimezone(dateAndTime) {
             // We are assuming that the given date and time is in UTC.
-            var baseUTC = this.$moment.utc(dateAndTime, "YYYY-MM-DD HH-MM");
+            var baseUTC = this.$moment.utc(dateAndTime);
             var converted = baseUTC.tz(this.userTimezone.name());
             var convertedLocale = this.$moment(converted).format('h:mmA zz'); // https://momentjs.com/docs/#/displaying/format/
             return convertedLocale;
