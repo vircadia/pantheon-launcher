@@ -64,7 +64,9 @@
     "rules": {
       "no-console": "off",
       "no-unused-vars": "off",
-      "no-undef": "off"
+      "no-undef": "off",
+      "no-cond-assign": "off",
+      "no-empty": "off"
     },
     "parserOptions": {
       "parser": "babel-eslint"
