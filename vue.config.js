@@ -20,13 +20,14 @@ module.exports = {
                     "installerIcon": "src/assets/logo_256_256.ico",
                     "uninstallerIcon": "src/assets/logo_256_256.ico",
                     "uninstallDisplayName": "Vircadia Launcher",
+                    "allowElevation": true,
+                    "perMachine": true,
                     "createStartMenuShortcut": true,
                 },
                 "win": {
                     "target": "nsis",
                     "icon": "src/assets/logo_256_256.ico",
                     "publisherName": "Vircadia",
-                    "requestedExecutionLevel": "requireAdministrator",
                     "rfc3161TimeStampServer": "http://timestamp.comodoca.com/",
                 },
                 "linux": {

@@ -31,6 +31,7 @@ const hasha = require('hasha');
 const fs = require('fs');
 const compareVersions = require('compare-versions');
 const tasklist = require('tasklist'); // This is specific to Windows.
+const isAdmin = require('is-admin');
 var glob = require('glob');
 const cp = require('child_process');
 // electron_modules
@@ -400,9 +401,21 @@ async function checkForInterfaceUpdates() {
     }
 }
 
+async function isRunningAsAdministrator() {
+    var requestIsAdmin = await isAdmin();
+    
+    if (requestIsAdmin) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 async function checkForUpdates() {
     var checkPrereqs = await checkRunningApps();
     console.info(checkPrereqs)
+    var isAdmin = await isRunningAsAdministrator();
+    
     if (checkPrereqs.sandbox === true) {
         win.webContents.send('check-for-updates-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
         return;
@@ -410,6 +423,12 @@ async function checkForUpdates() {
     
     if (checkPrereqs.interface === true) {
         win.webContents.send('check-for-updates-failed', { "message": 'An instance of Interface is running. Please close it before proceeding.' });
+        return;
+    }
+    
+    if (!isAdmin) {
+        console.info("isAdmin", isAdmin);
+        win.webContents.send('check-for-updates-failed', { "message": 'You need to run the launcher as an administrator to continue.' });
         return;
     }
     
@@ -748,6 +767,7 @@ async function silentInstall(useOldInstaller) {
     var executablePath; // This is the location that the installer exe is located in after being downloaded.
     var exeLocToInstall; // This is what gets installed.
     var checkPrereqs = await checkRunningApps();
+    var isAdmin = await isRunningAsAdministrator();
 
     if (checkPrereqs.sandbox === true) {
         win.webContents.send('silent-installer-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
@@ -756,6 +776,11 @@ async function silentInstall(useOldInstaller) {
     
     if (checkPrereqs.interface === true) {
         win.webContents.send('silent-installer-failed', { "message": 'An instance of Interface is running, please close it before proceeding.' });
+        return;
+    }
+    
+    if (!isAdmin) {
+        win.webContents.send('silent-installer-failed', { "message": 'You need to run the launcher as an administrator to continue.' });
         return;
     }
     
