@@ -43,7 +43,7 @@ import * as Sentry from '@sentry/electron';
                     <v-icon>mdi-map-search-outline</v-icon>
                 </v-btn>
                 
-                <v-btn value="Events">
+                <v-btn value="Events" :disabled="disableEventsTab">
                     <span>Events</span>
                     <v-icon>mdi-calendar-star</v-icon>
                 </v-btn>
@@ -251,8 +251,19 @@ var vue_this;
 const { ipcRenderer } = require('electron');
 import { EventBus } from './plugins/event-bus.js';
 
+EventBus.$on('open-url', url => {
+    vue_this.openURL(url);
+});
+
 EventBus.$on('open-interface-url', url => {
     vue_this.openInterfaceURL(url);
+});
+
+EventBus.$on('no-events-found', data => {
+    // FIXME: We want to pull from the calendar eventually, interim would be loading a custom web page for the GCal just like the News tab.
+    vue_this.defaultTab = "News";
+    vue_this.showTab = "News";
+    vue_this.disableEventsTab = true;
 });
 
 ipcRenderer.on('download-installer-progress', (event, arg) => {
@@ -710,6 +721,7 @@ export default {
     data: () => ({
         showTab: 'Events', // Filling this in sets the default tab to show on startup.
         defaultTab: "Events", // The default tab to go to when a user toggles off another.
+        disableEventsTab: false,
         titleHover: false,
         isDevelopment: false,
         // Dialog Data

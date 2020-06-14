@@ -87,7 +87,11 @@ var vue_this;
 import { EventBus } from '../plugins/event-bus.js';
 
 require('electron').ipcRenderer.on('events-list', (event, message) => {
-    vue_this.events = message.eventsList;
+    if (message.eventsList.length > 0) {
+        vue_this.events = message.eventsList;
+    } else {
+        vue_this.sendEvent("no-events-found");
+    }
 })
 
 export default {
