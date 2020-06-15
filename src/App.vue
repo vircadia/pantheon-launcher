@@ -190,19 +190,8 @@ import * as Sentry from '@sentry/electron';
                 </template>
                 <span>Install</span>
             </v-tooltip> -->
-
-            <div class="text-center mx-2">
-                <v-btn
-                    color="primary"
-                    dark
-                    :tile=true
-                    @click="openDialog('LaunchOptions', true)"
-                >
-                    Options
-                </v-btn>
-            </div>
             
-            <div class="text-center mr-2">
+            <div class="text-center mx-2">
                 <v-btn
                     color="primary"
                     dark
@@ -210,6 +199,17 @@ import * as Sentry from '@sentry/electron';
                     @click="openDialog('SelectVersion', true)"
                 >
                     Versions
+                </v-btn>
+            </div>
+
+            <div class="text-center mr-2">
+                <v-btn
+                    color="primary"
+                    dark
+                    :tile=true
+                    @click="openDialog('LaunchOptions', true)"
+                >
+                    Options
                 </v-btn>
             </div>
 
