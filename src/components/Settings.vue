@@ -82,72 +82,6 @@
                         <h3 class="mx-7 mt-5">Current Installation Path</h3>
                         
                         <pre style="width: 100%; margin-left: 0px;">{{ currentFolder }}</pre>
-						
-                        <v-toolbar
-                            color="primary"
-                            dark
-                            flat
-                            class="mt-7"
-                        >
-                            <v-toolbar-title>Interface Settings</v-toolbar-title>
-                            <v-spacer />
-                            <span class="mr-2">{{interfaceListLength}} Interfaces Found</span>
-                            <v-btn
-                                color="purple"
-                                :tile=true
-                                v-on:click.native="populateInterfaceList()"
-                            >
-                                <span class="mr-2">Refresh List</span>
-                                <v-icon>mdi-refresh</v-icon>
-                            </v-btn>
-                        </v-toolbar>
-                        
-						<h2 class="ml-3 mt-3">Interface List</h2>
-                        
-                        <v-list style="max-height: 300px" class="overflow-y-auto">
-                            <v-subheader>
-                                Select an Interface to use. Scroll down for more.<br/>
-                            </v-subheader>
-                            <v-banner double-line>
-                                <v-icon
-                                    slot="icon"
-                                    size="36"
-                                >
-                                    mdi-cube
-                                </v-icon>
-                                <p class="font-weight-thin">Currently selected:</p>
-                                {{ selectedInterface }}
-                            </v-banner>
-                            <v-divider
-                                class="mx-3"
-                            ></v-divider>
-                            
-                            <v-list-item-group v-if="interfaceFolders.length > 0" color="primary">
-                                <v-list-item
-                                    v-for="(item, i) in interfaceFolders"
-                                    :key="i"
-                                >
-                                    <v-list-item-content @click="selectInterface(item)">
-                                        <v-list-item-title v-html="item.name"></v-list-item-title>
-                                        <v-list-item-subtitle v-html="item.version"></v-list-item-subtitle>
-                                    </v-list-item-content>
-                                    <v-list-item-action>
-                                        <v-btn icon @click="uninstallInterface(item)">
-                                            <v-icon large color="red">mdi-delete-circle</v-icon>
-                                        </v-btn>
-                                    </v-list-item-action>
-                                </v-list-item>
-                            </v-list-item-group>
-                            
-                            <v-list-item-group v-else v-model="interfaceFoldersIndex" color="primary">
-                                <v-list-item>
-                                    <v-list-item-content>
-                                        <v-list-item-title>No Interfaces found.</v-list-item-title>
-                                    </v-list-item-content>
-                                </v-list-item>
-                            </v-list-item-group>
-
-                        </v-list>
                         
                         <v-divider
                             class="mx-3"
@@ -271,30 +205,7 @@
 </template>
 
 <script>
-var store_p;
-var vue_this;
-
 const { ipcRenderer } = require('electron');
-ipcRenderer.on('interface-list', (event, arg) => {
-    if (vue_this) { // Make sure this page is open!
-        vue_this.interfaceFolders = [];
-        store_p.commit('mutate', {
-            property: 'populatedInterfaceList', 
-            with: arg
-        });
-        var populatedList = store_p.state.populatedInterfaceList;
-        populatedList.forEach(function(i){
-            var appName = Object.keys(i)[0];
-            var appLoc = i[appName].location;
-            var appVersion = i[appName].version;
-            var appObject = { "name": appName, "folder": appLoc, "version": appVersion };
-            vue_this.interfaceFolders.push(appObject);
-            // console.info(i);
-            // console.info(Object.keys(i)[0]);
-            // console.info(appLoc);
-        });
-    }
-});
 
 ipcRenderer.on('interface-selection-required', (event, arg) => {
 	console.info(arg);
@@ -303,24 +214,9 @@ ipcRenderer.on('interface-selection-required', (event, arg) => {
 export default {	
 	name: 'Settings',
 	methods: {
-		selectInterface: function(selected) {
-			this.$store.commit('mutate', {
-				property: 'interfaceSelectionRequired', 
-				with: false
-			});
-			this.$store.commit('mutate', {
-				property: 'selectedInterface', 
-				with: { name: selected.name, folder: selected.folder }
-			});
-            
-			ipcRenderer.send('set-current-interface', selected.folder);
-		},
-        uninstallInterface: function(selected) {
-            ipcRenderer.send('uninstall-interface', selected.folder);
-        },
-		selectInterfaceExe: function() {
+        selectInterfaceExe: function() {
 			if(this.$store.state.interfaceSelectionRequired) {
-				this.showRequireInterface = true;
+                // Maybe show dialog?
 			} else {
 				ipcRenderer.send('set-vircadia-location');
 			}
@@ -334,40 +230,19 @@ export default {
         getLibraryFolder: function() {
             ipcRenderer.send('get-library-folder');
         },
-		populateInterfaceList: function() {
-            if(this.debounce()) {
-                ipcRenderer.invoke('populateInterfaceList');
-            }
-		},
 		setMetaverseServer: function() {
 			this.$store.commit('mutate', {
 				property: 'metaverseServer', 
 				with: this.metaverseServer
 			});
 			ipcRenderer.send('set-metaverse-server', this.$store.state.metaverseServer);
-		},
-        debounce: function() {
-            if(this.readyToUseAgain) {
-                console.log("Ready.");
-                this.readyToUseAgain = false;
-                setTimeout(function() {
-                    vue_this.readyToUseAgain = true;
-                }, 2000); // 2000ms before firing again.
-                return true;
-            } else {
-                console.log("Not ready.");
-                return false;
-            }
-        }
+		}
 	},
 	data: () => ({
 		show: false,
 		showRequireInterface: false,
-		interfaceFolders: [],
-        interfaceFoldersIndex: 0,
         currentFolder: "",
 		metaverseServer: "https://metaverse.highfidelity.com", // Default metaverse API URL
-        readyToUseAgain: true,
         selectedInterface: "[No Interface Selected]",
         sentryEnabled: false,
         inactive: false,
@@ -395,9 +270,6 @@ export default {
         },
         darkModeToggled () {
             return this.$vuetify.theme.dark;
-        },
-        interfaceListLength () {
-            return this.interfaceFolders.length;
         }
     },
     watch: {
@@ -422,11 +294,7 @@ export default {
         }
     },
 	created: function () {
-        store_p = this.$store;
-        vue_this = this;
         const { ipcRenderer } = require('electron');
-        
-		this.populateInterfaceList();
         
 		if (this.$store.state.metaverseServer) {
 			this.metaverseServer = this.$store.state.metaverseServer;

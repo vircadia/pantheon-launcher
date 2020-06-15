@@ -118,7 +118,7 @@ import * as Sentry from '@sentry/electron';
                 target="_blank"
                 text
                 absolute
-                style="margin-left: 150px;"
+                style="margin-left: 140px;"
             >
                 <span class="mr-2">Report an issue</span>
                 <v-icon>mdi-open-in-new</v-icon>
@@ -200,9 +200,17 @@ import * as Sentry from '@sentry/electron';
                 >
                     Options
                 </v-btn>
-                <div style="background: rgba(255,255,255,0.8);">
-                </div>
-                
+            </div>
+            
+            <div class="text-center mr-2">
+                <v-btn
+                    color="primary"
+                    dark
+                    :tile=true
+                    @click="openDialog('SelectVersion', true)"
+                >
+                    Versions
+                </v-btn>
             </div>
 
             <v-btn
@@ -546,21 +554,22 @@ import Settings from './components/Settings';
 import News from './components/News';
 // Dialogs
 import CancelDownload from './components/Dialogs/CancelDownload'
+import CheckForUpdatesFailed from './components/Dialogs/CheckForUpdatesFailed'
 import DownloadComplete from './components/Dialogs/DownloadComplete'
 import DownloadFailed from './components/Dialogs/DownloadFailed'
-import LaunchFailedInterfaceRunning from './components/Dialogs/LaunchFailedInterfaceRunning'
-import NoInstallerFound from './components/Dialogs/NoInstallerFound'
-import LaunchOptions from './components/Dialogs/LaunchOptions'
-import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
+import FailedMetadata from './components/Dialogs/FailedMetadata'
+import FirstTimeUser from './components/Dialogs/FirstTimeUser'
 import InstallComplete from './components/Dialogs/InstallComplete'
 import InstallFailed from './components/Dialogs/InstallFailed'
-import WantToClose from './components/Dialogs/WantToClose'
-import CheckForUpdatesFailed from './components/Dialogs/CheckForUpdatesFailed'
+import LaunchFailedInterfaceRunning from './components/Dialogs/LaunchFailedInterfaceRunning'
+import LaunchOptions from './components/Dialogs/LaunchOptions'
+import NoInstallerFound from './components/Dialogs/NoInstallerFound'
+import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
 import NoUpdateAvailable from './components/Dialogs/NoUpdateAvailable'
 import ReportAnIssue from './components/Dialogs/ReportAnIssue'
+import SelectVersion from './components/Dialogs/SelectVersion'
 import UpdateAvailable from './components/Dialogs/UpdateAvailable'
-import FirstTimeUser from './components/Dialogs/FirstTimeUser'
-import FailedMetadata from './components/Dialogs/FailedMetadata'
+import WantToClose from './components/Dialogs/WantToClose'
 
 export default {
     name: 'App',
@@ -583,6 +592,7 @@ export default {
         CheckForUpdatesFailed,
         NoUpdateAvailable,
         ReportAnIssue,
+        SelectVersion,
         UpdateAvailable,
         FirstTimeUser,
         FailedMetadata
