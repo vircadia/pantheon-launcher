@@ -17,8 +17,8 @@ module.exports = {
             builderOptions: {
                 "nsis": {
                     "artifactName": "VircadiaLauncherSetup.${ext}",
-                    "installerIcon": "src/assets/logo_256_256.ico",
-                    "uninstallerIcon": "src/assets/logo_256_256.ico",
+                    "installerIcon": "src/assets/logo_launcher_256_256.ico",
+                    "uninstallerIcon": "src/assets/logo_launcher_256_256.ico",
                     "uninstallDisplayName": "Vircadia Launcher",
                     "allowElevation": true,
                     "perMachine": true,
@@ -26,14 +26,14 @@ module.exports = {
                 },
                 "win": {
                     "target": "nsis",
-                    "icon": "src/assets/logo_256_256.ico",
+                    "icon": "src/assets/logo_launcher_256_256.ico",
                     "publisherName": "Vircadia",
                     "rfc3161TimeStampServer": "http://timestamp.comodoca.com/",
                 },
                 "linux": {
                     "target": [
                         "AppImage",
-                    "deb"
+                        "deb"
                     ]
                 },
                 // "extraFiles": [
