@@ -1000,6 +1000,12 @@ ipcMain.on('uninstall-interface', (event, folder) => {
     require('child_process').execFile(uninstallExec);
 });
 
+ipcMain.on('launch-sandbox', (event, folder) => {
+    var sandboxExec = folder + "server-console/" + "server-console.exe";
+    console.info("[sandbox] launching: ", sandboxExec);
+    require('child_process').execFile(sandboxExec);
+});
+
 ipcMain.on('cancel-download', async (event) => {
     if (electronDlItem) {
         electronDlItem.cancel();

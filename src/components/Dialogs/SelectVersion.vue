@@ -71,9 +71,22 @@
                             <v-list-item-subtitle v-html="item.version"></v-list-item-subtitle>
                         </v-list-item-content>
                         <v-list-item-action>
-                            <v-btn icon @click="uninstallInterface(item)">
-                                <v-icon large color="red">mdi-delete-circle</v-icon>
-                            </v-btn>
+                            <v-tooltip left>
+                                <template v-slot:activator="{ on }">
+                                    <v-btn icon v-on="on" @click="launchSandbox(item)">
+                                        <v-icon large color="blue">mdi-cube</v-icon>
+                                    </v-btn>
+                                </template>
+                                <span>Sandbox</span>
+                            </v-tooltip>
+                            <v-tooltip left>
+                                <template v-slot:activator="{ on }">
+                                    <v-btn icon v-on="on" @click="uninstallInterface(item)">
+                                        <v-icon large color="red">mdi-delete-circle</v-icon>
+                                    </v-btn>
+                                </template>
+                                <span>Uninstall</span>
+                            </v-tooltip>
                         </v-list-item-action>
                     </v-list-item>
                 </v-list-item-group>
@@ -152,6 +165,9 @@ export default {
             
 			ipcRenderer.send('set-current-interface', selected.folder);
 		},
+        launchSandbox: function(selected) {
+            ipcRenderer.send('launch-sandbox', selected.folder);
+        },
         uninstallInterface: function(selected) {
             ipcRenderer.send('uninstall-interface', selected.folder);
         },
