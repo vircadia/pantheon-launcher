@@ -36,6 +36,7 @@ var glob = require('glob');
 const cp = require('child_process');
 // electron_modules
 import * as versionPaths from './electron_modules/versionPaths.js'
+import * as migrateLauncher from './electron_modules/migrateLauncher.js'
 
 electronDl();
 var electronDlItem = null;
@@ -142,6 +143,12 @@ var storagePath = {
 	interfaceSettings: null,
 	currentLibrary: null,
 };
+
+// var needsLauncherMigration = migrateLauncher.detectOldDataPath("VircadiaLauncher", app.name, storagePath.default);
+// 
+// if (needsLauncherMigration) {
+//     migrateLauncher.moveInstalls(needsLauncherMigration, storagePath.default);
+// }
 
 var currentInterface;
 var requireInterfaceSelection;
