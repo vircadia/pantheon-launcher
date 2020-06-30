@@ -54,7 +54,7 @@
                     >
                         mdi-cube
                     </v-icon>
-                    <p class="font-weight-thin">Currently selected:</p>
+                    <p class="font-weight-thin">Currently selected</p>
                     {{ selectedInterface }}
                 </v-banner>
                 <v-divider
