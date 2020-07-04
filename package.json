@@ -31,6 +31,8 @@
     "hasha": "^5.2.0",
     "is-admin": "^3.0.0",
     "material-design-icons-iconfont": "^5.0.1",
+    "moment": "^2.27.0",
+    "moment-timezone": "^0.5.31",
     "p-iteration": "^1.1.8",
     "roboto-fontface": "*",
     "tasklist": "^4.0.1",

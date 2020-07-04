@@ -102,16 +102,16 @@ export default {
         },
         getDayAndDate(dateAndTime) {
             // We are assuming that the given date and time is in UTC.
-            var baseUTC = this.$moment.utc(dateAndTime);
+            var baseUTC = this.moment.utc(dateAndTime);
             var converted = baseUTC.tz(this.userTimezone.name());
-            var convertedLocale = this.$moment(converted).format('dddd, MMMM Do'); // https://momentjs.com/docs/#/displaying/format/
+            var convertedLocale = this.moment(converted).format('dddd, MMMM Do'); // https://momentjs.com/docs/#/displaying/format/
             return convertedLocale;
         },
         getTimeAndTimezone(dateAndTime) {
             // We are assuming that the given date and time is in UTC.
-            var baseUTC = this.$moment.utc(dateAndTime);
+            var baseUTC = this.moment.utc(dateAndTime);
             var converted = baseUTC.tz(this.userTimezone.name());
-            var convertedLocale = this.$moment(converted).format('h:mmA zz'); // https://momentjs.com/docs/#/displaying/format/
+            var convertedLocale = this.moment(converted).format('h:mmA zz'); // https://momentjs.com/docs/#/displaying/format/
             return convertedLocale;
         }
     },
@@ -119,17 +119,6 @@ export default {
         
     },
     mounted() {
-        // let jstzScript = document.createElement('script');
-        // jstzScript.setAttribute('src', './js_modules/jstz.min.js');
-        // document.head.appendChild(jstzScript);
-        // 
-        // let mwlScript = document.createElement('script');
-        // mwlScript.setAttribute('src', './js_modules/mwl.min.js');
-        // document.head.appendChild(mwlScript);
-        // 
-        // let mtwdScript = document.createElement('script');
-        // mtwdScript.setAttribute('src', '../js_modules/mtwd.min.js');
-        // document.head.appendChild(mtwdScript);
     },
     created: function () { 
         vue_this = this;
@@ -141,18 +130,7 @@ export default {
     },
     data: () => ({
         userTimezone: null,
-        // Data like this is a default, it will be replaced once a function replaces it.
         events: [
-            // {
-            //     name: 'Community Meeting',
-            //     url: 'hifi://the-spot.projectathena.dev',
-            //     img: 'https://images.pexels.com/photos/220201/pexels-photo-220201.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260'
-            // },
-            // {
-            //     name: 'DocSalon',
-            //     url: 'hifi://franny.projectathena.dev',
-            //     img: 'https://images.pexels.com/photos/220201/pexels-photo-220201.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260'
-            // },
         ]
     }),
 };
