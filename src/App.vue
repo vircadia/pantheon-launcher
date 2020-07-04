@@ -55,7 +55,7 @@ import * as Sentry from '@sentry/electron';
                 
                 <v-btn value="Settings">
                     <span>Settings</span>
-                    <v-icon>mdi-settings-outline</v-icon>
+                    <v-icon>mdi-cog-outline</v-icon>
                 </v-btn>
                 
             </v-btn-toggle>
@@ -235,21 +235,21 @@ import * as Sentry from '@sentry/electron';
         </v-app-bar>
 	
     <div id="background">
-        <v-content class="" id="mainContent">
+        <v-main class="" id="mainContent">
             <transition name="fade" mode="out-in">
                 <component v-bind:is="showTab" id=""></component>
             </transition>
             <pre id="development-output" v-if="isDevelopment">
             
             </pre>
-        </v-content>
+        </v-main>
     </div>
     
-    <v-content id="dialogContent">
+    <v-main id="dialogContent">
         <transition name="fade" mode="out-in">
             <component @hideDialog="shouldShowDialog = false" v-if="shouldShowDialog" v-bind:is="showDialog" @open-url="openURL"></component>
         </transition>
-    </v-content>
+    </v-main>
 		
     </v-app>
 </template>

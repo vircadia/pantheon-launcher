@@ -9,7 +9,7 @@
 -->
 <template>
 	<v-app>
-		<v-content class="mainContentContainer">
+		<v-main class="mainContentContainer">
 			<v-container
 				class="pt-8"
 				fluid
@@ -169,7 +169,7 @@
 					</v-card>
 				</v-row>
 			</v-container>
-		</v-content>
+		</v-main>
 		<v-dialog
 			width="500"
 			v-model="showRequireInterface"

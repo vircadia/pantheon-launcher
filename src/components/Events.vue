@@ -9,7 +9,7 @@
 -->
 <template>
     <v-app id="">
-        <v-content class="mainContentContainer" id="eventsContainer">
+        <v-main class="mainContentContainer" id="eventsContainer">
             <v-container
                 id=""
                 class="fill-container"
@@ -78,7 +78,7 @@
 
 				</v-data-iterator>
             </v-container>
-        </v-content>
+        </v-main>
     </v-app>
 </template>
 
