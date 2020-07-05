@@ -63,8 +63,8 @@ import * as Sentry from '@sentry/electron';
         
     <v-snackbar
         v-model="interfaceBusyLaunching"
-        style="margin-bottom: 75px;"
-        color="#34323e"
+        app
+        color="colors.grey.darken4"
         :timeout="interfaceBusyLaunchingTimeout"
     >
         Interface is starting.
