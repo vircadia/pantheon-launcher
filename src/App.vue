@@ -631,7 +631,17 @@ export default {
             }
 		},
         launchInterface: function(exeLoc, goto) {
-            ipcRenderer.send('launch-interface', { "exec": exeLoc, "customPath": goto, "customLaunchParameters": this.$store.state.customLaunchParameters, "noSteamVR": this.$store.state.noSteamVR, "noOculus": this.$store.state.noOculus, "allowMultipleInstances": this.$store.state.allowMultipleInstances, "autoRestartInterface": this.$store.state.autoRestartInterface, "dontPromptForLogin": this.$store.state.dontPromptForLogin });
+            ipcRenderer.send('launch-interface', { 
+                "exec": exeLoc, 
+                "customPath": goto, 
+                "customLaunchParameters": this.$store.state.customLaunchParameters, 
+                "noSteamVR": this.$store.state.noSteamVR, 
+                "noOculus": this.$store.state.noOculus, 
+                "allowMultipleInstances": this.$store.state.allowMultipleInstances, 
+                "autoRestartInterface": this.$store.state.autoRestartInterface, 
+                "dontPromptForLogin": this.$store.state.dontPromptForLogin,
+                "runAsChild": this.$store.state.runAsChild
+            });
         },
         openURL: function(url) {
             const { shell } = require('electron');

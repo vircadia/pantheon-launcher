@@ -597,7 +597,7 @@ ipcMain.on('launch-interface', async (event, arg) => {
         parameters.push('--disable-inputs="OpenVR (Vive),Oculus Rift"');
     }
     
-    if (arg.autoRestartInterface) {
+    if (arg.autoRestartInterface && arg.launchAsChild) {
         parameters.push('--suppress-settings-reset');
     }
     
@@ -610,10 +610,13 @@ ipcMain.on('launch-interface', async (event, arg) => {
     
     // TODO: Add "QUANTUM_K3_INSTAQUIT" environment variable.
 	
-    console.info("Nani?", parameters, "type?", Array.isArray(parameters));
+    console.info("Parameters:", parameters, "type:", Array.isArray(parameters));
     
-    launchInterface(executablePath, parameters, arg.autoRestartInterface);
-  
+    if (arg.launchAsChild) {
+        launchInterface(executablePath, parameters, arg.autoRestartInterface);
+    } else {
+        launchInterfaceDetached(executablePath, parameters);
+    }
 })
 
 function launchInterface(executablePath, parameters, autoRestartInterface) {
@@ -627,6 +630,20 @@ function launchInterface(executablePath, parameters, autoRestartInterface) {
             launchInterface(executablePath, parameters, autoRestartInterface);
         }
     });
+}
+
+function launchInterfaceDetached(executablePath, parameters) {
+    win.webContents.send('launching-interface');
+    
+    var interface_exe = require('child_process').spawn;
+
+    var subprocess = interface_exe(executablePath, parameters, {
+        windowsVerbatimArguments: true,
+        detached: true,
+        stdio: 'ignore'
+    });
+
+    subprocess.unref();
 }
 
 ipcMain.on('get-vircadia-location', async (event, arg) => {

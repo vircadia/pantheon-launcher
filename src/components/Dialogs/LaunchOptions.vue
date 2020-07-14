@@ -79,24 +79,6 @@
                     </v-list-item-content>
                 </template>
             </v-list-item>
-            <v-list-item @click="autoRestartInterfaceStore = !autoRestartInterfaceStore">
-                <template>
-                    <v-list-item-action>
-                        <v-checkbox
-                            :readonly=true
-                            color="primary"
-                            :true-value="autoRestartInterfaceStore"
-                            :input-value="autoRestartInterfaceStore"
-                            v-model="autoRestartInterfaceStore"
-                        ></v-checkbox>
-                    </v-list-item-action>
-            
-                    <v-list-item-content>
-                        <v-list-item-title>Auto Restart Interface</v-list-item-title>
-                        <v-list-item-subtitle>The launcher will auto-restart Interface if it closes with an exit code.</v-list-item-subtitle>
-                    </v-list-item-content>
-                </template>
-            </v-list-item>
             <v-list-item @click="dontPromptForLoginStore = !dontPromptForLoginStore">
                 <template>
                     <v-list-item-action>
@@ -112,6 +94,42 @@
                     <v-list-item-content>
                         <v-list-item-title>Don't Prompt for Login</v-list-item-title>
                         <v-list-item-subtitle>Do not show the login screen when opening Interface.</v-list-item-subtitle>
+                    </v-list-item-content>
+                </template>
+            </v-list-item>
+            <v-list-item @click="launchAsChildStore = !launchAsChildStore">
+                <template>
+                    <v-list-item-action>
+                        <v-checkbox
+                            :readonly=true
+                            color="primary"
+                            :true-value="launchAsChildStore"
+                            :input-value="launchAsChildStore"
+                            v-model="launchAsChildStore"
+                        ></v-checkbox>
+                    </v-list-item-action>
+            
+                    <v-list-item-content>
+                        <v-list-item-title>Launch Interface as Child Process</v-list-item-title>
+                        <v-list-item-subtitle>The launcher will run Interface as a child process.</v-list-item-subtitle>
+                    </v-list-item-content>
+                </template>
+            </v-list-item>
+            <v-list-item :disabled="!launchAsChildStore" @click="autoRestartInterfaceStore = !autoRestartInterfaceStore">
+                <template>
+                    <v-list-item-action>
+                        <v-checkbox
+                            :readonly=true
+                            color="primary"
+                            :true-value="autoRestartInterfaceStore"
+                            :input-value="autoRestartInterfaceStore"
+                            v-model="autoRestartInterfaceStore"
+                        ></v-checkbox>
+                    </v-list-item-action>
+            
+                    <v-list-item-content>
+                        <v-list-item-title>Auto Restart Interface</v-list-item-title>
+                        <v-list-item-subtitle>The launcher will auto-restart Interface if it closes with an exit code.</v-list-item-subtitle>
                     </v-list-item-content>
                 </template>
             </v-list-item>
@@ -179,17 +197,6 @@ export default {
                 });
             },
         },
-        autoRestartInterfaceStore: {
-            get() {
-                return this.$store.state.autoRestartInterface;
-            },
-            set(value) {
-                this.$store.commit('mutate', {
-                    property: 'autoRestartInterface', 
-                    with: value
-                });
-            },
-        },
         dontPromptForLoginStore: {
             get() {
                 return this.$store.state.dontPromptForLogin;
@@ -197,6 +204,28 @@ export default {
             set(value) {
                 this.$store.commit('mutate', {
                     property: 'dontPromptForLogin', 
+                    with: value
+                });
+            },
+        },
+        launchAsChildStore: {
+            get() {
+                return this.$store.state.launchAsChild;
+            },
+            set(value) {
+                this.$store.commit('mutate', {
+                    property: 'launchAsChild', 
+                    with: value
+                });
+            },
+        },
+        autoRestartInterfaceStore: {
+            get() {
+                return this.$store.state.autoRestartInterface;
+            },
+            set(value) {
+                this.$store.commit('mutate', {
+                    property: 'autoRestartInterface', 
                     with: value
                 });
             },
