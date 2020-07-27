@@ -27,7 +27,6 @@ import * as Sentry from '@sentry/electron';
         
         <v-bottom-navigation id="navBar">
             <v-btn-toggle dense tile borderless v-model="showTab">
-                
                 <v-btn disabled value="Recent">
                     <span>Recent</span>
                     <v-icon>mdi-history</v-icon>
@@ -640,7 +639,7 @@ export default {
                 "allowMultipleInstances": this.$store.state.allowMultipleInstances, 
                 "autoRestartInterface": this.$store.state.autoRestartInterface, 
                 "dontPromptForLogin": this.$store.state.dontPromptForLogin,
-                "runAsChild": this.$store.state.runAsChild
+                "launchAsChild": this.$store.state.launchAsChild
             });
         },
         openURL: function(url) {

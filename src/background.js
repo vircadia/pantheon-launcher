@@ -394,8 +394,8 @@ async function checkForInterfaceUpdates() {
     if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.package.version) {
         var cleanedLocalMeta = interfacePackage.package.version.replace(/_/g, '-');
         var versionCompare = compareVersions(vircadiaMeta.latest.version, cleanedLocalMeta);
-        
-        console.info("Compare Versions: ", versionCompare);
+        console.info('cleanedLocalMeta:', cleanedLocalMeta)
+        console.info("Compare Versions:", versionCompare);
         if (versionCompare == 1) {
             return 1; // An update is available.
         } else {
@@ -611,7 +611,7 @@ ipcMain.on('launch-interface', async (event, arg) => {
     // TODO: Add "QUANTUM_K3_INSTAQUIT" environment variable.
 	
     console.info("Parameters:", parameters, "type:", Array.isArray(parameters));
-    
+    console.info("arg.launchAsChild", arg.launchAsChild);
     if (arg.launchAsChild) {
         launchInterface(executablePath, parameters, arg.autoRestartInterface);
     } else {
@@ -633,17 +633,35 @@ function launchInterface(executablePath, parameters, autoRestartInterface) {
 }
 
 function launchInterfaceDetached(executablePath, parameters) {
+    // All arguments that have or may have spaces should be wrapped in ""
     win.webContents.send('launching-interface');
     
+    var pathToLaunch = process.cwd() + "\\bat\\launcher.bat";
+    console.info("pathToLaunch:", pathToLaunch);
+    
+    parameters = parameters.join(' '); // --arg1="" --arg2=""
+    parameters = parameters.split(' ').join('#20'); // convert spaces to #20
+    parameters = parameters.split('"').join('#40'); // convert " to #40
+    parameters = parameters.split('=').join('#60'); // convert = to #60
+    console.info("PARAMETERS:", parameters);
+    executablePath = '"' + executablePath + '"';
+    
     var interface_exe = require('child_process').spawn;
-
-    var subprocess = interface_exe(executablePath, parameters, {
-        windowsVerbatimArguments: true,
-        detached: true,
-        stdio: 'ignore'
+    var launcherBat = interface_exe(pathToLaunch, [executablePath, parameters], {
+        windowsVerbatimArguments: true
     });
 
-    subprocess.unref();
+    launcherBat.stdout.on('data', function (data) {
+        console.log('launcherBatOut: ' + data);
+    });
+
+    launcherBat.stderr.on('data', function (data) {
+        console.log('launcherBatErr: ' + data);
+    });
+
+    launcherBat.on('exit', function (code) {
+        console.log('child process exited with code ' + code);
+    });
 }
 
 ipcMain.on('get-vircadia-location', async (event, arg) => {

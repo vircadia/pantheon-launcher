@@ -21,7 +21,10 @@ yarn-error.log*
 *.sw?
 
 # Batch files
-*.bat
+/*.bat
+
+# PowerShell files
+/*.ps1
 
 # Electron-builder output
 /dist_electron

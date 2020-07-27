@@ -36,9 +36,12 @@ module.exports = {
                         "deb"
                     ]
                 },
-                // "extraFiles": [
-                //   "settings.json"
-                // ],
+                "extraFiles": [
+                    {
+                        "from": "./bat/launcher.bat",
+                        "to": "./bat/launcher.bat"
+                    }
+                ],
                 "appId": "com.vircadia.pantheon",
                 "productName": "Vircadia Launcher",
                 "copyright": "Vircadia"
