@@ -14,18 +14,19 @@
 // import { init } from '@sentry/electron/dist/main';
 // init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
 
-import { app, protocol, BrowserWindow, DownloadItem } from 'electron'
+import { app, protocol, BrowserWindow, DownloadItem } from 'electron';
 import {
 	installVueDevtools,
 	createProtocol,
-} from 'vue-cli-plugin-electron-builder/lib'
-import path from 'path'
+} from 'vue-cli-plugin-electron-builder/lib';
+import path from 'path';
 const forceDevelopment = false;
 const isDevelopment = forceDevelopment === true || process.env.NODE_ENV !== 'production';
 const storage = require('electron-json-storage');
-const { shell } = require('electron')
+const { shell } = require('electron');
+const { dialog } = require('electron');
 const electronDl = require('electron-dl');
-const { readdirSync } = require('fs')
+const { readdirSync } = require('fs');
 const { forEach } = require('p-iteration');
 const hasha = require('hasha');
 const fs = require('fs');
@@ -35,8 +36,8 @@ const isAdmin = require('is-admin');
 var glob = require('glob');
 const cp = require('child_process');
 // electron_modules
-import * as versionPaths from './electron_modules/versionPaths.js'
-import * as migrateLauncher from './electron_modules/migrateLauncher.js'
+import * as versionPaths from './electron_modules/versionPaths.js';
+import * as migrateLauncher from './electron_modules/migrateLauncher.js';
 
 electronDl();
 var electronDlItem = null;
@@ -638,25 +639,31 @@ function launchInterfaceDetached(executablePath, parameters) {
     
     var pathToLaunch = process.cwd() + "\\bat\\launcher.bat";
     console.info("pathToLaunch:", pathToLaunch);
+    // console.info(dialog.showMessageBox({ message: pathToLaunch }))
     
     parameters = parameters.join(' '); // --arg1="" --arg2=""
     parameters = parameters.split(' ').join('#20'); // convert spaces to #20
     parameters = parameters.split('"').join('#40'); // convert " to #40
     parameters = parameters.split('=').join('#60'); // convert = to #60
-    console.info("PARAMETERS:", parameters);
+    console.info("Detached Launch PARAMETERS:", parameters);
     executablePath = '"' + executablePath + '"';
+    // console.info(dialog.showMessageBox({ message: executablePath }))
+    pathToLaunch = '"' + pathToLaunch + '"';
     
     var interface_exe = require('child_process').spawn;
     var launcherBat = interface_exe(pathToLaunch, [executablePath, parameters], {
-        windowsVerbatimArguments: true
+        windowsVerbatimArguments: true,
+        shell: true
     });
 
     launcherBat.stdout.on('data', function (data) {
         console.log('launcherBatOut: ' + data);
+        // console.info(dialog.showMessageBox({ message: 'launcherBatOut: ' + data }))
     });
 
     launcherBat.stderr.on('data', function (data) {
         console.log('launcherBatErr: ' + data);
+        // console.info(dialog.showMessageBox({ message: 'launcherBatErr: ' + data }))
     });
 
     launcherBat.on('exit', function (code) {
