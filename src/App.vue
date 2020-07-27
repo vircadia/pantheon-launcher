@@ -359,6 +359,13 @@ ipcRenderer.on('state-loaded', (event, arg) => {
         vue_this.$vuetify.theme.dark = arg.results.darkMode;
     }
     
+    if (arg.results.launchAsChild) {
+        vue_this.$store.commit('mutate', {
+            property: 'launchAsChild', 
+            with: arg.results.launchAsChild
+        });
+    }
+    
     if (arg.results.allowMultipleInstances) {
         vue_this.$store.commit('mutate', {
             property: 'allowMultipleInstances', 
