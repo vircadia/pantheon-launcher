@@ -33,7 +33,7 @@ const fs = require('fs');
 const compareVersions = require('compare-versions');
 const tasklist = require('tasklist'); // This is specific to Windows.
 const isAdmin = require('is-admin');
-var glob = require('glob');
+const glob = require('glob');
 const cp = require('child_process');
 // electron_modules
 import * as versionPaths from './electron_modules/versionPaths.js';
@@ -523,7 +523,7 @@ ipcMain.on('load-state', (event, arg) => {
             if (results.sentryEnabled === true) {
                 init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
             }
-            
+            console.info("Loaded state:", results);
             win.webContents.send('state-loaded', {
                 results
             });
@@ -553,7 +553,7 @@ ipcMain.on('launch-interface', async (event, arg) => {
     if (arg.customPath) {
         isPathSet = true;
         // var convertProtocol = arg.customPath.replace("hifi://", "http://")
-        parameters.push('--url="' + arg.customPath + '"');
+        parameters.push('--url "' + arg.customPath + '"');
     }
     
     if (arg.customLaunchParameters) {
@@ -641,7 +641,7 @@ function launchInterfaceDetached(executablePath, parameters) {
     console.info("pathToLaunch:", pathToLaunch);
     // console.info(dialog.showMessageBox({ message: pathToLaunch }))
     
-    parameters = parameters.join(' '); // --arg1="" --arg2=""
+    parameters = parameters.join(' '); // ['--arg1=""', '--arg2=""'] -> '--arg1="" --arg2=""'
     parameters = parameters.split(' ').join('#20'); // convert spaces to #20
     parameters = parameters.split('"').join('#40'); // convert " to #40
     parameters = parameters.split('=').join('#60'); // convert = to #60
