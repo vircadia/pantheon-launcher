@@ -27,7 +27,7 @@
                 {{CheckForUpdatesFailedMessage}}<br />
                 <v-expansion-panels
                     v-model="panel"
-                    v-if="this.CheckForUpdatesFailedCode"
+                    v-if="this.CheckForUpdatesFailedCode && this.CheckForUpdatesFailedCode !== -1"
                 >
                     <v-expansion-panel>
                         <v-expansion-panel-header>Error Information</v-expansion-panel-header>
@@ -43,12 +43,24 @@
             <v-divider></v-divider>
 
             <v-card-actions>
-                <v-spacer></v-spacer>
+                <v-spacer
+                    v-if="!this.CheckForUpdatesFailedCode"
+                ></v-spacer>
                 <v-btn
                     color="primary"
                     @click="$emit('hideDialog')"
                 >
                     Dismiss
+                </v-btn>
+                <v-spacer
+                    v-if="this.CheckForUpdatesFailedCode === -1"
+                ></v-spacer>
+                <v-btn
+                    color="primary"
+                    v-if="this.CheckForUpdatesFailedCode === -1"
+                    @click="requestLauncherAdmin(); $emit('hideDialog')"
+                >
+                    Run As Admin
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -57,13 +69,20 @@
 
 
 <script>
+const { ipcRenderer } = require('electron');
+
 export default {
     name: 'CheckForUpdatesFailed',
 
     data: () => ({
         showCheckForUpdatesFailed: true,
-        panel: false,
+        panel: false
     }),
+    methods: {
+        requestLauncherAdmin: function () {
+            ipcRenderer.send('request-launcher-as-admin');
+        }
+    },
     created: function () {
         var vue_this = this;
         this.CheckForUpdatesFailedMessage = this.$store.state.currentNotice.message;

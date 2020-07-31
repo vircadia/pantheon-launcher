@@ -27,7 +27,7 @@
                 {{installFailedMessage}}<br />
                 <v-expansion-panels
                     v-model="panel"
-                    v-if="this.installFailedCode"
+                    v-if="this.installFailedCode && this.installFailedCode !== -1"
                 >
                     <v-expansion-panel>
                         <v-expansion-panel-header>Error Information</v-expansion-panel-header>
@@ -43,12 +43,24 @@
             <v-divider></v-divider>
 
             <v-card-actions>
-                <v-spacer></v-spacer>
+                <v-spacer
+                    v-if="!this.installFailedCode"
+                ></v-spacer>
                 <v-btn
                     color="primary"
                     @click="$emit('hideDialog')"
                 >
                     Dismiss
+                </v-btn>
+                <v-spacer
+                    v-if="this.installFailedCode === -1"
+                ></v-spacer>
+                <v-btn
+                    color="primary"
+                    v-if="this.installFailedCode === -1"
+                    @click="requestLauncherAdmin(); $emit('hideDialog')"
+                >
+                    Run As Admin
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -61,8 +73,13 @@ export default {
 
     data: () => ({
         showInstallFailed: true,
-        panel: false,
+        panel: false
     }),
+    methods: {
+        requestLauncherAdmin: function () {
+            ipcRenderer.send('request-launcher-as-admin');
+        }
+    },
     created: function () {
         var vue_this = this;
         this.installFailedMessage = this.$store.state.currentNotice.message;

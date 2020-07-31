@@ -436,7 +436,7 @@ async function checkForUpdates() {
     
     if (!isAdmin) {
         console.info("isAdmin", isAdmin);
-        win.webContents.send('check-for-updates-failed', { "message": 'You need to run the launcher as an administrator to continue.' });
+        win.webContents.send('check-for-updates-failed', { "message": 'You need to run the launcher as an administrator to continue.', "code": -1 });
         return;
     }
     
@@ -717,7 +717,7 @@ async function silentInstall(useOldInstaller) {
     }
     
     if (!isAdmin) {
-        win.webContents.send('silent-installer-failed', { "message": 'You need to run the launcher as an administrator to continue.' });
+        win.webContents.send('silent-installer-failed', { "message": 'You need to run the launcher as an administrator to continue.', "code": -1 });
         return;
     }
     
@@ -971,9 +971,16 @@ ipcMain.on('download-vircadia', async (event, arg) => {
     var libraryPath;
     var downloadURL = await getDownloadURL();
     var vircadiaMetaJSON = await getCDNMetaJSON();
+    var isAdmin = await isRunningAsAdministrator();
     var installerName = "Vircadia_Setup_Latest.exe";
     var installerNamePost = "Vircadia_Setup_Latest_READY.exe";
     console.info("DLURL:", downloadURL);
+    
+    if (!isAdmin) {
+        console.info("isAdmin", isAdmin);
+        win.webContents.send('download-installer-failed', 'code': -1);
+        return;
+    }
     
     if (downloadURL) {
         getSetting('vircadia_interface.library', storagePath.default).then(function(results){
@@ -1096,6 +1103,19 @@ ipcMain.on('request-close', async (event, arg) => {
     } else {
         app.exit();
     }
+});
+
+ipcMain.on('request-launcher-as-admin', async (event, arg) => {
+    var pathToElevator = process.cwd() + "\\resources\\elevate.exe";
+    var pathToLauncher = process.cwd() + "\\Vircadia Launcher.exe";
+    var interface_exe = require('child_process').execFile;
+    
+    var elevateExe = interface_exe(pathToElevator, ['-k "' + pathToLauncher + '"'], {
+        windowsVerbatimArguments: true,
+        shell: true
+    });
+    
+    app.exit();
 });
 
 ipcMain.on('close-launcher', (event, arg) => {

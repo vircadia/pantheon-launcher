@@ -27,7 +27,7 @@
                 The download for Interface failed.
                 <v-expansion-panels
                     v-model="panel"
-                    v-if="this.downloadFailedCode"
+                    v-if="this.downloadFailedCode && this.downloadFailedCode !== -1"
                 >
                     <v-expansion-panel>
                         <v-expansion-panel-header>Error Information</v-expansion-panel-header>
@@ -43,12 +43,24 @@
             <v-divider></v-divider>
 
             <v-card-actions>
-                <v-spacer></v-spacer>
+                <v-spacer
+                    v-if="!this.downloadFailedCode"
+                ></v-spacer>
                 <v-btn
                     color="primary"
                     @click="$emit('hideDialog')"
                 >
                     Dismiss
+                </v-btn>
+                <v-spacer
+                    v-if="this.downloadFailedCode === -1"
+                ></v-spacer>
+                <v-btn
+                    color="primary"
+                    v-if="this.downloadFailedCode === -1"
+                    @click="requestLauncherAdmin(); $emit('hideDialog')"
+                >
+                    Run As Admin
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -58,16 +70,21 @@
 
 <script>
 export default {
-  name: 'DownloadFailed',
+    name: 'DownloadFailed',
 
-  data: () => ({
-      showDownloadFailed: true,
-      panel: false,
-  }),
-  created: function () {
-      this.downloadFailedMessage = this.$store.state.currentNotice.message;
-      this.downloadFailedCode = this.$store.state.currentNotice.code;
-      this.downloadFailedError = this.$store.state.currentNotice.fullerr;
-  }
+    data: () => ({
+        showDownloadFailed: true,
+        panel: false
+    }),
+    methods: {
+        requestLauncherAdmin: function () {
+            ipcRenderer.send('request-launcher-as-admin');
+        }
+    },
+    created: function () {
+        this.downloadFailedMessage = this.$store.state.currentNotice.message;
+        this.downloadFailedCode = this.$store.state.currentNotice.code;
+        this.downloadFailedError = this.$store.state.currentNotice.fullerr;
+    }
 };
 </script>
