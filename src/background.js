@@ -645,9 +645,10 @@ function launchInterfaceDetached(executablePath, parameters) {
     parameters = parameters.split(' ').join('#20'); // convert spaces to #20
     parameters = parameters.split('"').join('#40'); // convert " to #40
     parameters = parameters.split('=').join('#60'); // convert = to #60
+    parameters = parameters.split(',').join('#80'); // convert , to #60
     console.info("Detached Launch PARAMETERS:", parameters);
     executablePath = '"' + executablePath + '"';
-    // console.info(dialog.showMessageBox({ message: executablePath }))
+    // console.info(dialog.showMessageBox({ message: parameters }))
     pathToLaunch = '"' + pathToLaunch + '"';
     
     var interface_exe = require('child_process').spawn;
@@ -655,17 +656,17 @@ function launchInterfaceDetached(executablePath, parameters) {
         windowsVerbatimArguments: true,
         shell: true
     });
-
+    
     launcherBat.stdout.on('data', function (data) {
         console.log('launcherBatOut: ' + data);
         // console.info(dialog.showMessageBox({ message: 'launcherBatOut: ' + data }))
     });
-
+    
     launcherBat.stderr.on('data', function (data) {
         console.log('launcherBatErr: ' + data);
         // console.info(dialog.showMessageBox({ message: 'launcherBatErr: ' + data }))
     });
-
+    
     launcherBat.on('exit', function (code) {
         console.log('child process exited with code ' + code);
     });
