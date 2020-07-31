@@ -672,119 +672,6 @@ function launchInterfaceDetached(executablePath, parameters) {
     });
 }
 
-ipcMain.on('get-vircadia-location', async (event, arg) => {
-    var vircadiaLocation = await getSetting('vircadia_interface.location', storagePath.interfaceSettings);
-    var vircadiaLocationExe = vircadiaLocation.toString();
-    console.info("VircadiaLocationExe:", vircadiaLocationExe);
-    event.returnValue = vircadiaLocationExe;
-})
-
-ipcMain.on('set-vircadia-location', async (event, arg) => {
-    const {dialog} = require('electron') 
-  
-    dialog.showOpenDialog(win, {
-        title: "Select the Vircadia Interface executable",
-        properties: ['openFile'],
-        defaultPath: storage.getDataPath(),
-        filters: [
-            { name: 'Interface Executable', extensions: ['exe'] },
-        ]
-    }).then(result => {
-        console.log(result.canceled)
-        console.log(result.filePaths)
-        if(!result.canceled && result.filePaths[0]) {
-            var storageSavePath;
-            if (storagePath.interfaceSettings) {
-                storageSavePath = storagePath.interfaceSettings;
-                storage.set('vircadia_interface.location', result.filePaths[0], {dataPath: storageSavePath}, function(error) {
-                    if (error) throw error;
-                });
-            } else {
-                win.webContents.send('need-interface-selection');
-            }
-        } else {
-            return;
-        }
-    }).catch(err => {
-        console.log(err)
-        return;
-    })
-  
-})
-
-// TODO: switch to the proper ipcMain.on convention.
-ipcMain.on('set-library-folder', (event, arg) => {
-    setLibraryDialog();
-})
-
-ipcMain.on('set-library-folder-default', (event, arg) => {
-    setLibrary(storagePath.default);
-})
-
-ipcMain.on('get-library-folder', (event, arg) => {
-    getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
-        win.webContents.send('current-library-folder', {
-            libraryPath
-        });
-        storagePath.currentLibrary = libraryPath;
-    });
-})
-
-ipcMain.on('set-current-interface', (event, arg) => {
-    if (arg) {
-        storage.setDataPath(arg + "/launcher_settings");
-        storagePath.interface = arg;
-        storagePath.interfaceSettings = arg + "/launcher_settings";
-        console.info("InterfaceSettings:", storagePath.interfaceSettings);
-        console.info("storagePath:", JSON.stringify(storagePath));
-    }
-})
-
-ipcMain.handle('isInterfaceSelectionRequired', (event, arg) => {
-    if(storagePath.interface == null || storagePath.interfaceSettings == null) {
-        event.sender.send('interface-selection-required', true);
-    } else {
-        event.sender.send('interface-selection-required', false);
-    }
-})
-
-ipcMain.handle('populateInterfaceList', async (event, arg) => {
-    var interface_exes = await getLibraryInterfaces();
-    var list = interface_exes.map(function(filename) {
-        // :)
-        var nv = versionPaths.fromPath(filename);
-        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, ''), "version": nv.version } };
-    });
-    event.sender.send('interface-list', list);
-    
-    // COMMENT ABOVE, UNCOMMENT BELOW
-    
-    // getLibraryInterfaces().then(async function(results) {
-    //     var generatedList = await generateInterfaceList(results);
-    //     console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
-    //     event.sender.send('interface-list', generatedList);
-    // });
-})
-
-ipcMain.handle('get-interface-list-for-launch', async (event, arg) => {
-    var interface_exes = await getLibraryInterfaces();
-    var list = interface_exes.map(function(filename) {
-        // :)
-        var nv = versionPaths.fromPath(filename);
-        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, '') } };
-    });
-    event.sender.send('interface-list-for-launch', list);
-    
-    // COMMENT ABOVE, UNCOMMENT BELOW
-    
-	// getLibraryInterfaces().then(async function(results) {
-	// 	var generatedList = await generateInterfaceList(results);
-	// 	console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
-	// 	event.sender.send('interface-list-for-launch', generatedList);
-	// });
-})
-
-
 var installer_exe = cp.execFile;
 
 function launchInstaller() {
@@ -967,6 +854,118 @@ async function silentInstall(useOldInstaller) {
 //         console.info("Failed to fetch library for post install. Error:", e);
 //     });
 // }
+
+ipcMain.on('get-vircadia-location', async (event, arg) => {
+    var vircadiaLocation = await getSetting('vircadia_interface.location', storagePath.interfaceSettings);
+    var vircadiaLocationExe = vircadiaLocation.toString();
+    console.info("VircadiaLocationExe:", vircadiaLocationExe);
+    event.returnValue = vircadiaLocationExe;
+})
+
+ipcMain.on('set-vircadia-location', async (event, arg) => {
+    const {dialog} = require('electron') 
+  
+    dialog.showOpenDialog(win, {
+        title: "Select the Vircadia Interface executable",
+        properties: ['openFile'],
+        defaultPath: storage.getDataPath(),
+        filters: [
+            { name: 'Interface Executable', extensions: ['exe'] },
+        ]
+    }).then(result => {
+        console.log(result.canceled)
+        console.log(result.filePaths)
+        if(!result.canceled && result.filePaths[0]) {
+            var storageSavePath;
+            if (storagePath.interfaceSettings) {
+                storageSavePath = storagePath.interfaceSettings;
+                storage.set('vircadia_interface.location', result.filePaths[0], {dataPath: storageSavePath}, function(error) {
+                    if (error) throw error;
+                });
+            } else {
+                win.webContents.send('need-interface-selection');
+            }
+        } else {
+            return;
+        }
+    }).catch(err => {
+        console.log(err)
+        return;
+    })
+  
+})
+
+// TODO: switch to the proper ipcMain.on convention.
+ipcMain.on('set-library-folder', (event, arg) => {
+    setLibraryDialog();
+})
+
+ipcMain.on('set-library-folder-default', (event, arg) => {
+    setLibrary(storagePath.default);
+})
+
+ipcMain.on('get-library-folder', (event, arg) => {
+    getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
+        win.webContents.send('current-library-folder', {
+            libraryPath
+        });
+        storagePath.currentLibrary = libraryPath;
+    });
+})
+
+ipcMain.on('set-current-interface', (event, arg) => {
+    if (arg) {
+        storage.setDataPath(arg + "/launcher_settings");
+        storagePath.interface = arg;
+        storagePath.interfaceSettings = arg + "/launcher_settings";
+        console.info("InterfaceSettings:", storagePath.interfaceSettings);
+        console.info("storagePath:", JSON.stringify(storagePath));
+    }
+})
+
+ipcMain.handle('isInterfaceSelectionRequired', (event, arg) => {
+    if(storagePath.interface == null || storagePath.interfaceSettings == null) {
+        event.sender.send('interface-selection-required', true);
+    } else {
+        event.sender.send('interface-selection-required', false);
+    }
+})
+
+ipcMain.handle('populateInterfaceList', async (event, arg) => {
+    var interface_exes = await getLibraryInterfaces();
+    var list = interface_exes.map(function(filename) {
+        // :)
+        var nv = versionPaths.fromPath(filename);
+        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, ''), "version": nv.version } };
+    });
+    event.sender.send('interface-list', list);
+    
+    // COMMENT ABOVE, UNCOMMENT BELOW
+    
+    // getLibraryInterfaces().then(async function(results) {
+    //     var generatedList = await generateInterfaceList(results);
+    //     console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
+    //     event.sender.send('interface-list', generatedList);
+    // });
+})
+
+ipcMain.handle('get-interface-list-for-launch', async (event, arg) => {
+    var interface_exes = await getLibraryInterfaces();
+    var list = interface_exes.map(function(filename) {
+        // :)
+        var nv = versionPaths.fromPath(filename);
+        return { [nv.name]: { "location": filename.replace(/\binterface\.exe\b/i, '') } };
+    });
+    event.sender.send('interface-list-for-launch', list);
+    
+    // COMMENT ABOVE, UNCOMMENT BELOW
+    
+	// getLibraryInterfaces().then(async function(results) {
+	// 	var generatedList = await generateInterfaceList(results);
+	// 	console.info("Returning...", generatedList, "typeof", typeof generatedList, "results", results);
+	// 	event.sender.send('interface-list-for-launch', generatedList);
+	// });
+})
 
 ipcMain.on('download-vircadia', async (event, arg) => {
     var libraryPath;
