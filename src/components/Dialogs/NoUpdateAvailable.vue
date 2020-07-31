@@ -24,7 +24,9 @@
             </v-card-title>
     
             <v-card-text>
-                There is currently no update available. <br />
+                There is currently no update available.
+                <pre>Current Version: {{ this.$store.state.selectedInterface.name }}</pre>
+                <pre>Latest Version: {{ this.$store.state.currentNotice }}</pre>
                 Would you like to reinstall your Interface?
             </v-card-text>
     

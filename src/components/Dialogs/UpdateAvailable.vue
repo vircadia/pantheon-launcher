@@ -25,6 +25,7 @@
     
             <v-card-text>
                 An update is available. <br />
+                <pre>Latest Version: {{ this.$store.state.currentNotice }}</pre>
                 Would you like to download and install it?
             </v-card-text>
     

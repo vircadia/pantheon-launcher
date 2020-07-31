@@ -535,8 +535,12 @@ ipcRenderer.on('check-for-updates-failed', (event, arg) => {
 ipcRenderer.on('checked-for-updates', (event, arg) => {
     vue_this.disableUpdateButton = false;
     vue_this.disableLaunchButton = false;
+    vue_this.$store.commit('mutate', {
+        property: 'currentNotice', 
+        with: arg.checkForUpdates.latestVersion
+    });
     
-    if (arg.checkForUpdates > 0) {
+    if (arg.checkForUpdates.updateAvailable === true) {
         vue_this.openDialog('UpdateAvailable', true);
     } else {
         vue_this.openDialog('NoUpdateAvailable', true);

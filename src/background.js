@@ -398,14 +398,14 @@ async function checkForInterfaceUpdates() {
         console.info('cleanedLocalMeta:', cleanedLocalMeta)
         console.info("Compare Versions:", versionCompare);
         if (versionCompare == 1) {
-            return 1; // An update is available.
+            return { "updateAvailable": true, "latestVersion": vircadiaMeta.latest.version };
         } else {
             // Version check failed, interface is either equal to or above the server's version.
-            return -1;
+            return { "updateAvailable": false, "latestVersion": vircadiaMeta.latest.version };
         }
     } else {
         // Failed to retrieve either or both the server meta and interface meta .JSON files.
-        return -1;
+        return { "updateAvailable": false, "latestVersion": null };
     }
 }
 
