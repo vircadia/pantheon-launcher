@@ -978,7 +978,7 @@ ipcMain.on('download-vircadia', async (event, arg) => {
     
     if (!isAdmin) {
         console.info("isAdmin", isAdmin);
-        win.webContents.send('download-installer-failed', 'code': -1);
+        win.webContents.send('download-installer-failed', { 'code': -1 });
         return;
     }
     
@@ -1106,11 +1106,15 @@ ipcMain.on('request-close', async (event, arg) => {
 });
 
 ipcMain.on('request-launcher-as-admin', async (event, arg) => {
-    var pathToElevator = process.cwd() + "\\resources\\elevate.exe";
-    var pathToLauncher = process.cwd() + "\\Vircadia Launcher.exe";
-    var interface_exe = require('child_process').execFile;
+    var pathToLauncher = process.cwd() + '\\Vircadia Launcher.exe';
+    var pathToElevator = '"' + process.cwd() + '\\resources\\elevate.exe' + '"';
+    var launchParameter = '-k "' + pathToLauncher + '"';
+    var interface_exe = require('child_process').spawn;
     
-    var elevateExe = interface_exe(pathToElevator, ['-k "' + pathToLauncher + '"'], {
+    // console.info(dialog.showMessageBox({ message: pathToElevator }))
+    // console.info(dialog.showMessageBox({ message: launchParameter }))
+    
+    var elevateExe = interface_exe(pathToElevator, [launchParameter], {
         windowsVerbatimArguments: true,
         shell: true
     });
