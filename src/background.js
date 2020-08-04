@@ -1112,17 +1112,22 @@ ipcMain.on('request-close', async (event, arg) => {
 });
 
 ipcMain.on('request-launcher-as-admin', async (event, arg) => {
-    var pathToLauncher = process.cwd() + '\\Vircadia Launcher.exe';
-    var pathToElevator = '"' + process.cwd() + '\\resources\\elevate.exe' + '"';
+    var appPathSplit = app.getPath('exe').split('\\');
+    var appPathCleaned = appPathSplit.slice(0, appPathSplit.length - 1).join('\\');
+    
+    var pathToLauncher = appPathCleaned + '\\Vircadia Launcher.exe';
+    var pathToElevator = '"' + appPathCleaned + '\\resources\\elevate.exe' + '"';
     var launchParameter = '-k "' + pathToLauncher + '"';
     var interface_exe = require('child_process').spawn;
     
     // console.info(dialog.showMessageBox({ message: pathToElevator }))
     // console.info(dialog.showMessageBox({ message: launchParameter }))
+    // console.info(dialog.showMessageBox({ message: appPathCleaned }))
     
     var elevateExe = interface_exe(pathToElevator, [launchParameter], {
         windowsVerbatimArguments: true,
-        shell: true
+        shell: true,
+        detached: true
     });
     
     app.exit();
