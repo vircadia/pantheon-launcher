@@ -302,21 +302,19 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
 });
 
 ipcRenderer.on('download-cancelled', (event) => {
-    vue_this.showCloudIcon = true;
     vue_this.showCloudDownloadProgress = false;
-    vue_this.disableInstallIcon = false;
-    vue_this.isDownloading = false;
-    vue_this.disableLaunchButton = false;
-    vue_this.downloadText = "Download Interface";
+    vue_this.resetDownloadButton();
 })
 
-ipcRenderer.on('download-installer-failed', (event) => {
-    vue_this.showCloudIcon = true;
+ipcRenderer.on('download-installer-failed', (event, arg) => {
     vue_this.showCloudDownloadProgress = false;
-    vue_this.disableInstallIcon = false;
-    vue_this.isDownloading = false;
-    vue_this.disableLaunchButton = false;
-    vue_this.downloadText = "Download Interface";
+    vue_this.resetDownloadButton();
+    
+    vue_this.$store.commit('mutate', {
+        property: 'currentNotice', 
+        with: arg
+    });
+    
     vue_this.openDialog('DownloadFailed', true);
 });
 
@@ -690,6 +688,7 @@ export default {
         },
         resetDownloadButton: function () {
             this.downloadText = "Download Interface";
+            this.isDownloading = false;
             this.isSilentInstalling = false;
             this.disableDownloadButton = false;
             this.showDownloadButton = true;
@@ -699,6 +698,7 @@ export default {
         },
         resetUpdateButton: function() {
             this.downloadText = "Download Interface";
+            this.isDownloading = false;
             this.isSilentInstalling = false;
             this.disableDownloadButton = false;
             this.showDownloadButton = false;
