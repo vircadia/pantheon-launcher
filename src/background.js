@@ -42,6 +42,13 @@ import * as migrateLauncher from './electron_modules/migrateLauncher.js';
 electronDl();
 var electronDlItem = null;
 
+// Universal Variables and Consts
+var CDN_URL = 'https://cdn.vircadia.com';
+var CDN_EVENTS_FILENAME = 'vircadiaEvents.json';
+var CDN_METADATA_FILENAME = 'vircadiaMeta.json'
+
+var LAUNCHER_ICON = path.join(__static, '/resources/logo_launcher_256_256.ico');
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
@@ -54,7 +61,7 @@ function createWindow () {
 	win = new BrowserWindow({ 
 		width: 1000, 
 		height: 800, 
-		icon: path.join(__static, '/resources/logo_256_256.ico'), 
+		icon: LAUNCHER_ICON, 
 		resizable: false,
 		webPreferences: {
 			nodeIntegration: true,
@@ -68,7 +75,6 @@ function createWindow () {
     } else {
         win.setMenu(null);
     }
-	
 
 	if (process.env.WEBPACK_DEV_SERVER_URL) {
 		// Load the url of the dev server if in development mode
@@ -307,12 +313,12 @@ function setLibraryDialog() {
 // }
 
 async function getCDNMetaJSON() {
-	var metaURL = 'https://cdn.vircadia.com/dist/launcher/vircadiaMeta.json';
+	var metaURL = CDN_URL + '/dist/launcher/' + CDN_METADATA_FILENAME;
 		
 	await electronDl.download(win, metaURL, {
 		directory: storagePath.default,
 		showBadge: false,
-		filename: "vircadiaMeta.json",
+		filename: CDN_METADATA_FILENAME,
         // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
         // downloadItem to check which download is progressing.
         onStarted: downloadItem => {
@@ -332,7 +338,7 @@ async function getCDNMetaJSON() {
         }
 	});
 	
-	var vircadiaMetaFile = storagePath.default + '/vircadiaMeta.json';
+	var vircadiaMetaFile = storagePath.default + '/' + CDN_METADATA_FILENAME;
 	let rawdata = fs.readFileSync(vircadiaMetaFile);
 	let vircadiaMetaJSON = JSON.parse(rawdata);
 	
@@ -346,12 +352,12 @@ async function getCDNMetaJSON() {
 }
 
 async function getCDNEventsJSON() {
-	var eventsURL = 'https://cdn.vircadia.com/dist/launcher/vircadiaEvents.json';
+	var eventsURL = CDN_URL + '/dist/launcher/' + CDN_EVENTS_FILENAME;
 		
 	await electronDl.download(win, eventsURL, {
 		directory: storagePath.default,
 		showBadge: false,
-		filename: "vircadiaEvents.json",
+		filename: CDN_EVENTS_FILENAME,
         // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
         // downloadItem to check which download is progressing.
         onStarted: downloadItem => {
@@ -371,7 +377,7 @@ async function getCDNEventsJSON() {
         }
 	});
 	
-	var vircadiaEventsFile = storagePath.default + '/vircadiaEvents.json';
+	var vircadiaEventsFile = storagePath.default + '/' + CDN_EVENTS_FILENAME;
 	let rawdata = fs.readFileSync(vircadiaEventsFile);
 	let vircadiaEventsJSON = JSON.parse(rawdata);
 	

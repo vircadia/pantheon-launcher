@@ -67,8 +67,9 @@
     </v-dialog>
 </template>
 
-
 <script>
+const { ipcRenderer } = require('electron');
+
 export default {
     name: 'DownloadFailed',
 
