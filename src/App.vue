@@ -303,7 +303,11 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
 
 ipcRenderer.on('download-cancelled', (event) => {
     vue_this.showCloudDownloadProgress = false;
-    vue_this.resetDownloadButton();
+    if (vue_this.store.state.selectedInterface == null || "No Interface Selected") {
+        vue_this.resetDownloadButton();
+    } else {
+        vue_this.resetUpdateButton();
+    }
 })
 
 ipcRenderer.on('download-installer-failed', (event, arg) => {
