@@ -65,7 +65,8 @@ function createWindow () {
 		resizable: false,
 		webPreferences: {
 			nodeIntegration: true,
-			devTools: true,
+			devTools: true.
+            // webSecurity: false
 		} 
 	})
 
@@ -90,6 +91,10 @@ function createWindow () {
     	win = null
 	})
 }
+
+// This stops CORS from getting in the way...
+// app.commandLine.appendSwitch('disable-site-isolation-trials');
+// app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
