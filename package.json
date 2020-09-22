@@ -26,6 +26,8 @@
     "decompress-zip": "^0.2.2",
     "electron-dl": "^3.0.1",
     "electron-json-storage": "^4.1.8",
+    "electron-log": "^4.2.4",
+    "electron-updater": "^4.3.4",
     "extract-zip": "^1.7.0",
     "glob": "^7.1.6",
     "hasha": "^5.2.0",

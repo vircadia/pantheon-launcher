@@ -35,9 +35,12 @@ const tasklist = require('tasklist'); // This is specific to Windows.
 const isAdmin = require('is-admin');
 const glob = require('glob');
 const cp = require('child_process');
+const log = require('electron-log');
 // electron_modules
 import * as versionPaths from './electron_modules/versionPaths.js';
 import * as migrateLauncher from './electron_modules/migrateLauncher.js';
+
+Object.assign(console, log.functions);
 
 electronDl();
 var electronDlItem = null;
@@ -65,7 +68,7 @@ function createWindow () {
 		resizable: false,
 		webPreferences: {
 			nodeIntegration: true,
-			devTools: true.
+			devTools: true,
             // webSecurity: false
 		} 
 	})
