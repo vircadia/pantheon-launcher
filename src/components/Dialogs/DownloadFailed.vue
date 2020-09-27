@@ -22,9 +22,9 @@
                 <v-icon color="red" class="mr-2">mdi-message-alert</v-icon>
                 Download Failed
             </v-card-title>
-    
+
             <v-card-text>
-                The download for Interface failed.
+                {{downloadFailedMessage}}<br />
                 <v-expansion-panels
                     v-model="panel"
                     v-if="this.downloadFailedCode && this.downloadFailedCode !== -1"
@@ -32,14 +32,14 @@
                     <v-expansion-panel>
                         <v-expansion-panel-header>Error Information</v-expansion-panel-header>
                         <v-expansion-panel-content>
-                            Error code <pre>{{downloadFailedCode}}</pre> <br />
-                            The full error is shown below: <br />
+                            Error code <pre>{{downloadFailedCode}}</pre><br />
+                            The full error is shown below:<br />
                             <pre>{{downloadFailedError}}</pre>
                         </v-expansion-panel-content>
                     </v-expansion-panel>
                 </v-expansion-panels>
             </v-card-text>
-    
+
             <v-divider></v-divider>
 
             <v-card-actions>

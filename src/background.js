@@ -433,34 +433,14 @@ async function isRunningAsAdministrator() {
     }
 }
 
-async function checkForUpdates() {
-    var checkPrereqs = await checkRunningApps();
-    console.info(checkPrereqs)
-    var isAdmin = await isRunningAsAdministrator();
-    
-    if (checkPrereqs.sandbox === true) {
-        win.webContents.send('check-for-updates-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
-        return;
-    }
-    
-    if (checkPrereqs.interface === true) {
-        win.webContents.send('check-for-updates-failed', { "message": 'An instance of Interface is running. Please close it before proceeding.' });
-        return;
-    }
-    
-    if (!isAdmin) {
-        console.info("isAdmin", isAdmin);
-        win.webContents.send('check-for-updates-failed', { "message": 'You need to run the launcher as an administrator to continue.', "code": -1 });
-        return;
-    }
-    
+async function checkForUpdates(checkSilently) {
     if (storagePath.interfaceSettings) {
         // This means to update because an interface exists and is selected.
         console.info("Checking for updates.");
         var checkForUpdates = await checkForInterfaceUpdates();
         if (checkForUpdates != null) {
             // Return with the URL to download or false if not.
-            win.webContents.send('checked-for-updates', { checkForUpdates }); 
+            win.webContents.send('checked-for-updates', { checkForUpdates, "checkSilently": checkSilently }); 
         }
     }
 }
@@ -986,13 +966,25 @@ ipcMain.on('download-vircadia', async (event, arg) => {
     var downloadURL = await getDownloadURL();
     var vircadiaMetaJSON = await getCDNMetaJSON();
     var isAdmin = await isRunningAsAdministrator();
+    var checkPrereqs = await checkRunningApps();
     var installerName = "Vircadia_Setup_Latest.exe";
     var installerNamePost = "Vircadia_Setup_Latest_READY.exe";
     console.info("DLURL:", downloadURL);
+    console.info(checkPrereqs)
+    
+    if (checkPrereqs.sandbox === true) {
+        win.webContents.send('download-installer-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
+        return;
+    }
+    
+    if (checkPrereqs.interface === true) {
+        win.webContents.send('download-installer-failed', { "message": 'An instance of Interface is running. Please close it before proceeding.' });
+        return;
+    }
     
     if (!isAdmin) {
         console.info("isAdmin", isAdmin);
-        win.webContents.send('download-installer-failed', { 'code': -1 });
+        win.webContents.send('download-installer-failed', { "message": 'You need to run the launcher as an administrator to continue.', "code": -1 });
         return;
     }
     
@@ -1092,7 +1084,7 @@ ipcMain.on('install-vircadia', (event, arg) => {
 // TODO: When a new version is downloaded and installed, the old version is no
 //       longer overwritten. What should we do about this?
 ipcMain.on('check-for-updates', (event, arg) => {
-    checkForUpdates();
+    checkForUpdates(arg);
 });
 
 ipcMain.on('check-for-events', async (event, arg) => {

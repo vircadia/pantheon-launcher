@@ -162,7 +162,7 @@ import * as Sentry from '@sentry/electron';
             <v-btn
                 v-if="showUpdateButton"
                 :disabled="disableUpdateButton"
-                v-on:click.native="checkForUpdates()"
+                v-on:click.native="checkForUpdates(false)"
                 :right=true
                 color="primary"
                 :tile=true
@@ -413,6 +413,9 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 	} else {
         ipcRenderer.send('set-library-folder-default');
     }
+    
+    // Run anything that was waiting for the state to finish loading.
+    vue_this.onStateLoaded();
 });
 
 ipcRenderer.on('development-mode', (event, arg) => {
@@ -544,7 +547,7 @@ ipcRenderer.on('checked-for-updates', (event, arg) => {
     
     if (arg.checkForUpdates.updateAvailable === true) {
         vue_this.openDialog('UpdateAvailable', true);
-    } else {
+    } else if (arg.checkSilently === false) {
         vue_this.openDialog('NoUpdateAvailable', true);
     }
 });
@@ -610,7 +613,7 @@ export default {
         FailedMetadata
     },
     methods: {
-        openDialog: function(which, shouldShow) {
+        openDialog: function (which, shouldShow) {
             // We want to reset the element first.
             this.showDialog = "";
             this.shouldShowDialog = false;
@@ -624,7 +627,7 @@ export default {
             this.showDialog = "";
             this.shouldShowDialog = false;
         },
-		attemptLaunchInterface: function(goto) {
+		attemptLaunchInterface: function (goto) {
 			// var exeLoc = ipcRenderer.sendSync('get-vircadia-location'); // todo: check if that location exists first when using that, we need to default to using folder path + /interface.exe otherwise.
             var exeLoc;
             
@@ -635,14 +638,14 @@ export default {
             console.info("Attempting to launch interface, found exeLoc:", exeLoc);
             
             if (exeLoc) {
-                this.launchInterface(exeLoc, goto);
+                this.launchInterface (exeLoc, goto);
             } else {
                 // this.selectInterfaceExe();
                 // No, no more... we'll just default to selecting the first interface we find. You can select on your own time. UX baby.
                 ipcRenderer.invoke('get-interface-list-for-launch');
             }
 		},
-        launchInterface: function(exeLoc, goto) {
+        launchInterface: function (exeLoc, goto) {
             ipcRenderer.send('launch-interface', { 
                 "exec": exeLoc, 
                 "customPath": goto, 
@@ -655,14 +658,14 @@ export default {
                 "launchAsChild": this.$store.state.launchAsChild
             });
         },
-        openURL: function(url) {
+        openURL: function (url) {
             const { shell } = require('electron');
             shell.openExternal(url);    
         },
-        openInterfaceURL: function(url) {
+        openInterfaceURL: function (url) {
             this.attemptLaunchInterface(url);
         },
-		downloadInterface: function() {
+		downloadInterface: function () {
             this.disableDownloadButton = true;
             this.disableLaunchButton = true;
             
@@ -675,20 +678,20 @@ export default {
                 vue_this.openDialog('CancelDownload', true);
             }
 		},
-        installInterface: function() {
+        installInterface: function () {
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('install-vircadia');
         },
-        selectInterfaceExe: function() {
+        selectInterfaceExe: function () {
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('set-vircadia-location');
         },
-        checkForUpdates: function() {
+        checkForUpdates: function (checkSilently) {
             this.disableUpdateButton = true;
             this.disableLaunchButton = true;
-            
+
             const { ipcRenderer } = require('electron');
-            ipcRenderer.send('check-for-updates');            
+            ipcRenderer.send('check-for-updates', checkSilently);            
         },
         resetDownloadButton: function () {
             this.downloadText = "Download Interface";
@@ -700,7 +703,7 @@ export default {
             this.showCloudIcon = true;
             this.disableLaunchButton = false;
         },
-        resetUpdateButton: function() {
+        resetUpdateButton: function () {
             this.downloadText = "Download Interface";
             this.isDownloading = false;
             this.isSilentInstalling = false;
@@ -709,6 +712,13 @@ export default {
             this.showUpdateButton = true;
             this.showCloudIcon = true;
             this.disableLaunchButton = false;
+        },
+        onStateLoaded: function () {
+            // Wait 1000 ms to ensure that all things have completed.
+            setTimeout(function () {
+                // Not sure why this needs 1000ms to work successfully, 500ms also works, make it 1ms and see what happens, no clue.
+                vue_this.checkForUpdates(true);
+            }, 1000);
         }
 	},
     created: function () {

@@ -27,7 +27,7 @@
                 There is currently no update available.
                 <pre>Current Version: {{ this.$store.state.selectedInterface.name }}</pre>
                 <pre>Latest Version: {{ this.$store.state.currentNotice }}</pre>
-                Would you like to reinstall your Interface?
+                Would you like to reinstall Vircadia?
             </v-card-text>
     
             <v-divider></v-divider>
