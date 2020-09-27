@@ -138,13 +138,12 @@
 									prepend-icon="mdi-earth"
 									type="text"
 									v-model="metaverseServer"
-                                    disabled
 								/>
 							</v-form>
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
-							<v-btn disabled @click="setMetaverseServer()" color="accent">Save Metaverse Settings</v-btn>
+							<v-btn @click="setMetaverseServer()" color="accent">Save Metaverse Settings</v-btn>
 						</v-card-actions>
                         
                         <v-toolbar
@@ -242,7 +241,7 @@ export default {
 		show: false,
 		showRequireInterface: false,
         currentFolder: "",
-		metaverseServer: "https://metaverse.highfidelity.com", // Default metaverse API URL
+		metaverseServer: "https://metaverse.vircadia.com/live", // Default metaverse API URL
         selectedInterface: "[No Interface Selected]",
         sentryEnabled: false,
         inactive: false,
