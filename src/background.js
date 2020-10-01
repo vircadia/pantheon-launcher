@@ -1068,7 +1068,10 @@ ipcMain.on('uninstall-interface', (event, folder) => {
 ipcMain.on('launch-sandbox', (event, folder) => {
     var sandboxExec = folder + "server-console/" + "server-console.exe";
     console.info("[sandbox] launching: ", sandboxExec);
-    require('child_process').execFile(sandboxExec);
+    var sandbox_exe = require('child_process').spawn;
+    var runSandbox = sandbox_exe(sandboxExec, [], {
+        detached: true
+    });
 });
 
 ipcMain.on('cancel-download', async (event) => {
