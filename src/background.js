@@ -632,8 +632,9 @@ function launchInterface(executablePath, parameters, autoRestartInterface) {
 function launchInterfaceDetached(executablePath, parameters) {
     // All arguments that have or may have spaces should be wrapped in ""
     win.webContents.send('launching-interface');
-    
-    var pathToLaunch = process.cwd() + "\\bat\\launcher.bat";
+    var appPathSplit = app.getPath('exe').split('\\');
+    var appPathCleaned = appPathSplit.slice(0, appPathSplit.length - 1).join('\\');
+    var pathToLaunch = appPathCleaned + "\\bat\\launcher.bat";
     console.info("pathToLaunch:", pathToLaunch);
     // console.info(dialog.showMessageBox({ message: pathToLaunch }))
     
