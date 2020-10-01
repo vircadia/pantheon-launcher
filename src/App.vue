@@ -580,6 +580,7 @@ import LaunchFailedInterfaceRunning from './components/Dialogs/LaunchFailedInter
 import LaunchOptions from './components/Dialogs/LaunchOptions'
 import NoInstallerFound from './components/Dialogs/NoInstallerFound'
 import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
+import NoInterfaceSelected from './components/Dialogs/NoInterfaceSelected'
 import NoUpdateAvailable from './components/Dialogs/NoUpdateAvailable'
 import ReportAnIssue from './components/Dialogs/ReportAnIssue'
 import SelectVersion from './components/Dialogs/SelectVersion'
@@ -601,6 +602,7 @@ export default {
         LaunchOptions,
         NoInstallerFound,
         NoInterfaceFound,
+        NoInterfaceSelected,
         InstallComplete,
         InstallFailed,
         WantToClose,
@@ -640,9 +642,9 @@ export default {
             if (exeLoc) {
                 this.launchInterface (exeLoc, goto);
             } else {
-                // this.selectInterfaceExe();
-                // No, no more... we'll just default to selecting the first interface we find. You can select on your own time. UX baby.
-                ipcRenderer.invoke('get-interface-list-for-launch');
+                // Disable automatic selection of interfaces...
+                // ipcRenderer.invoke('get-interface-list-for-launch');
+                vue_this.openDialog('NoInterfaceSelected', true);
             }
 		},
         launchInterface: function (exeLoc, goto) {
