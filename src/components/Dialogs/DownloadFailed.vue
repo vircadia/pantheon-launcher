@@ -47,7 +47,7 @@
                     v-if="!this.downloadFailedCode"
                 ></v-spacer>
                 <v-btn
-                    color="primary"
+                    color="red"
                     @click="$emit('hideDialog')"
                 >
                     Dismiss
