@@ -32,6 +32,8 @@ const hasha = require('hasha');
 const fs = require('fs');
 const compareVersions = require('compare-versions');
 const tasklist = require('tasklist'); // This is specific to Windows.
+// For tasklist to work correctly on some systems...
+process.env.PATH = 'C:\\Windows\\System32;' + process.env.PATH;
 const isAdmin = require('is-admin');
 const glob = require('glob');
 const cp = require('child_process');
@@ -403,13 +405,13 @@ async function checkForInterfaceUpdates() {
     // var interfacePackage = await getCurrentInterfaceJSON();
     storagePath.interfaceSettings = storagePath.interfaceSettings.replace("//launcher_settings", "");
     storagePath.interfaceSettings = storagePath.interfaceSettings.replace("\\/launcher_settings", "");
-    var interfacePackage = { package: versionPaths.fromPath(storagePath.interfaceSettings) };
-    console.info("interfacePackage.package", interfacePackage.package);
-    
-    if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.package.version) {
-        var cleanedLocalMeta = interfacePackage.package.version.replace(/_/g, '-');
+    var interfacePackage = versionPaths.fromPath(storagePath.interfaceSettings);
+    var cleanedLocalMeta = interfacePackage.version.replace(/_/g, '-');
+    console.info("interfacePackage", interfacePackage);
+    console.info("vircadiaMeta", vircadiaMeta);
+
+    if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.version) {
         var versionCompare = compareVersions(vircadiaMeta.latest.version, cleanedLocalMeta);
-        console.info('cleanedLocalMeta:', cleanedLocalMeta)
         console.info("Compare Versions:", versionCompare);
         if (versionCompare == 1) {
             return { "updateAvailable": true, "latestVersion": vircadiaMeta.latest.version };

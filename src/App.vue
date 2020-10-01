@@ -714,11 +714,10 @@ export default {
             this.disableLaunchButton = false;
         },
         onStateLoaded: function () {
-            // Wait 1000 ms to ensure that all things have completed.
-            setTimeout(function () {
-                // Not sure why this needs 1000ms to work successfully, 500ms also works, make it 1ms and see what happens, no clue.
-                vue_this.checkForUpdates(true);
-            }, 1000);
+            // Disable for now because there's some issue with fs.readFileSync returning the wrong data if performed at the same time as another readFileSync?
+            // if (this.$store.state.selectedInterface) {
+            //     this.checkForUpdates(true);
+            // }
         }
 	},
     created: function () {
