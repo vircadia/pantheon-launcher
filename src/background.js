@@ -1105,7 +1105,7 @@ ipcMain.on('request-close', async (event, arg) => {
     
     list.forEach((task) => {
         if (task.imageName === "interface.exe") {
-            console.log("Interface.exe found.");
+            console.log("Interface.exe found to be running.");
             canClose = false;
         }
     });

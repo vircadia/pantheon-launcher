@@ -266,6 +266,10 @@ EventBus.$on('open-interface-url', url => {
     vue_this.openInterfaceURL(url);
 });
 
+EventBus.$on('open-dialog', which => {
+    vue_this.openDialog(which, true);
+});
+
 EventBus.$on('no-events-found', data => {
     // FIXME: We want to pull from the calendar eventually, interim would be loading a custom web page for the GCal just like the News tab.
     // vue_this.defaultTab = "News";

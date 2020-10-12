@@ -39,9 +39,9 @@
                 <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    @click="$emit('hideDialog')"
+                    @click="$emit('hideDialog'); sendEvent('open-dialog', 'SelectVersion')"
                 >
-                    Close
+                    Select
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -51,6 +51,7 @@
 
 <script>
 const { ipcRenderer } = require('electron');
+import { EventBus } from '../../plugins/event-bus.js';
 
 export default {
     name: 'NoInterfaceSelected',
@@ -61,6 +62,9 @@ export default {
     methods: {
         downloadInterface: function () {
             ipcRenderer.send('download-vircadia');
+        },
+        sendEvent: function(command, data) {
+            EventBus.$emit(command, data);
         }
     },
     created: function () {
