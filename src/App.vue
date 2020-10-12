@@ -15,13 +15,13 @@ import * as Sentry from '@sentry/electron';
 <template>
     <v-app>
         <v-system-bar
-            color="mainbg"
+            color="secondarybg"
             :top=true
             :fixed=true
             style="top: initial !important;"
             id="topMenuBar"
         >    
-            <span v-if="interfaceSelected != null">Current interface version: <b>{{ interfaceSelected.name }}</b></span>
+            <span v-if="interfaceSelected != null">Current Interface Version: <b>{{ interfaceSelected.name }}</b></span>
             <span v-else>No selected interface.</span>
         </v-system-bar>
         

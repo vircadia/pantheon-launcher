@@ -41,13 +41,16 @@
                 </v-btn>
             </v-toolbar>
             
-            <h2 class="ml-3 mt-3">Interface List</h2>
-            
-            <v-list style="max-height: 300px" class="overflow-y-auto">
-                <v-subheader>
-                    Scroll down for more.<br/>
+            <div style="max-height: 350px" class="overflow-y-auto">
+                <!-- <v-subheader>
+                    <pre style="width: 100%; margin-left: 0px;">{{ $store.state.currentLibraryFolder }}</pre>
                 </v-subheader>
-                <v-banner double-line>
+
+                <v-divider
+                    class="mt-3"
+                ></v-divider> -->
+
+                <v-banner color="mainbg" double-line>
                     <v-icon
                         slot="icon"
                         size="36"
@@ -57,11 +60,11 @@
                     <p class="font-weight-thin">Currently selected</p>
                     {{ selectedInterface }}
                 </v-banner>
-                <v-divider
-                    class="mx-3"
-                ></v-divider>
                 
-                <v-list-item-group v-if="interfaceFolders.length > 0" color="primary">
+                <v-list-item-group 
+                    v-if="interfaceFolders.length > 0" 
+                    style="background-color: red-darken-4"
+                >
                     <v-list-item
                         v-for="(item, i) in interfaceFolders"
                         :key="i"
@@ -69,25 +72,24 @@
                         <v-list-item-content @click="selectInterface(item)">
                             <v-list-item-title v-html="item.name"></v-list-item-title>
                             <v-list-item-subtitle v-html="item.version"></v-list-item-subtitle>
+                            
                         </v-list-item-content>
-                        <v-list-item-action>
-                            <v-tooltip left>
-                                <template v-slot:activator="{ on }">
-                                    <v-btn icon v-on="on" @click="launchSandbox(item)">
-                                        <v-icon large color="blue">mdi-cube</v-icon>
-                                    </v-btn>
-                                </template>
-                                <span>Sandbox</span>
-                            </v-tooltip>
-                            <v-tooltip left>
-                                <template v-slot:activator="{ on }">
-                                    <v-btn icon v-on="on" @click="uninstallInterface(item)">
-                                        <v-icon large color="red">mdi-delete-circle</v-icon>
-                                    </v-btn>
-                                </template>
-                                <span>Uninstall</span>
-                            </v-tooltip>
-                        </v-list-item-action>
+                        <v-tooltip left>
+                            <template v-slot:activator="{ on }">
+                                <v-btn icon v-on="on" @click="launchSandbox(item)">
+                                    <v-icon large color="blue">mdi-cube</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Server Sandbox</span>
+                        </v-tooltip>
+                        <v-tooltip left>
+                            <template v-slot:activator="{ on }">
+                                <v-btn icon v-on="on" @click="uninstallInterface(item)">
+                                    <v-icon large color="red">mdi-delete-circle</v-icon>
+                                </v-btn>
+                            </template>
+                            <span>Uninstall Vircadia</span>
+                        </v-tooltip>
                     </v-list-item>
                 </v-list-item-group>
                 
@@ -99,7 +101,7 @@
                     </v-list-item>
                 </v-list-item-group>
 
-            </v-list>
+            </div>
     
             <v-divider></v-divider>
 
