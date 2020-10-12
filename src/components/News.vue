@@ -9,7 +9,7 @@
 -->
 <template>
     <v-app id="">
-        <v-content class="mainContentContainer">
+        <v-main class="mainContentContainer">
             <v-container
                 id=""
                 class="fill-container"
@@ -17,7 +17,7 @@
             >
                 <iframe id="mainIframe" src="https://vircadia.com/launcher-news/" style="width: 100%; height: 100%;"></iframe> 
             </v-container>
-        </v-content>
+        </v-main>
     </v-app>
 </template>
 

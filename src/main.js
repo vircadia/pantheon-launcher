@@ -18,6 +18,11 @@ import { store } from './plugins/store';
 import 'roboto-fontface/css/roboto/roboto-fontface.css'
 import '@mdi/font/css/materialdesignicons.css'
 import 'material-design-icons-iconfont/dist/material-design-icons.css'
+import moment from 'moment-timezone'
+
+import jstz from './assets/js_modules/jstz.min.js';
+Object.defineProperty(Vue.prototype, '$jstz', { value: jstz });
+Object.defineProperty(Vue.prototype, 'moment', { value: moment });
 
 Vue.config.productionTip = false
 

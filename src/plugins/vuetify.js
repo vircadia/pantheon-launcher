@@ -22,14 +22,16 @@ export default new Vuetify({
             light: {
                 primary: colors.blue.accent2, 
                 secondary: colors.indigo.darken4, 
-                accent: '#673AB7',
-                mainbg: "#0D47A1", // blue-darken-4
+                accent: "#673AB7",
+                mainbg: colors.blue.darken4,
+                secondarybg: colors.blue.darken1
             },
             dark: {
                 primary: "#1E88E5",
-                secondary: colors.indigo.accent2,
+                secondary: colors.blue.accent2,
                 accent: '#311B92',
                 mainbg: "#182b49", // vircadia-navy-blue
+                secondarybg: "#182b49" // vircadia-navy-blue
             }
         }
     },

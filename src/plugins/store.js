@@ -21,12 +21,15 @@ export const store = new Vuex.Store({
         interfaceSelectionRequired: true,
         metaverseServer: "",
         populatedInterfaceList: [],
+        // Launch Parameters
+        customLaunchParameters: "",
         allowMultipleInstances: false,
         noSteamVR: false,
         noOculus: false,
-        customLaunchParameters: "",
+        dontPromptForLogin: false,
+        launchAsChild: false,
         autoRestartInterface: false,
-        dontPromptForLogin: true,
+        // End Launch Parameters
         currentLibraryFolder: "No library folder selected.",
         currentNotice: null,
         darkMode: true

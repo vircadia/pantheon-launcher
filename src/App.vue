@@ -15,19 +15,18 @@ import * as Sentry from '@sentry/electron';
 <template>
     <v-app>
         <v-system-bar
-            color="mainbg"
+            color="secondarybg"
             :top=true
             :fixed=true
             style="top: initial !important;"
             id="topMenuBar"
         >    
-            <span v-if="interfaceSelected != null">Current interface version: <b>{{ interfaceSelected.name }}</b></span>
+            <span v-if="interfaceSelected != null">Current Interface Version: <b>{{ interfaceSelected.name }}</b></span>
             <span v-else>No selected interface.</span>
         </v-system-bar>
         
         <v-bottom-navigation id="navBar">
             <v-btn-toggle dense tile borderless v-model="showTab">
-                
                 <v-btn disabled value="Recent">
                     <span>Recent</span>
                     <v-icon>mdi-history</v-icon>
@@ -42,15 +41,20 @@ import * as Sentry from '@sentry/electron';
                     <span>Worlds</span>
                     <v-icon>mdi-map-search-outline</v-icon>
                 </v-btn>
-
-                <v-btn value="Settings">
-                    <span>Settings</span>
-                    <v-icon>mdi-settings-outline</v-icon>
-                </v-btn>
                 
-                <v-btn value="News">
+                <v-btn disabled value="News">
                     <span>News</span>
                     <v-icon>mdi-newspaper-variant</v-icon>
+                </v-btn>
+                
+                <v-btn value="Events" :disabled="disableEventsTab">
+                    <span>Events</span>
+                    <v-icon>mdi-calendar-star</v-icon>
+                </v-btn>
+                
+                <v-btn value="Settings">
+                    <span>Settings</span>
+                    <v-icon>mdi-cog-outline</v-icon>
                 </v-btn>
                 
             </v-btn-toggle>
@@ -58,8 +62,8 @@ import * as Sentry from '@sentry/electron';
         
     <v-snackbar
         v-model="interfaceBusyLaunching"
-        style="margin-bottom: 75px;"
-        color="#34323e"
+        app
+        color="colors.grey.darken4"
         :timeout="interfaceBusyLaunchingTimeout"
     >
         Interface is starting.
@@ -89,7 +93,7 @@ import * as Sentry from '@sentry/electron';
                     alt="Vircadia Logo"
                     id="titleIMG"
                     class="shrink mr-2"
-                    v-on:click="launchBrowser('https://vircadia.com/')"
+                    v-on:click="openURL('https://vircadia.com/')"
                     contain
                     src="./assets/logo_256_256.png"
                     transition="scale-transition"
@@ -100,12 +104,12 @@ import * as Sentry from '@sentry/electron';
             <v-slide-x-transition
                 :hide-on-leave=true
             >
-                <h2 class="titleURL" v-show="!titleHover" v-on:click="launchBrowser('https://vircadia.com/')">Alpha</h2>
+                <h2 class="titleURL" v-show="!titleHover" v-on:click="openURL('https://vircadia.com/')">Alpha</h2>
             </v-slide-x-transition>
             <v-slide-x-reverse-transition
                 :hide-on-leave=true
             >
-                <h2 class="titleURL alternateTitle" v-show="titleHover" v-on:click="launchBrowser('https://vircadia.com/')">Vircadia</h2>
+                <h2 class="titleURL alternateTitle" v-show="titleHover" v-on:click="openURL('https://vircadia.com/')">Vircadia</h2>
             </v-slide-x-reverse-transition>
 
             <v-btn
@@ -113,7 +117,7 @@ import * as Sentry from '@sentry/electron';
                 target="_blank"
                 text
                 absolute
-                style="margin-left: 150px;"
+                style="margin-left: 140px;"
             >
                 <span class="mr-2">Report an issue</span>
                 <v-icon>mdi-open-in-new</v-icon>
@@ -158,7 +162,7 @@ import * as Sentry from '@sentry/electron';
             <v-btn
                 v-if="showUpdateButton"
                 :disabled="disableUpdateButton"
-                v-on:click.native="checkForUpdates()"
+                v-on:click.native="checkForUpdates(false)"
                 :right=true
                 color="primary"
                 :tile=true
@@ -185,8 +189,19 @@ import * as Sentry from '@sentry/electron';
                 </template>
                 <span>Install</span>
             </v-tooltip> -->
-
+            
             <div class="text-center mx-2">
+                <v-btn
+                    color="primary"
+                    dark
+                    :tile=true
+                    @click="openDialog('SelectVersion', true)"
+                >
+                    Versions
+                </v-btn>
+            </div>
+
+            <div class="text-center mr-2">
                 <v-btn
                     color="primary"
                     dark
@@ -195,9 +210,6 @@ import * as Sentry from '@sentry/electron';
                 >
                     Options
                 </v-btn>
-                <div style="background: rgba(255,255,255,0.8);">
-                </div>
-                
             </div>
 
             <v-btn
@@ -222,21 +234,21 @@ import * as Sentry from '@sentry/electron';
         </v-app-bar>
 	
     <div id="background">
-        <v-content class="" id="mainContent">
+        <v-main class="" id="mainContent">
             <transition name="fade" mode="out-in">
                 <component v-bind:is="showTab" id=""></component>
             </transition>
             <pre id="development-output" v-if="isDevelopment">
             
             </pre>
-        </v-content>
+        </v-main>
     </div>
     
-    <v-content id="dialogContent">
+    <v-main id="dialogContent">
         <transition name="fade" mode="out-in">
-            <component @hideDialog="shouldShowDialog = false" v-if="shouldShowDialog" v-bind:is="showDialog"></component>
+            <component @hideDialog="shouldShowDialog = false" v-if="shouldShowDialog" v-bind:is="showDialog" @open-url="openURL"></component>
         </transition>
-    </v-content>
+    </v-main>
 		
     </v-app>
 </template>
@@ -244,6 +256,26 @@ import * as Sentry from '@sentry/electron';
 <script>
 var vue_this;
 const { ipcRenderer } = require('electron');
+import { EventBus } from './plugins/event-bus.js';
+
+EventBus.$on('open-url', url => {
+    vue_this.openURL(url);
+});
+
+EventBus.$on('open-interface-url', url => {
+    vue_this.openInterfaceURL(url);
+});
+
+EventBus.$on('open-dialog', which => {
+    vue_this.openDialog(which, true);
+});
+
+EventBus.$on('no-events-found', data => {
+    // FIXME: We want to pull from the calendar eventually, interim would be loading a custom web page for the GCal just like the News tab.
+    // vue_this.defaultTab = "News";
+    // vue_this.showTab = "News";
+    // vue_this.disableEventsTab = true;
+});
 
 ipcRenderer.on('download-installer-progress', (event, arg) => {
     var downloadProgress = arg.percent;
@@ -266,7 +298,7 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
         vue_this.disableDownloadButton = true;
         vue_this.downloadText = "Awaiting Install";
         if (vue_this.showDialog = "CancelDownload") {
-            vue_this.closeDialog();  // "Cancel Download" dialog may be open.
+            vue_this.closeDialog(); // "Cancel Download" dialog may be open.
         }
         // vue_this.openDialog('DownloadComplete', true);
     }
@@ -274,21 +306,23 @@ ipcRenderer.on('download-installer-progress', (event, arg) => {
 });
 
 ipcRenderer.on('download-cancelled', (event) => {
-    vue_this.showCloudIcon = true;
     vue_this.showCloudDownloadProgress = false;
-    vue_this.disableInstallIcon = false;
-    vue_this.isDownloading = false;
-    vue_this.disableLaunchButton = false;
-    vue_this.downloadText = "Download Interface";
+    if (vue_this.store.state.selectedInterface == null || "No Interface Selected") {
+        vue_this.resetDownloadButton();
+    } else {
+        vue_this.resetUpdateButton();
+    }
 })
 
-ipcRenderer.on('download-installer-failed', (event) => {
-    vue_this.showCloudIcon = true;
+ipcRenderer.on('download-installer-failed', (event, arg) => {
     vue_this.showCloudDownloadProgress = false;
-    vue_this.disableInstallIcon = false;
-    vue_this.isDownloading = false;
-    vue_this.disableLaunchButton = false;
-    vue_this.downloadText = "Download Interface";
+    vue_this.resetDownloadButton();
+    
+    vue_this.$store.commit('mutate', {
+        property: 'currentNotice', 
+        with: arg
+    });
+    
     vue_this.openDialog('DownloadFailed', true);
 });
 
@@ -329,6 +363,13 @@ ipcRenderer.on('state-loaded', (event, arg) => {
             with: arg.results.darkMode
         });
         vue_this.$vuetify.theme.dark = arg.results.darkMode;
+    }
+    
+    if (arg.results.launchAsChild) {
+        vue_this.$store.commit('mutate', {
+            property: 'launchAsChild', 
+            with: arg.results.launchAsChild
+        });
     }
     
     if (arg.results.allowMultipleInstances) {
@@ -376,6 +417,9 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 	} else {
         ipcRenderer.send('set-library-folder-default');
     }
+    
+    // Run anything that was waiting for the state to finish loading.
+    vue_this.onStateLoaded();
 });
 
 ipcRenderer.on('development-mode', (event, arg) => {
@@ -500,10 +544,14 @@ ipcRenderer.on('check-for-updates-failed', (event, arg) => {
 ipcRenderer.on('checked-for-updates', (event, arg) => {
     vue_this.disableUpdateButton = false;
     vue_this.disableLaunchButton = false;
+    vue_this.$store.commit('mutate', {
+        property: 'currentNotice', 
+        with: arg.checkForUpdates.latestVersion
+    });
     
-    if (arg.checkForUpdates > 0) {
+    if (arg.checkForUpdates.updateAvailable === true) {
         vue_this.openDialog('UpdateAvailable', true);
-    } else {
+    } else if (arg.checkSilently === false) {
         vue_this.openDialog('NoUpdateAvailable', true);
     }
 });
@@ -519,32 +567,34 @@ function clearSelectedInterface() {
 
 /* END Debug COMMANDS */
 
-import HelloWorld from './components/HelloWorld';
+import Events from './components/Events';
 import FavoriteWorlds from './components/FavoriteWorlds';
 import Settings from './components/Settings';
 import News from './components/News';
 // Dialogs
 import CancelDownload from './components/Dialogs/CancelDownload'
+import CheckForUpdatesFailed from './components/Dialogs/CheckForUpdatesFailed'
 import DownloadComplete from './components/Dialogs/DownloadComplete'
 import DownloadFailed from './components/Dialogs/DownloadFailed'
-import LaunchFailedInterfaceRunning from './components/Dialogs/LaunchFailedInterfaceRunning'
-import NoInstallerFound from './components/Dialogs/NoInstallerFound'
-import LaunchOptions from './components/Dialogs/LaunchOptions'
-import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
+import FailedMetadata from './components/Dialogs/FailedMetadata'
+import FirstTimeUser from './components/Dialogs/FirstTimeUser'
 import InstallComplete from './components/Dialogs/InstallComplete'
 import InstallFailed from './components/Dialogs/InstallFailed'
-import WantToClose from './components/Dialogs/WantToClose'
-import CheckForUpdatesFailed from './components/Dialogs/CheckForUpdatesFailed'
+import LaunchFailedInterfaceRunning from './components/Dialogs/LaunchFailedInterfaceRunning'
+import LaunchOptions from './components/Dialogs/LaunchOptions'
+import NoInstallerFound from './components/Dialogs/NoInstallerFound'
+import NoInterfaceFound from './components/Dialogs/NoInterfaceFound'
+import NoInterfaceSelected from './components/Dialogs/NoInterfaceSelected'
 import NoUpdateAvailable from './components/Dialogs/NoUpdateAvailable'
 import ReportAnIssue from './components/Dialogs/ReportAnIssue'
+import SelectVersion from './components/Dialogs/SelectVersion'
 import UpdateAvailable from './components/Dialogs/UpdateAvailable'
-import FirstTimeUser from './components/Dialogs/FirstTimeUser'
-import FailedMetadata from './components/Dialogs/FailedMetadata'
+import WantToClose from './components/Dialogs/WantToClose'
 
 export default {
     name: 'App',
     components: {
-        HelloWorld,
+        Events,
         FavoriteWorlds,
         Settings,
         News,
@@ -556,18 +606,20 @@ export default {
         LaunchOptions,
         NoInstallerFound,
         NoInterfaceFound,
+        NoInterfaceSelected,
         InstallComplete,
         InstallFailed,
         WantToClose,
         CheckForUpdatesFailed,
         NoUpdateAvailable,
         ReportAnIssue,
+        SelectVersion,
         UpdateAvailable,
         FirstTimeUser,
         FailedMetadata
     },
     methods: {
-        openDialog: function(which, shouldShow) {
+        openDialog: function (which, shouldShow) {
             // We want to reset the element first.
             this.showDialog = "";
             this.shouldShowDialog = false;
@@ -581,7 +633,7 @@ export default {
             this.showDialog = "";
             this.shouldShowDialog = false;
         },
-		attemptLaunchInterface: function() {
+		attemptLaunchInterface: function (goto) {
 			// var exeLoc = ipcRenderer.sendSync('get-vircadia-location'); // todo: check if that location exists first when using that, we need to default to using folder path + /interface.exe otherwise.
             var exeLoc;
             
@@ -589,24 +641,37 @@ export default {
                 exeLoc = this.$store.state.selectedInterface.folder + "interface.exe";
             }
             
-            console.info("Attempting to launch interface, found exeLoc:",exeLoc);
+            console.info("Attempting to launch interface, found exeLoc:", exeLoc);
             
             if (exeLoc) {
-                this.launchInterface(exeLoc);
+                this.launchInterface (exeLoc, goto);
             } else {
-                // this.selectInterfaceExe();
-                // No, no more... we'll just default to selecting the first interface we find. You can select on your own time. UX baby.
-                ipcRenderer.invoke('get-interface-list-for-launch');
+                // Disable automatic selection of interfaces...
+                // ipcRenderer.invoke('get-interface-list-for-launch');
+                vue_this.openDialog('NoInterfaceSelected', true);
             }
 		},
-        launchInterface: function(exeLoc) {
-            ipcRenderer.send('launch-interface', { "exec": exeLoc, "customLaunchParameters": this.$store.state.customLaunchParameters, "noSteamVR": this.$store.state.noSteamVR, "noOculus": this.$store.state.noOculus, "allowMultipleInstances": this.$store.state.allowMultipleInstances, "autoRestartInterface": this.$store.state.autoRestartInterface, "dontPromptForLogin": this.$store.state.dontPromptForLogin });
+        launchInterface: function (exeLoc, goto) {
+            ipcRenderer.send('launch-interface', { 
+                "exec": exeLoc, 
+                "customPath": goto, 
+                "customLaunchParameters": this.$store.state.customLaunchParameters, 
+                "noSteamVR": this.$store.state.noSteamVR, 
+                "noOculus": this.$store.state.noOculus, 
+                "allowMultipleInstances": this.$store.state.allowMultipleInstances, 
+                "autoRestartInterface": this.$store.state.autoRestartInterface, 
+                "dontPromptForLogin": this.$store.state.dontPromptForLogin,
+                "launchAsChild": this.$store.state.launchAsChild
+            });
         },
-		launchBrowser: function(url) {
-			const { shell } = require('electron');
-			shell.openExternal(url);
-		},
-		downloadInterface: function() {
+        openURL: function (url) {
+            const { shell } = require('electron');
+            shell.openExternal(url);    
+        },
+        openInterfaceURL: function (url) {
+            this.attemptLaunchInterface(url);
+        },
+		downloadInterface: function () {
             this.disableDownloadButton = true;
             this.disableLaunchButton = true;
             
@@ -619,23 +684,24 @@ export default {
                 vue_this.openDialog('CancelDownload', true);
             }
 		},
-        installInterface: function() {
+        installInterface: function () {
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('install-vircadia');
         },
-        selectInterfaceExe: function() {
+        selectInterfaceExe: function () {
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('set-vircadia-location');
         },
-        checkForUpdates: function() {
+        checkForUpdates: function (checkSilently) {
             this.disableUpdateButton = true;
             this.disableLaunchButton = true;
-            
+
             const { ipcRenderer } = require('electron');
-            ipcRenderer.send('check-for-updates');            
+            ipcRenderer.send('check-for-updates', checkSilently);            
         },
         resetDownloadButton: function () {
             this.downloadText = "Download Interface";
+            this.isDownloading = false;
             this.isSilentInstalling = false;
             this.disableDownloadButton = false;
             this.showDownloadButton = true;
@@ -643,14 +709,21 @@ export default {
             this.showCloudIcon = true;
             this.disableLaunchButton = false;
         },
-        resetUpdateButton: function() {
+        resetUpdateButton: function () {
             this.downloadText = "Download Interface";
+            this.isDownloading = false;
             this.isSilentInstalling = false;
             this.disableDownloadButton = false;
             this.showDownloadButton = false;
             this.showUpdateButton = true;
             this.showCloudIcon = true;
             this.disableLaunchButton = false;
+        },
+        onStateLoaded: function () {
+            // Disable for now because there's some issue with fs.readFileSync returning the wrong data if performed at the same time as another readFileSync?
+            // if (this.$store.state.selectedInterface) {
+            //     this.checkForUpdates(true);
+            // }
         }
 	},
     created: function () {
@@ -687,10 +760,17 @@ export default {
         },
         watchStoreAndData (newVal, oldVal) {
             document.querySelector("#development-output").innerText = newVal;
+        },
+        showTab (newVal, oldVal) {
+            if (newVal == null) {
+                this.showTab = this.defaultTab;
+            }
         }
     },
     data: () => ({
-        showTab: 'News',
+        showTab: 'Events', // Filling this in sets the default tab to show on startup.
+        defaultTab: 'Events', // The default tab to go to when a user toggles off another.
+        disableEventsTab: false,
         titleHover: false,
         isDevelopment: false,
         // Dialog Data

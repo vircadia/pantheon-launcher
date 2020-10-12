@@ -24,8 +24,10 @@
             </v-card-title>
     
             <v-card-text>
-                There is currently no update available. <br />
-                Would you like to reinstall your Interface?
+                There is currently no update available.
+                <pre>Current Version: {{ this.$store.state.selectedInterface.name }}</pre>
+                <pre>Latest Version: {{ this.$store.state.currentNotice }}</pre>
+                Would you like to reinstall Vircadia?
             </v-card-text>
     
             <v-divider></v-divider>

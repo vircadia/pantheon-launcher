@@ -14,30 +14,45 @@
 // import { init } from '@sentry/electron/dist/main';
 // init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
 
-import { app, protocol, BrowserWindow, DownloadItem } from 'electron'
+import { app, protocol, BrowserWindow, DownloadItem } from 'electron';
 import {
 	installVueDevtools,
 	createProtocol,
-} from 'vue-cli-plugin-electron-builder/lib'
-import path from 'path'
+} from 'vue-cli-plugin-electron-builder/lib';
+import path from 'path';
 const forceDevelopment = false;
 const isDevelopment = forceDevelopment === true || process.env.NODE_ENV !== 'production';
 const storage = require('electron-json-storage');
-const { shell } = require('electron')
+const { shell } = require('electron');
+const { dialog } = require('electron');
 const electronDl = require('electron-dl');
-const { readdirSync } = require('fs')
+const { readdirSync } = require('fs');
 const { forEach } = require('p-iteration');
 const hasha = require('hasha');
 const fs = require('fs');
 const compareVersions = require('compare-versions');
 const tasklist = require('tasklist'); // This is specific to Windows.
-var glob = require('glob');
+// For tasklist to work correctly on some systems...
+process.env.PATH = 'C:\\Windows\\System32;' + process.env.PATH;
+const isAdmin = require('is-admin');
+const glob = require('glob');
 const cp = require('child_process');
+const log = require('electron-log');
 // electron_modules
-import * as versionPaths from './electron_modules/versionPaths.js'
+import * as versionPaths from './electron_modules/versionPaths.js';
+import * as migrateLauncher from './electron_modules/migrateLauncher.js';
+
+Object.assign(console, log.functions);
 
 electronDl();
 var electronDlItem = null;
+
+// Universal Variables and Consts
+var CDN_URL = 'https://cdn.vircadia.com';
+var CDN_EVENTS_FILENAME = 'vircadiaEvents.json';
+var CDN_METADATA_FILENAME = 'vircadiaMeta.json'
+
+var LAUNCHER_ICON = path.join(__static, '/resources/logo_launcher_256_256.ico');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -51,11 +66,12 @@ function createWindow () {
 	win = new BrowserWindow({ 
 		width: 1000, 
 		height: 800, 
-		icon: path.join(__static, '/resources/logo_256_256.ico'), 
+		icon: LAUNCHER_ICON, 
 		resizable: false,
 		webPreferences: {
 			nodeIntegration: true,
 			devTools: true,
+            // webSecurity: false
 		} 
 	})
 
@@ -65,7 +81,6 @@ function createWindow () {
     } else {
         win.setMenu(null);
     }
-	
 
 	if (process.env.WEBPACK_DEV_SERVER_URL) {
 		// Load the url of the dev server if in development mode
@@ -81,6 +96,10 @@ function createWindow () {
     	win = null
 	})
 }
+
+// This stops CORS from getting in the way...
+// app.commandLine.appendSwitch('disable-site-isolation-trials');
+// app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -141,6 +160,12 @@ var storagePath = {
 	interfaceSettings: null,
 	currentLibrary: null,
 };
+
+// var needsLauncherMigration = migrateLauncher.detectOldDataPath("VircadiaLauncher", app.name, storagePath.default);
+// 
+// if (needsLauncherMigration) {
+//     migrateLauncher.moveInstalls(needsLauncherMigration, storagePath.default);
+// }
 
 var currentInterface;
 var requireInterfaceSelection;
@@ -297,13 +322,13 @@ function setLibraryDialog() {
 //     }
 // }
 
-async function getLatestMetaJSON() {
-	var metaURL = 'https://cdn.vircadia.com/dist/launcher/vircadiaMeta.json';
+async function getCDNMetaJSON() {
+	var metaURL = CDN_URL + '/dist/launcher/' + CDN_METADATA_FILENAME;
 		
 	await electronDl.download(win, metaURL, {
 		directory: storagePath.default,
 		showBadge: false,
-		filename: "vircadiaMeta.json",
+		filename: CDN_METADATA_FILENAME,
         // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
         // downloadItem to check which download is progressing.
         onStarted: downloadItem => {
@@ -323,7 +348,7 @@ async function getLatestMetaJSON() {
         }
 	});
 	
-	var vircadiaMetaFile = storagePath.default + '/vircadiaMeta.json';
+	var vircadiaMetaFile = storagePath.default + '/' + CDN_METADATA_FILENAME;
 	let rawdata = fs.readFileSync(vircadiaMetaFile);
 	let vircadiaMetaJSON = JSON.parse(rawdata);
 	
@@ -336,49 +361,88 @@ async function getLatestMetaJSON() {
 	}
 }
 
+async function getCDNEventsJSON() {
+	var eventsURL = CDN_URL + '/dist/launcher/' + CDN_EVENTS_FILENAME;
+		
+	await electronDl.download(win, eventsURL, {
+		directory: storagePath.default,
+		showBadge: false,
+		filename: CDN_EVENTS_FILENAME,
+        // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
+        // downloadItem to check which download is progressing.
+        onStarted: downloadItem => {
+            electronDlItem = downloadItem;
+        },
+		onProgress: currentProgress => {
+			var percent = currentProgress.percent;
+            if (electronDlItem && electronDlItem.getURL() === eventsURL) {
+                if (percent === 1) {
+                    electronDlItem = null;
+                }
+                // console.info("DLing events:", percent);
+            }
+		},
+        onCancel: downloadItem => {
+            electronDlItem = null;
+        }
+	});
+	
+	var vircadiaEventsFile = storagePath.default + '/' + CDN_EVENTS_FILENAME;
+	let rawdata = fs.readFileSync(vircadiaEventsFile);
+	let vircadiaEventsJSON = JSON.parse(rawdata);
+	
+	if (vircadiaEventsJSON) {
+		console.info("Vircadia Events JSON:", vircadiaEventsJSON);
+		return vircadiaEventsJSON;
+	} else {
+        console.error("Failed to download Vircadia Events JSON.");
+		return false;
+	}
+}
+
 async function checkForInterfaceUpdates() {
-	var vircadiaMeta = await getLatestMetaJSON();
+	var vircadiaMeta = await getCDNMetaJSON();
     // var interfacePackage = await getCurrentInterfaceJSON();
     storagePath.interfaceSettings = storagePath.interfaceSettings.replace("//launcher_settings", "");
     storagePath.interfaceSettings = storagePath.interfaceSettings.replace("\\/launcher_settings", "");
-    var interfacePackage = { package: versionPaths.fromPath(storagePath.interfaceSettings) };
-    console.info("interfacePackage.package", interfacePackage.package);
-    
-    if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.package.version) {
-        var versionCompare = compareVersions(vircadiaMeta.latest.version, interfacePackage.package.version);
-        console.info("Compare Versions: ", versionCompare);
+    var interfacePackage = versionPaths.fromPath(storagePath.interfaceSettings);
+    var cleanedLocalMeta = interfacePackage.version.replace(/_/g, '-');
+    console.info("interfacePackage", interfacePackage);
+    console.info("vircadiaMeta", vircadiaMeta);
+
+    if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.version) {
+        var versionCompare = compareVersions(vircadiaMeta.latest.version, cleanedLocalMeta);
+        console.info("Compare Versions:", versionCompare);
         if (versionCompare == 1) {
-            return 1; // An update is available.
+            return { "updateAvailable": true, "latestVersion": vircadiaMeta.latest.version };
         } else {
             // Version check failed, interface is either equal to or above the server's version.
-            return -1;
+            return { "updateAvailable": false, "latestVersion": vircadiaMeta.latest.version };
         }
     } else {
         // Failed to retrieve either or both the server meta and interface meta .JSON files.
-        return -1;
+        return { "updateAvailable": false, "latestVersion": null };
     }
 }
 
-async function checkForUpdates() {
-    var checkPrereqs = await checkRunningApps();
-    console.info(checkPrereqs)
-    if (checkPrereqs.sandbox === true) {
-        win.webContents.send('check-for-updates-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
-        return;
-    }
+async function isRunningAsAdministrator() {
+    var requestIsAdmin = await isAdmin();
     
-    if (checkPrereqs.interface === true) {
-        win.webContents.send('check-for-updates-failed', { "message": 'An instance of Interface is running. Please close it before proceeding.' });
-        return;
+    if (requestIsAdmin) {
+        return true;
+    } else {
+        return false;
     }
-    
+}
+
+async function checkForUpdates(checkSilently) {
     if (storagePath.interfaceSettings) {
         // This means to update because an interface exists and is selected.
         console.info("Checking for updates.");
         var checkForUpdates = await checkForInterfaceUpdates();
         if (checkForUpdates != null) {
             // Return with the URL to download or false if not.
-            win.webContents.send('checked-for-updates', { checkForUpdates }); 
+            win.webContents.send('checked-for-updates', { checkForUpdates, "checkSilently": checkSilently }); 
         }
     }
 }
@@ -402,7 +466,7 @@ async function checkRunningApps() {
 }
 
 async function getDownloadURL() {
-    var metaJSON = await getLatestMetaJSON();
+    var metaJSON = await getCDNMetaJSON();
     if (metaJSON) {
         return metaJSON.latest.url;
     } else {
@@ -455,7 +519,7 @@ ipcMain.on('load-state', (event, arg) => {
             if (results.sentryEnabled === true) {
                 init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
             }
-            
+            console.info("Loaded state:", results);
             win.webContents.send('state-loaded', {
                 results
             });
@@ -480,6 +544,13 @@ ipcMain.on('launch-interface', async (event, arg) => {
     var executablePath = arg.exec;
     var parameters = [];
     var canLaunch = true;
+    var isPathSet = false;
+    
+    if (arg.customPath) {
+        isPathSet = true;
+        // var convertProtocol = arg.customPath.replace("hifi://", "http://")
+        parameters.push('--url "' + arg.customPath + '"');
+    }
     
     if (arg.customLaunchParameters) {
         var splitParameters = arg.customLaunchParameters.split(",");
@@ -488,12 +559,17 @@ ipcMain.on('launch-interface', async (event, arg) => {
     
     if (arg.allowMultipleInstances) {
         parameters.push('--allowMultipleInstances');
-    } else {
+    } else { // If a link is being opened, don't warn as we may be trying to send to the current interface running.
         var list = await tasklist();
         list.forEach((task) => {
             if (task.imageName === "interface.exe") {
                 console.log("INTERFACE ALREADY RUNNING WHILE ATTEMPTING TO LAUNCH!");
-                win.webContents.send("launch-interface-already-running");
+                if (isPathSet === true) {
+                    console.log("A goto URL was set, we will redirect this to the operating system.");
+                    shell.openExternal(arg.customPath);
+                } else {
+                    win.webContents.send("launch-interface-already-running");
+                }
                 canLaunch = false;
             }
         });
@@ -518,7 +594,7 @@ ipcMain.on('launch-interface', async (event, arg) => {
         parameters.push('--disable-inputs="OpenVR (Vive),Oculus Rift"');
     }
     
-    if (arg.autoRestartInterface) {
+    if (arg.autoRestartInterface && arg.launchAsChild) {
         parameters.push('--suppress-settings-reset');
     }
     
@@ -531,10 +607,13 @@ ipcMain.on('launch-interface', async (event, arg) => {
     
     // TODO: Add "QUANTUM_K3_INSTAQUIT" environment variable.
 	
-    console.info("Nani?", parameters, "type?", Array.isArray(parameters));
-    
-    launchInterface(executablePath, parameters, arg.autoRestartInterface);
-  
+    console.info("Parameters:", parameters, "type:", Array.isArray(parameters));
+    console.info("arg.launchAsChild", arg.launchAsChild);
+    if (arg.launchAsChild) {
+        launchInterface(executablePath, parameters, arg.autoRestartInterface);
+    } else {
+        launchInterfaceDetached(executablePath, parameters);
+    }
 })
 
 function launchInterface(executablePath, parameters, autoRestartInterface) {
@@ -549,6 +628,229 @@ function launchInterface(executablePath, parameters, autoRestartInterface) {
         }
     });
 }
+
+function launchInterfaceDetached(executablePath, parameters) {
+    // All arguments that have or may have spaces should be wrapped in ""
+    win.webContents.send('launching-interface');
+    var appPathSplit = app.getPath('exe').split('\\');
+    var appPathCleaned = appPathSplit.slice(0, appPathSplit.length - 1).join('\\');
+    var pathToLaunch = appPathCleaned + "\\bat\\launcher.bat";
+    console.info("pathToLaunch:", pathToLaunch);
+    // console.info(dialog.showMessageBox({ message: pathToLaunch }))
+    
+    parameters = parameters.join(' '); // ['--arg1=""', '--arg2=""'] -> '--arg1="" --arg2=""'
+    parameters = parameters.split(' ').join('#20'); // convert spaces to #20
+    parameters = parameters.split('"').join('#40'); // convert " to #40
+    parameters = parameters.split('=').join('#60'); // convert = to #60
+    parameters = parameters.split(',').join('#80'); // convert , to #60
+    console.info("Detached Launch PARAMETERS:", parameters);
+    executablePath = '"' + executablePath + '"';
+    // console.info(dialog.showMessageBox({ message: parameters }))
+    pathToLaunch = '"' + pathToLaunch + '"';
+    
+    var interface_exe = require('child_process').spawn;
+    var launcherBat = interface_exe(pathToLaunch, [executablePath, parameters], {
+        windowsVerbatimArguments: true,
+        shell: true
+    });
+    
+    launcherBat.stdout.on('data', function (data) {
+        console.log('launcherBatOut: ' + data);
+        // console.info(dialog.showMessageBox({ message: 'launcherBatOut: ' + data }))
+    });
+    
+    launcherBat.stderr.on('data', function (data) {
+        console.log('launcherBatErr: ' + data);
+        // console.info(dialog.showMessageBox({ message: 'launcherBatErr: ' + data }))
+    });
+    
+    launcherBat.on('exit', function (code) {
+        console.log('child process exited with code ' + code);
+    });
+}
+
+var installer_exe = cp.execFile;
+
+function launchInstaller() {
+    getSetting('vircadia_interface.library', storagePath.default).then(function (libPath) {
+        var executablePath = libPath + "/Vircadia_Setup_Latest.exe";
+        var installPath = libPath + "/Vircadia_Interface_Latest";
+        var parameters = [""];
+
+        if (!fs.existsSync(executablePath)) {
+            // Notify main window of the issue.
+            win.webContents.send('no-installer-found');
+            return;
+        }
+
+        console.info("Installing, params:", executablePath, installPath, parameters)
+
+        installer_exe(executablePath, parameters, function (err, data) {
+            console.log(err)
+            console.log(data.toString());
+        });
+    });
+}
+
+async function silentInstall(useOldInstaller) {
+    var vircadiaMetaJSON = await getCDNMetaJSON();
+    var executableLocation; // This is the downloaded installer.
+    var installPath; // This is the location to install the application to.
+    var installFolderName = "\\" + versionPaths.toPath(vircadiaMetaJSON.latest) + "\\";
+    console.info("silentInstall: installFolderName:", installFolderName);
+    var executablePath; // This is the location that the installer exe is located in after being downloaded.
+    var exeLocToInstall; // This is what gets installed.
+    var checkPrereqs = await checkRunningApps();
+    var isAdmin = await isRunningAsAdministrator();
+
+    if (checkPrereqs.sandbox === true) {
+        win.webContents.send('silent-installer-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
+        return;
+    }
+    
+    if (checkPrereqs.interface === true) {
+        win.webContents.send('silent-installer-failed', { "message": 'An instance of Interface is running, please close it before proceeding.' });
+        return;
+    }
+    
+    if (!isAdmin) {
+        win.webContents.send('silent-installer-failed', { "message": 'You need to run the launcher as an administrator to continue.', "code": -1 });
+        return;
+    }
+    
+    getSetting('vircadia_interface.library', storagePath.default).then(function (libPath) {    
+        if (libPath) {
+            executableLocation = libPath + "/Vircadia_Setup_Latest.exe";
+            installPath = libPath + installFolderName;
+            executablePath = libPath;
+        } else {
+            executableLocation = storagePath.default + "/Vircadia_Setup_Latest.exe";
+            installPath = storagePath.default + installFolderName;
+            executablePath = storagePath.default;
+        }
+        
+        var parameters = [];
+        
+        parameters.push("/S");
+        parameters.push("/D=" + installPath);
+        
+        if (useOldInstaller === true) {
+            exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
+        } else {
+            if (!fs.existsSync(executableLocation)) {
+                // Notify main window of the issue.
+                win.webContents.send('no-installer-found');
+                return;
+            } else {
+                console.info("exeLoc:", executableLocation);
+                console.info("exePath:", executablePath);
+                
+                fs.copyFileSync(executableLocation, executablePath + "/Vircadia_Setup_Latest_READY.exe", (err) => {
+                    if (err) console.log('ERROR ON COPY: ' + err);
+                    console.log('Completed copy operation successfully.');
+                });
+                
+                fs.unlink(executableLocation, (err) => {
+                    if (err) console.log('ERROR ON ORIGINAL INSTALLER DELETE: ' + err);
+                    console.info(executableLocation, 'was deleted after copying.');
+                });
+                
+                exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
+            }
+        }
+        
+        win.webContents.send('silent-installer-running');
+        console.info("Installing silently, params:", exeLocToInstall, installPath, parameters)
+
+        try { 
+            installer_exe(exeLocToInstall, parameters, { windowsVerbatimArguments: true }, function (err, data) {
+                console.log(err)
+                console.log(data.toString());
+                
+                // On installer exit...
+                if (err) {
+                    console.info("Installation failed.");
+                    var errorMessage;
+                    
+                    if (err.code === "EACCES") {
+                        errorMessage = "Please run the launcher as an administrator to continue.";
+                    } else {
+                        if (err.code === 2) {
+                            errorMessage = "An instance of Interface is running, please close it before proceeding.";
+                        } else {
+                            errorMessage = "An error has occurred.";                
+                        }
+                    }
+                    
+                    win.webContents.send('silent-installer-failed', { 
+                        "message": errorMessage, 
+                        "code": err.code, 
+                        "fullerr": err 
+                    });
+                } else {
+                    console.info("Installation complete.");
+                    console.info("Running post-install.");
+                    // postInstall();
+                    win.webContents.send('silent-installer-complete', {
+                        "name": vircadiaMetaJSON.latest.name,
+                        "folder": installPath,
+                    });
+                }
+            });
+        } catch (e) {
+            console.info("Try block: Silent installation failed.")
+            var errorMessage = "An error has occurred: " + e;
+            win.webContents.send('silent-installer-failed', { "message": errorMessage });
+        }
+        
+    }).catch(function(e) {
+        console.info("Failed to fetch library for silent install. Error:", e);
+        var errorMessage = "An error has occurred: " + e;
+        win.webContents.send('silent-installer-failed', { "message": errorMessage, "fullerr": e });
+    });
+}
+
+// TODO: Fix this LATER, it's unacceptable.
+
+// async function postInstall() {
+//     getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
+//         var installPath;
+//         var vircadiaMetaJSON = await getCDNMetaJSON();
+//         var vircadiaPackageJSON = 
+//         {
+//             "package": {
+//                 "name": vircadiaMetaJSON.latest.name,
+//                 "version": vircadiaMetaJSON.latest.version
+//             }
+//         };
+// 
+//         if (libPath) {
+//             installPath = libPath + installFolderName;
+//         } else {
+//             installPath = storagePath.default + installFolderName;
+//         }
+// 
+//         var packageJSONLocation = installPath + "/launcher_settings";
+//         var packageJSONFilename = installPath + "/launcher_settings/interface_package.json";
+// 
+//         try {
+//             fs.mkdirSync(packageJSONLocation, { recursive: true });
+//             fs.writeFileSync(packageJSONFilename, JSON.stringify(vircadiaPackageJSON));
+//         } catch {
+//             win.webContents.send('silent-installer-failed', { "message": 'Failed to create Interface metadata post-install.' });
+//             return;
+//         }
+// 
+//         var postInstallPackage = {
+//             "name": vircadiaMetaJSON.latest.name,
+//             "folder": installPath,
+//         }
+// 
+//         win.webContents.send('silent-installer-complete', postInstallPackage);
+//     }).catch(function(e) {
+//         console.info("Failed to fetch library for post install. Error:", e);
+//     });
+// }
 
 ipcMain.on('get-vircadia-location', async (event, arg) => {
     var vircadiaLocation = await getSetting('vircadia_interface.location', storagePath.interfaceSettings);
@@ -662,191 +964,32 @@ ipcMain.handle('get-interface-list-for-launch', async (event, arg) => {
 	// });
 })
 
-
-var installer_exe = cp.execFile;
-
-function launchInstaller() {
-    getSetting('vircadia_interface.library', storagePath.default).then(function (libPath) {
-        var executablePath = libPath + "/Vircadia_Setup_Latest.exe";
-        var installPath = libPath + "/Vircadia_Interface_Latest";
-        var parameters = [""];
-
-        if (!fs.existsSync(executablePath)) {
-            // Notify main window of the issue.
-            win.webContents.send('no-installer-found');
-            return;
-        }
-
-        console.info("Installing, params:", executablePath, installPath, parameters)
-
-        installer_exe(executablePath, parameters, function (err, data) {
-            console.log(err)
-            console.log(data.toString());
-        });
-    });
-}
-
-async function silentInstall(useOldInstaller) {
-    var vircadiaMetaJSON = await getLatestMetaJSON();
-    var executableLocation; // This is the downloaded installer.
-    var installPath; // This is the location to install the application to.
-    var installFolderName = "\\" + versionPaths.toPath(vircadiaMetaJSON.latest) + "\\";
-    console.info("silentInstall: installFolderName:", installFolderName);
-    var executablePath; // This is the location that the installer exe is located in after being downloaded.
-    var exeLocToInstall; // This is what gets installed.
+ipcMain.on('download-vircadia', async (event, arg) => {
+    var libraryPath;
+    var downloadURL = await getDownloadURL();
+    var vircadiaMetaJSON = await getCDNMetaJSON();
+    var isAdmin = await isRunningAsAdministrator();
     var checkPrereqs = await checkRunningApps();
-
+    var installerName = "Vircadia_Setup_Latest.exe";
+    var installerNamePost = "Vircadia_Setup_Latest_READY.exe";
+    console.info("DLURL:", downloadURL);
+    console.info(checkPrereqs)
+    
     if (checkPrereqs.sandbox === true) {
-        win.webContents.send('silent-installer-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
+        win.webContents.send('download-installer-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
         return;
     }
     
     if (checkPrereqs.interface === true) {
-        win.webContents.send('silent-installer-failed', { "message": 'An instance of Interface is running, please close it before proceeding.' });
+        win.webContents.send('download-installer-failed', { "message": 'An instance of Interface is running. Please close it before proceeding.' });
         return;
     }
     
-    getSetting('vircadia_interface.library', storagePath.default).then(function (libPath) {    
-        if (libPath) {
-            executableLocation = libPath + "/Vircadia_Setup_Latest.exe";
-            installPath = libPath + installFolderName;
-            executablePath = libPath;
-        } else {
-            executableLocation = storagePath.default + "/Vircadia_Setup_Latest.exe";
-            installPath = storagePath.default + installFolderName;
-            executablePath = storagePath.default;
-        }
-        
-        var parameters = [];
-        
-        parameters.push("/S");
-        parameters.push("/D=" + installPath);
-        
-        if (useOldInstaller === true) {
-            exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
-        } else {
-            if (!fs.existsSync(executableLocation)) {
-                // Notify main window of the issue.
-                win.webContents.send('no-installer-found');
-                return;
-            } else {
-                console.info("exeLoc:", executableLocation);
-                console.info("exePath:", executablePath);
-                
-                fs.copyFileSync(executableLocation, executablePath + "/Vircadia_Setup_Latest_READY.exe", (err) => {
-                    if (err) console.log('ERROR ON COPY: ' + err);
-                    console.log('Completed copy operation successfully.');
-                });
-                
-                fs.unlink(executableLocation, (err) => {
-                    if (err) console.log('ERROR ON ORIGINAL INSTALLER DELETE: ' + err);
-                    console.info(executableLocation, 'was deleted after copying.');
-                });
-                
-                exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
-            }
-        }
-        
-        win.webContents.send('silent-installer-running');
-        console.info("Installing silently, params:", exeLocToInstall, installPath, parameters)
-
-        try { 
-            installer_exe(exeLocToInstall, parameters, { windowsVerbatimArguments: true }, function (err, data) {
-                console.log(err)
-                console.log(data.toString());
-                
-                // On installer exit...
-                if (err) {
-                    console.info("Installation failed.");
-                    var errorMessage;
-                    
-                    if (err.code === "EACCES") {
-                        errorMessage = "Please run the launcher as an administrator to continue.";
-                    } else {
-                        if (err.code === 2) {
-                            errorMessage = "An instance of Interface is running, please close it before proceeding.";
-                        } else {
-                            errorMessage = "An error has occurred.";                
-                        }
-                    }
-                    
-                    win.webContents.send('silent-installer-failed', { 
-                        "message": errorMessage, 
-                        "code": err.code, 
-                        "fullerr": err 
-                    });
-                } else {
-                    console.info("Installation complete.");
-                    console.info("Running post-install.");
-                    // postInstall();
-                    win.webContents.send('silent-installer-complete', {
-                        "name": vircadiaMetaJSON.latest.name,
-                        "folder": installPath,
-                    });
-                }
-            });
-        } catch (e) {
-            console.info("Try block: Silent installation failed.")
-            var errorMessage = "An error has occurred: " + e;
-            win.webContents.send('silent-installer-failed', { "message": errorMessage });
-        }
-        
-    }).catch(function(e) {
-        console.info("Failed to fetch library for silent install. Error:", e);
-        var errorMessage = "An error has occurred: " + e;
-        win.webContents.send('silent-installer-failed', { "message": errorMessage, "fullerr": e });
-    });
-}
-
-// TODO: Fix this LATER, it's unacceptable.
-
-// async function postInstall() {
-//     getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
-//         var installPath;
-//         var vircadiaMetaJSON = await getLatestMetaJSON();
-//         var vircadiaPackageJSON = 
-//         {
-//             "package": {
-//                 "name": vircadiaMetaJSON.latest.name,
-//                 "version": vircadiaMetaJSON.latest.version
-//             }
-//         };
-// 
-//         if (libPath) {
-//             installPath = libPath + installFolderName;
-//         } else {
-//             installPath = storagePath.default + installFolderName;
-//         }
-// 
-//         var packageJSONLocation = installPath + "/launcher_settings";
-//         var packageJSONFilename = installPath + "/launcher_settings/interface_package.json";
-// 
-//         try {
-//             fs.mkdirSync(packageJSONLocation, { recursive: true });
-//             fs.writeFileSync(packageJSONFilename, JSON.stringify(vircadiaPackageJSON));
-//         } catch {
-//             win.webContents.send('silent-installer-failed', { "message": 'Failed to create Interface metadata post-install.' });
-//             return;
-//         }
-// 
-//         var postInstallPackage = {
-//             "name": vircadiaMetaJSON.latest.name,
-//             "folder": installPath,
-//         }
-// 
-//         win.webContents.send('silent-installer-complete', postInstallPackage);
-//     }).catch(function(e) {
-//         console.info("Failed to fetch library for post install. Error:", e);
-//     });
-// }
-
-ipcMain.on('download-vircadia', async (event, arg) => {
-    var libraryPath;
-    var downloadURL = await getDownloadURL();
-    var vircadiaMetaJSON = await getLatestMetaJSON();
-    var installerName = "Vircadia_Setup_Latest.exe";
-    var installerNamePost = "Vircadia_Setup_Latest_READY.exe";
-    console.info("DLURL:", downloadURL);
+    if (!isAdmin) {
+        console.info("isAdmin", isAdmin);
+        win.webContents.send('download-installer-failed', { "message": 'You need to run the launcher as an administrator to continue.', "code": -1 });
+        return;
+    }
     
     if (downloadURL) {
         getSetting('vircadia_interface.library', storagePath.default).then(function(results){
@@ -922,6 +1065,15 @@ ipcMain.on('uninstall-interface', (event, folder) => {
     require('child_process').execFile(uninstallExec);
 });
 
+ipcMain.on('launch-sandbox', (event, folder) => {
+    var sandboxExec = folder + "server-console/" + "server-console.exe";
+    console.info("[sandbox] launching: ", sandboxExec);
+    var sandbox_exe = require('child_process').spawn;
+    var runSandbox = sandbox_exe(sandboxExec, [], {
+        detached: true
+    });
+});
+
 ipcMain.on('cancel-download', async (event) => {
     if (electronDlItem) {
         electronDlItem.cancel();
@@ -938,7 +1090,12 @@ ipcMain.on('install-vircadia', (event, arg) => {
 // TODO: When a new version is downloaded and installed, the old version is no
 //       longer overwritten. What should we do about this?
 ipcMain.on('check-for-updates', (event, arg) => {
-    checkForUpdates();
+    checkForUpdates(arg);
+});
+
+ipcMain.on('check-for-events', async (event, arg) => {
+    var fetchEvents = await getCDNEventsJSON();
+    win.webContents.send('events-list', fetchEvents);
 });
 
 // TODO: Ensure this is working effectively to most users.
@@ -948,7 +1105,7 @@ ipcMain.on('request-close', async (event, arg) => {
     
     list.forEach((task) => {
         if (task.imageName === "interface.exe") {
-            console.log("Interface.exe found.");
+            console.log("Interface.exe found to be running.");
             canClose = false;
         }
     });
@@ -958,6 +1115,28 @@ ipcMain.on('request-close', async (event, arg) => {
     } else {
         app.exit();
     }
+});
+
+ipcMain.on('request-launcher-as-admin', async (event, arg) => {
+    var appPathSplit = app.getPath('exe').split('\\');
+    var appPathCleaned = appPathSplit.slice(0, appPathSplit.length - 1).join('\\');
+    
+    var pathToLauncher = appPathCleaned + '\\Vircadia Launcher.exe';
+    var pathToElevator = '"' + appPathCleaned + '\\resources\\elevate.exe' + '"';
+    var launchParameter = '-k "' + pathToLauncher + '"';
+    var interface_exe = require('child_process').spawn;
+    
+    // console.info(dialog.showMessageBox({ message: pathToElevator }))
+    // console.info(dialog.showMessageBox({ message: launchParameter }))
+    // console.info(dialog.showMessageBox({ message: appPathCleaned }))
+    
+    var elevateExe = interface_exe(pathToElevator, [launchParameter], {
+        windowsVerbatimArguments: true,
+        shell: true,
+        detached: true
+    });
+    
+    app.exit();
 });
 
 ipcMain.on('close-launcher', (event, arg) => {
