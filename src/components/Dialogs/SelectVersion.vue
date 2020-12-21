@@ -1,7 +1,7 @@
 <!--
 //  SelectVersion.vue
 //
-//  Created by KasenVR on 15 June 2020.
+//  Created by Kalila L. on 15 June 2020.
 //  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -123,7 +123,6 @@
         </v-card>
     </v-dialog>
 </template>
-
 
 <script>
 const { ipcRenderer } = require('electron');

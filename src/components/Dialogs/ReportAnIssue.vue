@@ -1,7 +1,7 @@
 <!--
 //  ReportAnIssue.vue
 //
-//  Created by KasenVR on 19 May 2020.
+//  Created by Kalila L. on 19 May 2020.
 //  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -39,13 +39,13 @@
                 <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    @click="reportAnIssue('https://github.com/kasenvr/pantheon-launcher/issues'); $emit('hideDialog')"
+                    @click="reportAnIssue('https://github.com/vircadia/pantheon-launcher/issues'); $emit('hideDialog')"
                 >
                     Launcher
                 </v-btn>
                 <v-btn
                     color="primary"
-                    @click="reportAnIssue('https://github.com/kasenvr/project-athena/issues'); $emit('hideDialog')"
+                    @click="reportAnIssue('https://github.com/vircadia/vircadia/issues'); $emit('hideDialog')"
                 >
                     Interface
                 </v-btn>
