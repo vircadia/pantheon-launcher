@@ -24,7 +24,7 @@
             </v-card-title>
     
             <v-card-text>
-                The latest version of Interface is done installing! <br />
+                The latest version of Vircadia is done installing! <br />
                 You can now launch it.
             </v-card-text>
     

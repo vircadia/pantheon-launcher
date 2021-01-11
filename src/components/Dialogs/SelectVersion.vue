@@ -1,7 +1,7 @@
 <!--
 //  SelectVersion.vue
 //
-//  Created by KasenVR on 15 June 2020.
+//  Created by Kalila L. on 15 June 2020.
 //  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -55,7 +55,7 @@
                         slot="icon"
                         size="36"
                     >
-                        mdi-cube
+                        mdi-play
                     </v-icon>
                     <p class="font-weight-thin">Currently selected</p>
                     {{ selectedInterface }}
@@ -65,32 +65,38 @@
                     v-if="interfaceFolders.length > 0" 
                     style="background-color: red-darken-4"
                 >
-                    <v-list-item
+                    <template 
                         v-for="(item, i) in interfaceFolders"
-                        :key="i"
                     >
-                        <v-list-item-content @click="selectInterface(item)">
-                            <v-list-item-title v-html="item.name"></v-list-item-title>
-                            <v-list-item-subtitle v-html="item.version"></v-list-item-subtitle>
-                            
-                        </v-list-item-content>
-                        <v-tooltip left>
-                            <template v-slot:activator="{ on }">
-                                <v-btn icon v-on="on" @click="launchSandbox(item)">
-                                    <v-icon large color="blue">mdi-cube</v-icon>
-                                </v-btn>
-                            </template>
-                            <span>Server Sandbox</span>
-                        </v-tooltip>
-                        <v-tooltip left>
-                            <template v-slot:activator="{ on }">
-                                <v-btn icon v-on="on" @click="uninstallInterface(item)">
-                                    <v-icon large color="red">mdi-delete-circle</v-icon>
-                                </v-btn>
-                            </template>
-                            <span>Uninstall Vircadia</span>
-                        </v-tooltip>
-                    </v-list-item>
+                        <v-divider
+                            :key="i"
+                        ></v-divider>
+                        <v-list-item
+                            :key="i"
+                        >
+                            <v-list-item-content @click="selectInterface(item)">
+                                <v-list-item-title v-html="item.name"></v-list-item-title>
+                                <v-list-item-subtitle v-html="item.version"></v-list-item-subtitle>
+                                
+                            </v-list-item-content>
+                            <v-tooltip left>
+                                <template v-slot:activator="{ on }">
+                                    <v-btn icon v-on="on" @click="launchSandbox(item)">
+                                        <v-icon large color="blue">mdi-cube</v-icon>
+                                    </v-btn>
+                                </template>
+                                <span>Server Sandbox</span>
+                            </v-tooltip>
+                            <v-tooltip left>
+                                <template v-slot:activator="{ on }">
+                                    <v-btn icon v-on="on" @click="uninstallInterface(item)">
+                                        <v-icon large color="red">mdi-delete-circle</v-icon>
+                                    </v-btn>
+                                </template>
+                                <span>Uninstall Vircadia</span>
+                            </v-tooltip>
+                        </v-list-item>
+                    </template>
                 </v-list-item-group>
                 
                 <v-list-item-group v-else v-model="interfaceFoldersIndex" color="primary">
@@ -117,7 +123,6 @@
         </v-card>
     </v-dialog>
 </template>
-
 
 <script>
 const { ipcRenderer } = require('electron');

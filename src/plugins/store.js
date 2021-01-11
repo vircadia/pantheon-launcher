@@ -16,28 +16,32 @@ Vue.use(Vuex);
 export const store = new Vuex.Store({
     devtools: true,
     state: {
+        appVersion: process.env.VUE_APP_VERSION,
+        darkMode: true,
         sentryEnabled: false,
         selectedInterface: null,
         interfaceSelectionRequired: true,
-        metaverseServer: "",
+        metaverseServer: 'https://metaverse.vircadia.com/live',
         populatedInterfaceList: [],
+        pendingGoto: null,
+        downloadOnNextLaunch: false,
         // Launch Parameters
-        customLaunchParameters: "",
+        customLaunchParameters: '',
         allowMultipleInstances: false,
         noSteamVR: false,
         noOculus: false,
         dontPromptForLogin: false,
         launchAsChild: false,
         autoRestartInterface: false,
+        shouldCheckForUpdates: true,
         // End Launch Parameters
-        currentLibraryFolder: "No library folder selected.",
-        currentNotice: null,
-        darkMode: true
+        currentLibraryFolder: 'No library folder selected.',
+        currentNotice: null
     },
     mutations: {
         mutate(state, payload) {
             state[payload.property] = payload.with;
-            console.info("Payload:", payload.property, "with:", payload.with, "state is now:", this.state);
+            console.info('Payload:', payload.property, 'with:', payload.with, 'state is now:', this.state);
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('save-state', this.state);
         }

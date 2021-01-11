@@ -1,7 +1,7 @@
 <!--
-//  ReportAnIssue.vue
+//  UpdateAvailableOnLaunch.vue
 //
-//  Created by Kalila L. on 19 May 2020.
+//  Created by Kalila L. on Jan 11 2021.
 //  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -11,7 +11,7 @@
     <v-dialog
         width="500"
         persistent
-        v-model="showReportAnIssue"
+        v-model="showUpdateAvailable"
     >
         <v-card>
             <v-card-title
@@ -20,34 +20,30 @@
                 dark
             >
                 <v-icon color="green" class="mr-2">mdi-comment-question</v-icon>
-                Report an Issue
+                Update Available
             </v-card-title>
     
             <v-card-text>
-                Which are you reporting an issue for?
+                An update is available. <br />
+                <pre>Latest Version: {{ this.$store.state.currentNotice }}</pre>
+                Would you like to download and install it?
             </v-card-text>
     
             <v-divider></v-divider>
 
             <v-card-actions>
                 <v-btn
-                    color="red"
-                    @click="$emit('hideDialog')"
+                    color="primary"
+                    @click="rejectUpdate(); $emit('hideDialog')"
                 >
-                    Cancel
+                    No
                 </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    @click="reportAnIssue('https://github.com/vircadia/pantheon-launcher/issues'); $emit('hideDialog')"
+                    @click="continueUpdate(); $emit('hideDialog')"
                 >
-                    Launcher
-                </v-btn>
-                <v-btn
-                    color="primary"
-                    @click="reportAnIssue('https://github.com/vircadia/vircadia/issues'); $emit('hideDialog')"
-                >
-                    Interface
+                    Yes
                 </v-btn>
             </v-card-actions>
         </v-card>
@@ -57,18 +53,20 @@
 
 <script>
 const { ipcRenderer } = require('electron');
+import { EventBus } from '../../plugins/event-bus.js';
 
 export default {
-    name: 'ReportAnIssue',
-    methods: {
-        reportAnIssue: function (url) {
-            const { shell } = require('electron');
-            shell.openExternal(url);
+    name: 'UpdateAvailableOnLaunch',
+	methods: {
+        continueUpdate: function () {
+            ipcRenderer.send('download-vircadia');
+        },
+        rejectUpdate: function () {
+            EventBus.$emit('reject-update-continue-launch');
         }
-    },
+     },
     data: () => ({
-        showReportAnIssue: true,
+        showUpdateAvailable: true
     }),
-    created: function () {}
 };
 </script>

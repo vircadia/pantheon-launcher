@@ -14,58 +14,123 @@
 // import { init } from '@sentry/electron/dist/main';
 // init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
 
-import { app, protocol, BrowserWindow, DownloadItem } from 'electron';
+import { app, protocol, BrowserWindow, DownloadItem, Menu, Tray } from 'electron';
 import {
 	installVueDevtools,
 	createProtocol,
 } from 'vue-cli-plugin-electron-builder/lib';
 import path from 'path';
-const forceDevelopment = false;
-const isDevelopment = forceDevelopment === true || process.env.NODE_ENV !== 'production';
 const storage = require('electron-json-storage');
 const { shell } = require('electron');
 const { dialog } = require('electron');
-const electronDl = require('electron-dl');
+const electronDlMain = require('electron-dl');
+const electronDlMeta = require('electron-dl');
+const electronDlEvents = require('electron-dl');
 const { readdirSync } = require('fs');
 const { forEach } = require('p-iteration');
 const hasha = require('hasha');
 const fs = require('fs');
 const compareVersions = require('compare-versions');
-const tasklist = require('tasklist'); // This is specific to Windows.
-// For tasklist to work correctly on some systems...
-process.env.PATH = 'C:\\Windows\\System32;' + process.env.PATH;
 const isAdmin = require('is-admin');
 const glob = require('glob');
 const cp = require('child_process');
 const log = require('electron-log');
+const tasklist = require('tasklist'); // This is specific to Windows.
+// For tasklist to work correctly on some systems...
+process.env.PATH = 'C:\\Windows\\System32;' + process.env.PATH;
 // electron_modules
 import * as versionPaths from './electron_modules/versionPaths.js';
 import * as migrateLauncher from './electron_modules/migrateLauncher.js';
+// Load pantheon.config.js
+var pantheonConfig = require('../pantheon.config.js');
+var packageJSON = require('../package.json');
 
-Object.assign(console, log.functions);
+// Universal Variables
+var APPLICATION_NAME;
+var APPLICATION_VERSION;
+var PRODUCT_NAME;
+var LAUNCHER_ICON;
+var DEFAULT_CDN_URL;
+var DEFAULT_CDN_EVENTS_FILENAME;
+var DEFAULT_CDN_METADATA_FILENAME;
+var developmentMode = process.env.NODE_ENV !== 'production';
+var electronDlItemMain = null;
+var electronDlItemMeta = null;
+var electronDlItemEvents = null;
+var storagePath = {
+	main: storage.getDefaultDataPath(),
+	interface: null,
+	interfaceSettings: null,
+	currentLibrary: null,
+};
 
-electronDl();
-var electronDlItem = null;
+function initialize () {
+    APPLICATION_NAME = pantheonConfig.app.name;
+    APPLICATION_VERSION = packageJSON.version;
+    PRODUCT_NAME = packageJSON.productName + '.exe';
+    LAUNCHER_ICON = path.join(__static, '/resources/logo_launcher_256_256.ico');
+    DEFAULT_CDN_URL = pantheonConfig.cdn.root;
+    DEFAULT_CDN_EVENTS_FILENAME = pantheonConfig.cdn.eventsFilename;
+    DEFAULT_CDN_METADATA_FILENAME = pantheonConfig.cdn.metadataFilename;
+    
+    if (pantheonConfig.app.developmentMode === true) {
+        developmentMode = true;
+    }
+    
+    if (pantheonConfig.app.storagePath) {
+        if (pantheonConfig.app.storagePath.main !== '') {
+            storagePath.main = pantheonConfig.app.storagePath.main;
+        }
+    }
+    
+    // Assign electron-log to take over.
+    Object.assign(console, log.functions);
+    
+    // Initiate electron-dl
+    electronDlMain();
+    electronDlMeta();
+    electronDlEvents();
+}
 
-// Universal Variables and Consts
-var CDN_URL = 'https://cdn.vircadia.com';
-var CDN_EVENTS_FILENAME = 'vircadiaEvents.json';
-var CDN_METADATA_FILENAME = 'vircadiaMeta.json'
+initialize();
 
-var LAUNCHER_ICON = path.join(__static, '/resources/logo_launcher_256_256.ico');
+console.log("Data Path: " + storagePath.main);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
+let tray
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: { secure: true, standard: true } }])
 
 function createWindow () {
+    tray = new Tray(LAUNCHER_ICON);
+    tray.setToolTip(APPLICATION_NAME);
+
+    tray.setContextMenu(Menu.buildFromTemplate([
+        { 
+            label: 'Show Launcher', click:  function () {
+                win.show();
+            } 
+        },
+        { 
+            label: 'Quit', click:  function () {
+                win.show();
+                requestClose();
+            } 
+        }
+    ]));
+
+    tray.on('double-click', function(event) {
+        win.show();
+    });
+
 	// Create the browser window.
 	win = new BrowserWindow({ 
 		width: 1000, 
-		height: 800, 
+		height: 800,
+        title: APPLICATION_NAME + ' ' + APPLICATION_VERSION,
 		icon: LAUNCHER_ICON, 
 		resizable: false,
 		webPreferences: {
@@ -76,7 +141,7 @@ function createWindow () {
 	})
 
 	// This line disables the default menu behavior on Windows.
-    if (isDevelopment && !process.env.IS_TEST) {
+    if (developmentMode && !process.env.IS_TEST) {
         // Don't nullify the menu.
     } else {
         win.setMenu(null);
@@ -89,11 +154,16 @@ function createWindow () {
 	} else {
 		createProtocol('app')
 		// Load the index.html when not in development
-		win.loadURL('app://./index.html')
+		win.loadURL('app://./index.html');
 	}
 
+    win.on('minimize', function (event) {
+        event.preventDefault();
+        win.hide();
+    });
+
 	win.on('closed', () => {
-    	win = null
+    	win = null;
 	})
 }
 
@@ -122,7 +192,7 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
-    if (isDevelopment && !process.env.IS_TEST) {
+    if (developmentMode && !process.env.IS_TEST) {
         // Install Vue Devtools
         try {
             // console.info("Installing VueDevTools, if this does not work, Electron will not generate an interface.");
@@ -135,7 +205,7 @@ app.on('ready', async () => {
 })
 
 // Exit cleanly on request from parent process in development mode.
-if (isDevelopment) {
+if (developmentMode) {
     if (process.platform === 'win32') {
         process.on('message', data => {
             if (data === 'graceful-exit') {
@@ -149,22 +219,10 @@ if (isDevelopment) {
     }
 }
 
-// Settings.JSON bootstrapping
-// storage.setDataPath(app.getAppPath() + "/settings");
-
-console.log("Data Path: " + storage.getDataPath());
-
-var storagePath = {
-	default: storage.getDefaultDataPath(),
-	interface: null,
-	interfaceSettings: null,
-	currentLibrary: null,
-};
-
-// var needsLauncherMigration = migrateLauncher.detectOldDataPath("VircadiaLauncher", app.name, storagePath.default);
+// var needsLauncherMigration = migrateLauncher.detectOldDataPath("VircadiaLauncher", app.name, storagePath.main);
 // 
 // if (needsLauncherMigration) {
-//     migrateLauncher.moveInstalls(needsLauncherMigration, storagePath.default);
+//     migrateLauncher.moveInstalls(needsLauncherMigration, storagePath.main);
 // }
 
 var currentInterface;
@@ -246,7 +304,7 @@ async function getLibraryInterfaces() {
     let getLibraryPromise = new Promise((res, rej) => {
         var res_p = res;
         var rej_p = rej;
-        getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
+        getSetting('vircadia_interface.library', storagePath.main).then(async function(libraryPath){
             if(libraryPath) {
                 await getDirectories(libraryPath).then(function(interfacesList) {
                     interfaces = interfacesList;
@@ -254,8 +312,8 @@ async function getLibraryInterfaces() {
                 });
                 console.info("Nani Lib Path?", libraryPath);
             } else {
-                setLibrary(storagePath.default);
-                await getDirectories(storagePath.default).then(function(interfacesList) {
+                setLibrary(storagePath.main);
+                await getDirectories(storagePath.main).then(function(interfacesList) {
                     interfaces = interfacesList;
                     res_p();
                 });
@@ -268,7 +326,7 @@ async function getLibraryInterfaces() {
 }
 
 function setLibrary(libPath) {
-	storage.set('vircadia_interface.library', libPath, {dataPath: storagePath.default}, function(error) {
+	storage.set('vircadia_interface.library', libPath, {dataPath: storagePath.main}, function(error) {
 		if (error) {
 			throw error;
 		} else {
@@ -323,32 +381,32 @@ function setLibraryDialog() {
 // }
 
 async function getCDNMetaJSON() {
-	var metaURL = CDN_URL + '/dist/launcher/' + CDN_METADATA_FILENAME;
+	var metaURL = DEFAULT_CDN_URL + '/dist/launcher/' + DEFAULT_CDN_METADATA_FILENAME;
 		
-	await electronDl.download(win, metaURL, {
-		directory: storagePath.default,
+	await electronDlMeta.download(win, metaURL, {
+		directory: storagePath.main,
 		showBadge: false,
-		filename: CDN_METADATA_FILENAME,
+		filename: DEFAULT_CDN_METADATA_FILENAME,
         // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
         // downloadItem to check which download is progressing.
         onStarted: downloadItem => {
-            electronDlItem = downloadItem;
+            electronDlItemMeta = downloadItem;
         },
 		onProgress: currentProgress => {
 			var percent = currentProgress.percent;
-            if (electronDlItem && electronDlItem.getURL() === metaURL) {
+            if (electronDlItemMeta && electronDlItemMeta.getURL() === metaURL) {
                 if (percent === 1) {
-                    electronDlItem = null;
+                    electronDlItemMeta = null;
                 }
                 // console.info("DLing meta:", percent);
             }
 		},
         onCancel: downloadItem => {
-            electronDlItem = null;
+            electronDlItemMeta = null;
         }
 	});
 	
-	var vircadiaMetaFile = storagePath.default + '/' + CDN_METADATA_FILENAME;
+	var vircadiaMetaFile = storagePath.main + '/' + DEFAULT_CDN_METADATA_FILENAME;
 	let rawdata = fs.readFileSync(vircadiaMetaFile);
 	let vircadiaMetaJSON = JSON.parse(rawdata);
 	
@@ -362,32 +420,32 @@ async function getCDNMetaJSON() {
 }
 
 async function getCDNEventsJSON() {
-	var eventsURL = CDN_URL + '/dist/launcher/' + CDN_EVENTS_FILENAME;
+	var eventsURL = DEFAULT_CDN_URL + '/dist/launcher/' + DEFAULT_CDN_EVENTS_FILENAME;
 		
-	await electronDl.download(win, eventsURL, {
-		directory: storagePath.default,
+	await electronDlEvents.download(win, eventsURL, {
+		directory: storagePath.main,
 		showBadge: false,
-		filename: CDN_EVENTS_FILENAME,
+		filename: DEFAULT_CDN_EVENTS_FILENAME,
         // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
         // downloadItem to check which download is progressing.
         onStarted: downloadItem => {
-            electronDlItem = downloadItem;
+            electronDlItemEvents = downloadItem;
         },
 		onProgress: currentProgress => {
 			var percent = currentProgress.percent;
-            if (electronDlItem && electronDlItem.getURL() === eventsURL) {
+            if (electronDlItemEvents && electronDlItemEvents.getURL() === eventsURL) {
                 if (percent === 1) {
-                    electronDlItem = null;
+                    electronDlItemEvents = null;
                 }
                 // console.info("DLing events:", percent);
             }
 		},
         onCancel: downloadItem => {
-            electronDlItem = null;
+            electronDlItemEvents = null;
         }
 	});
 	
-	var vircadiaEventsFile = storagePath.default + '/' + CDN_EVENTS_FILENAME;
+	var vircadiaEventsFile = storagePath.main + '/' + DEFAULT_CDN_EVENTS_FILENAME;
 	let rawdata = fs.readFileSync(vircadiaEventsFile);
 	let vircadiaEventsJSON = JSON.parse(rawdata);
 	
@@ -435,14 +493,15 @@ async function isRunningAsAdministrator() {
     }
 }
 
-async function checkForUpdates(checkSilently) {
+async function checkForUpdates (checkSilently) {
     if (storagePath.interfaceSettings) {
         // This means to update because an interface exists and is selected.
         console.info("Checking for updates.");
-        var checkForUpdates = await checkForInterfaceUpdates();
-        if (checkForUpdates != null) {
+        var result = await checkForInterfaceUpdates();
+        if (result != null) {
             // Return with the URL to download or false if not.
-            win.webContents.send('checked-for-updates', { checkForUpdates, "checkSilently": checkSilently }); 
+            result.checkSilently = checkSilently;
+            return result;
         }
     }
 }
@@ -507,14 +566,14 @@ const { ipcMain } = require('electron')
 ipcMain.on('save-state', (event, arg) => {
     // FIXME: Find out why your settings keep getting nuked...? Specifically current interface and the library folder sometimes.
     // create a log file... and logging function to find the source of these issues.
-    storage.set('vircadia_launcher.state', arg, {dataPath: storagePath.default}, function(error) {
+    storage.set('vircadia_launcher.state', arg, {dataPath: storagePath.main}, function(error) {
         console.info("Saving state.", error);
         if (error) throw error;
     });
 })
 
 ipcMain.on('load-state', (event, arg) => {
-	getSetting('vircadia_launcher.state', storagePath.default).then(function(results) {
+	getSetting('vircadia_launcher.state', storagePath.main).then(function(results) {
         if (results) {    
             if (results.sentryEnabled === true) {
                 init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
@@ -528,7 +587,7 @@ ipcMain.on('load-state', (event, arg) => {
         }
 	});
     
-    win.webContents.send('development-mode', isDevelopment);
+    win.webContents.send('development-mode', developmentMode);
 })
 
 ipcMain.on('set-metaverse-server', (event, arg) => {
@@ -551,6 +610,19 @@ ipcMain.on('launch-interface', async (event, arg) => {
         // var convertProtocol = arg.customPath.replace("hifi://", "http://")
         parameters.push('--url "' + arg.customPath + '"');
     }
+
+    if (arg.shouldCheckForUpdates) {
+        var checkResult = await checkForUpdates(true);
+
+        if (checkResult.updateAvailable === true) {
+            if (isPathSet === true) {
+                checkResult.customPath = arg.customPath;
+            }
+
+            win.webContents.send('checked-for-updates-on-launch', checkResult);
+            return;
+        }
+    }
     
     if (arg.customLaunchParameters) {
         var splitParameters = arg.customLaunchParameters.split(",");
@@ -563,7 +635,7 @@ ipcMain.on('launch-interface', async (event, arg) => {
         var list = await tasklist();
         list.forEach((task) => {
             if (task.imageName === "interface.exe") {
-                console.log("INTERFACE ALREADY RUNNING WHILE ATTEMPTING TO LAUNCH!");
+                console.log("Interface is already running while attempting to launch without --allowMultipleInstances set!");
                 if (isPathSet === true) {
                     console.log("A goto URL was set, we will redirect this to the operating system.");
                     shell.openExternal(arg.customPath);
@@ -672,8 +744,8 @@ function launchInterfaceDetached(executablePath, parameters) {
 var installer_exe = cp.execFile;
 
 function launchInstaller() {
-    getSetting('vircadia_interface.library', storagePath.default).then(function (libPath) {
-        var executablePath = libPath + "/Vircadia_Setup_Latest.exe";
+    getSetting('vircadia_interface.library', storagePath.main).then(function (libPath) {
+        var executablePath = libPath + '/' + pantheonConfig.manager.preInstallerName;
         var installPath = libPath + "/Vircadia_Interface_Latest";
         var parameters = [""];
 
@@ -718,15 +790,15 @@ async function silentInstall(useOldInstaller) {
         return;
     }
     
-    getSetting('vircadia_interface.library', storagePath.default).then(function (libPath) {    
+    getSetting('vircadia_interface.library', storagePath.main).then(function (libPath) {    
         if (libPath) {
-            executableLocation = libPath + "/Vircadia_Setup_Latest.exe";
+            executableLocation = libPath + '/' + pantheonConfig.manager.preInstallerName;
             installPath = libPath + installFolderName;
             executablePath = libPath;
         } else {
-            executableLocation = storagePath.default + "/Vircadia_Setup_Latest.exe";
-            installPath = storagePath.default + installFolderName;
-            executablePath = storagePath.default;
+            executableLocation = storagePath.main + '/' + pantheonConfig.manager.preInstallerName;
+            installPath = storagePath.main + installFolderName;
+            executablePath = storagePath.main;
         }
         
         var parameters = [];
@@ -735,7 +807,7 @@ async function silentInstall(useOldInstaller) {
         parameters.push("/D=" + installPath);
         
         if (useOldInstaller === true) {
-            exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
+            exeLocToInstall = executablePath + '/' + pantheonConfig.manager.postInstallerName;
         } else {
             if (!fs.existsSync(executableLocation)) {
                 // Notify main window of the issue.
@@ -745,7 +817,7 @@ async function silentInstall(useOldInstaller) {
                 console.info("exeLoc:", executableLocation);
                 console.info("exePath:", executablePath);
                 
-                fs.copyFileSync(executableLocation, executablePath + "/Vircadia_Setup_Latest_READY.exe", (err) => {
+                fs.copyFileSync(executableLocation, executablePath + '/' + pantheonConfig.manager.postInstallerName, (err) => {
                     if (err) console.log('ERROR ON COPY: ' + err);
                     console.log('Completed copy operation successfully.');
                 });
@@ -755,7 +827,7 @@ async function silentInstall(useOldInstaller) {
                     console.info(executableLocation, 'was deleted after copying.');
                 });
                 
-                exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
+                exeLocToInstall = executablePath + '/' + pantheonConfig.manager.postInstallerName;
             }
         }
         
@@ -813,7 +885,7 @@ async function silentInstall(useOldInstaller) {
 // TODO: Fix this LATER, it's unacceptable.
 
 // async function postInstall() {
-//     getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
+//     getSetting('vircadia_interface.library', storagePath.main).then(async function (libPath) {
 //         var installPath;
 //         var vircadiaMetaJSON = await getCDNMetaJSON();
 //         var vircadiaPackageJSON = 
@@ -827,7 +899,7 @@ async function silentInstall(useOldInstaller) {
 //         if (libPath) {
 //             installPath = libPath + installFolderName;
 //         } else {
-//             installPath = storagePath.default + installFolderName;
+//             installPath = storagePath.main + installFolderName;
 //         }
 // 
 //         var packageJSONLocation = installPath + "/launcher_settings";
@@ -851,6 +923,26 @@ async function silentInstall(useOldInstaller) {
 //         console.info("Failed to fetch library for post install. Error:", e);
 //     });
 // }
+
+async function requestClose () {
+    var list = await tasklist();
+    var canClose = true;
+    
+    list.forEach((task) => {
+        if (task.imageName === "interface.exe") {
+            console.log("Interface.exe found to be running.");
+            canClose = false;
+        }
+    });
+    
+    if (!canClose) {
+        win.webContents.send('request-close-interface-running');
+    } else {
+        app.exit();
+    }
+}
+
+// ### MESSAGE HANDLING BETWEEN MAIN AND BROWSER ###
 
 ipcMain.on('get-vircadia-location', async (event, arg) => {
     var vircadiaLocation = await getSetting('vircadia_interface.location', storagePath.interfaceSettings);
@@ -898,11 +990,11 @@ ipcMain.on('set-library-folder', (event, arg) => {
 })
 
 ipcMain.on('set-library-folder-default', (event, arg) => {
-    setLibrary(storagePath.default);
+    setLibrary(storagePath.main);
 })
 
 ipcMain.on('get-library-folder', (event, arg) => {
-    getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
+    getSetting('vircadia_interface.library', storagePath.main).then(async function(libraryPath){
         win.webContents.send('current-library-folder', {
             libraryPath
         });
@@ -970,8 +1062,8 @@ ipcMain.on('download-vircadia', async (event, arg) => {
     var vircadiaMetaJSON = await getCDNMetaJSON();
     var isAdmin = await isRunningAsAdministrator();
     var checkPrereqs = await checkRunningApps();
-    var installerName = "Vircadia_Setup_Latest.exe";
-    var installerNamePost = "Vircadia_Setup_Latest_READY.exe";
+    var installerName = pantheonConfig.manager.preInstallerName;
+    var installerNamePost = pantheonConfig.manager.postInstallerName;
     console.info("DLURL:", downloadURL);
     console.info(checkPrereqs)
     
@@ -992,11 +1084,11 @@ ipcMain.on('download-vircadia', async (event, arg) => {
     }
     
     if (downloadURL) {
-        getSetting('vircadia_interface.library', storagePath.default).then(function(results){
+        getSetting('vircadia_interface.library', storagePath.main).then(function(results){
             if(results) {
                 libraryPath = results;
             } else {
-                libraryPath = storagePath.default;
+                libraryPath = storagePath.main;
             }
             
             var previousInstaller = libraryPath + "/" + installerNamePost;
@@ -1018,31 +1110,31 @@ ipcMain.on('download-vircadia', async (event, arg) => {
                 }
             }
             
-			electronDl.download(win, downloadURL, {
+			electronDlMain.download(win, downloadURL, {
 				directory: libraryPath,
 				showBadge: true,
 				filename: installerName,
                 // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to
                 // use the downloadItem to check which download is progressing.
                 onStarted: downloadItem => {
-                    electronDlItem = downloadItem;
+                    electronDlItemMain = downloadItem;
                 },
 				onProgress: currentProgress => {
 					console.info(currentProgress);
 					var percent = currentProgress.percent;
-                    if (electronDlItem && electronDlItem.getURL() === downloadURL) {
+                    if (electronDlItemMain && electronDlItemMain.getURL() === downloadURL) {
                         win.webContents.send('download-installer-progress', {
                             percent
                         });
                         if (percent === 1) { // When the setup download completes...
-                            electronDlItem = null;
+                            electronDlItemMain = null;
                             // launchInstaller();
                             silentInstall(false);
                         }
                     }
 				},
                 onCancel: downloadItem => {
-                    electronDlItem = null;
+                    electronDlItemMain = null;
                 }
                 // FIXME: electron-dl currently displays its own "download interrupted" message box if file not found or 
                 // download interrupted. It would be nicer to display our own, download-installer-failed, message box.
@@ -1075,8 +1167,8 @@ ipcMain.on('launch-sandbox', (event, folder) => {
 });
 
 ipcMain.on('cancel-download', async (event) => {
-    if (electronDlItem) {
-        electronDlItem.cancel();
+    if (electronDlItemMain) {
+        electronDlItemMain.cancel();
         win.webContents.send('download-cancelled');
     }
 });
@@ -1089,8 +1181,9 @@ ipcMain.on('install-vircadia', (event, arg) => {
 //       update not available.
 // TODO: When a new version is downloaded and installed, the old version is no
 //       longer overwritten. What should we do about this?
-ipcMain.on('check-for-updates', (event, arg) => {
-    checkForUpdates(arg);
+ipcMain.on('check-for-updates', async (event, arg) => {
+    var result = await checkForUpdates(arg);
+    win.webContents.send('checked-for-updates', result);
 });
 
 ipcMain.on('check-for-events', async (event, arg) => {
@@ -1100,28 +1193,14 @@ ipcMain.on('check-for-events', async (event, arg) => {
 
 // TODO: Ensure this is working effectively to most users.
 ipcMain.on('request-close', async (event, arg) => {
-    var list = await tasklist();
-    var canClose = true;
-    
-    list.forEach((task) => {
-        if (task.imageName === "interface.exe") {
-            console.log("Interface.exe found to be running.");
-            canClose = false;
-        }
-    });
-    
-    if (!canClose) {
-        win.webContents.send('request-close-interface-running');
-    } else {
-        app.exit();
-    }
+    requestClose();
 });
 
 ipcMain.on('request-launcher-as-admin', async (event, arg) => {
     var appPathSplit = app.getPath('exe').split('\\');
     var appPathCleaned = appPathSplit.slice(0, appPathSplit.length - 1).join('\\');
     
-    var pathToLauncher = appPathCleaned + '\\Vircadia Launcher.exe';
+    var pathToLauncher = appPathCleaned + '\\' + PRODUCT_NAME;
     var pathToElevator = '"' + appPathCleaned + '\\resources\\elevate.exe' + '"';
     var launchParameter = '-k "' + pathToLauncher + '"';
     var interface_exe = require('child_process').spawn;

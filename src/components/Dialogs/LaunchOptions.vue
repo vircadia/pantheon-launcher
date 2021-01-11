@@ -1,7 +1,7 @@
 <!--
 //  LaunchOptions.vue
 //
-//  Created by KasenVR on 19 May 2020.
+//  Created by Kalila L. on 19 May 2020.
 //  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -94,6 +94,24 @@
                     <v-list-item-content>
                         <v-list-item-title>Don't Prompt for Login</v-list-item-title>
                         <v-list-item-subtitle>Do not show the login screen when opening Interface.</v-list-item-subtitle>
+                    </v-list-item-content>
+                </template>
+            </v-list-item>
+            <v-list-item @click="shouldCheckForUpdatesStore = !shouldCheckForUpdatesStore">
+                <template>
+                    <v-list-item-action>
+                        <v-checkbox
+                            :readonly=true
+                            color="primary"
+                            :true-value="shouldCheckForUpdatesStore"
+                            :input-value="shouldCheckForUpdatesStore"
+                            v-model="shouldCheckForUpdatesStore"
+                        ></v-checkbox>
+                    </v-list-item-action>
+            
+                    <v-list-item-content>
+                        <v-list-item-title>Check for Updates</v-list-item-title>
+                        <v-list-item-subtitle>Check for updates before attempting to launch.</v-list-item-subtitle>
                     </v-list-item-content>
                 </template>
             </v-list-item>
@@ -204,6 +222,17 @@ export default {
             set(value) {
                 this.$store.commit('mutate', {
                     property: 'dontPromptForLogin', 
+                    with: value
+                });
+            },
+        },
+        shouldCheckForUpdatesStore: {
+            get() {
+                return this.$store.state.shouldCheckForUpdates;
+            },
+            set(value) {
+                this.$store.commit('mutate', {
+                    property: 'shouldCheckForUpdates', 
                     with: value
                 });
             },

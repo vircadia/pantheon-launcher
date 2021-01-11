@@ -53,17 +53,17 @@
 const { ipcRenderer } = require('electron');
 
 export default {
-    name: 'DownloadFailed',
+    name: 'CancelDownload',
 	methods: {
         continueDownload: function () {
-            // Nothing to do/
+            // Nothing to do.
         },
         cancelDownload: function () {
             ipcRenderer.send('cancel-download');
         },
      },
     data: () => ({
-        showCancelDownload: true,
+        showCancelDownload: true
     }),
 };
 </script>
