@@ -1,6 +1,6 @@
-This is a stand-alone guide for building the Pantheon launcher for the Vircadia interface on Windows 64-bit.  
+Vircadia Launcher (codename Pantheon) supports Vircadia on Windows 64-bit. Future support may be added for MacOS and Linux.
 
-## Building Pantheon Launcher
+## Building Vircadia Launcher
 
 ### Dependencies
 
@@ -20,7 +20,7 @@ npm install -g @vue/cli
 yarn global add @vue/cli
 ```
 
-After installation, you will have access to the vue binary in your command line. You can verify that it is properly installed by simply running vue, which should present you with a help message listing all available commands.
+After installation, you will have access to the Vue binary in your command line. You can verify that it is properly installed by simply typing `vue`, which should present you with a message listing all available commands.
 
 You can check the version with this command:
 
@@ -28,21 +28,13 @@ You can check the version with this command:
 vue --version
 ```
 
-#### Step 3. Vue CLI Plugin Electron Builder
-
-Open a terminal in the Pantheon directory:
-
-```
-cd launchers/pantheon
-```
-
-Then, install and invoke the generator of vue-cli-plugin-electron-builder by running:
-
-```
-vue add electron-builder
-```
-
 ### Test, Run, and Build
+
+Open a terminal in the source directory:
+
+```
+cd pantheon-launcher
+```
 
 #### On first setup
 
@@ -58,6 +50,8 @@ npm install
 ```
 
 #### To start a development server:
+
+A development server allows you to test changes without having to recompile the application every time. It also enables development mode which activates the dev tools.
 
 You will need to run any of these commands with administrative privileges.
 
@@ -80,9 +74,7 @@ or with NPM:
 npm run electron:build
 ```
 
-Building the launcher will generate an installer executable and an unpacked folder that allows you to run the built launcher without running the setup. You can find the build artifacts in the **dist_electron** folder. 
-
-To see more documentation on the Vue CLI Plugin Electron Builder, visit this [website](https://nklayman.github.io/vue-cli-plugin-electron-builder/guide/guide.html).
+Building the launcher will generate an installer executable and an unpacked folder that allows you to run the built launcher without running the setup. You can find the build artifacts in the **dist_electron** folder.
 
 #### Update your build environment:
 
@@ -90,9 +82,31 @@ When new dependencies are added and required by the codebase, you will need to a
 
 If you use Yarn:
 ```
-yarn install
+yarn update
 ```
 or if you use NPM:
 ```
-npm install
+npm update
 ```
+
+#### Code Signing
+
+The builder will automatically package and sign your application. You will however need to ensure you have the following environment variables set:
+
+```
+CSC_LINK=[The path to your .pfx file.]
+CSC_KEY_PASSWORD=[The password for your .pfx file.]
+```
+
+#### Configuration
+
+`vue.config.js`: To alter build, code signing, and other general properties.
+* https://www.electron.build/
+* https://cli.vuejs.org/config/#vue-config-js
+
+`pantheon.config.js`: A new configuration file, more properties will be centralized and specified in this file as updates are pushed to the launcher.
+
+`package.json`: Dependencies and version information can be adjusted here.
+* https://docs.npmjs.com/cli/v6/configuring-npm/package-json
+
+This project also uses the Vue CLI Plugin Electron Builder. Visit the [website](https://nklayman.github.io/vue-cli-plugin-electron-builder/guide/guide.html) to learn more about how to customize it if necessary.
