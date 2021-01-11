@@ -14,7 +14,7 @@
 // import { init } from '@sentry/electron/dist/main';
 // init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
 
-import { app, protocol, BrowserWindow, DownloadItem } from 'electron';
+import { app, protocol, BrowserWindow, DownloadItem, Menu, Tray } from 'electron';
 import {
 	installVueDevtools,
 	createProtocol,
@@ -31,13 +31,13 @@ const { forEach } = require('p-iteration');
 const hasha = require('hasha');
 const fs = require('fs');
 const compareVersions = require('compare-versions');
-const tasklist = require('tasklist'); // This is specific to Windows.
-// For tasklist to work correctly on some systems...
-process.env.PATH = 'C:\\Windows\\System32;' + process.env.PATH;
 const isAdmin = require('is-admin');
 const glob = require('glob');
 const cp = require('child_process');
 const log = require('electron-log');
+const tasklist = require('tasklist'); // This is specific to Windows.
+// For tasklist to work correctly on some systems...
+process.env.PATH = 'C:\\Windows\\System32;' + process.env.PATH;
 // electron_modules
 import * as versionPaths from './electron_modules/versionPaths.js';
 import * as migrateLauncher from './electron_modules/migrateLauncher.js';
@@ -48,20 +48,39 @@ electronDl();
 var electronDlItem = null;
 
 // Universal Variables and Consts
-var CDN_URL = 'https://cdn.vircadia.com';
-var CDN_EVENTS_FILENAME = 'vircadiaEvents.json';
-var CDN_METADATA_FILENAME = 'vircadiaMeta.json'
+var APPLICATION_NAME = 'Vircadia Launcher'
+
+var DEFAULT_CDN_URL = 'https://cdn.vircadia.com'
+var DEFAULT_CDN_EVENTS_FILENAME = 'vircadiaEvents.json'
+var DEFAULT_CDN_METADATA_FILENAME = 'vircadiaMeta.json'
 
 var LAUNCHER_ICON = path.join(__static, '/resources/logo_launcher_256_256.ico');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win
+let tray
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: { secure: true, standard: true } }])
 
 function createWindow () {
+    tray = new Tray(LAUNCHER_ICON);
+    tray.setToolTip(APPLICATION_NAME);
+    tray.setContextMenu(Menu.buildFromTemplate([
+        { 
+            label: 'Show Launcher', click:  function () {
+                win.show();
+            } 
+        },
+        { 
+            label: 'Quit', click:  function () {
+                win.show();
+                requestClose();
+            } 
+        }
+    ]));
+    
 	// Create the browser window.
 	win = new BrowserWindow({ 
 		width: 1000, 
@@ -91,6 +110,15 @@ function createWindow () {
 		// Load the index.html when not in development
 		win.loadURL('app://./index.html')
 	}
+    
+    win.on('minimize', function (event) {
+        event.preventDefault();
+        win.hide();
+    });
+    
+    win.on('double-click', function(event) {
+        win.show();
+    });
 
 	win.on('closed', () => {
     	win = null
@@ -323,12 +351,12 @@ function setLibraryDialog() {
 // }
 
 async function getCDNMetaJSON() {
-	var metaURL = CDN_URL + '/dist/launcher/' + CDN_METADATA_FILENAME;
+	var metaURL = DEFAULT_CDN_URL + '/dist/launcher/' + DEFAULT_CDN_METADATA_FILENAME;
 		
 	await electronDl.download(win, metaURL, {
 		directory: storagePath.default,
 		showBadge: false,
-		filename: CDN_METADATA_FILENAME,
+		filename: DEFAULT_CDN_METADATA_FILENAME,
         // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
         // downloadItem to check which download is progressing.
         onStarted: downloadItem => {
@@ -348,7 +376,7 @@ async function getCDNMetaJSON() {
         }
 	});
 	
-	var vircadiaMetaFile = storagePath.default + '/' + CDN_METADATA_FILENAME;
+	var vircadiaMetaFile = storagePath.default + '/' + DEFAULT_CDN_METADATA_FILENAME;
 	let rawdata = fs.readFileSync(vircadiaMetaFile);
 	let vircadiaMetaJSON = JSON.parse(rawdata);
 	
@@ -362,12 +390,12 @@ async function getCDNMetaJSON() {
 }
 
 async function getCDNEventsJSON() {
-	var eventsURL = CDN_URL + '/dist/launcher/' + CDN_EVENTS_FILENAME;
+	var eventsURL = DEFAULT_CDN_URL + '/dist/launcher/' + DEFAULT_CDN_EVENTS_FILENAME;
 		
 	await electronDl.download(win, eventsURL, {
 		directory: storagePath.default,
 		showBadge: false,
-		filename: CDN_EVENTS_FILENAME,
+		filename: DEFAULT_CDN_EVENTS_FILENAME,
         // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
         // downloadItem to check which download is progressing.
         onStarted: downloadItem => {
@@ -387,7 +415,7 @@ async function getCDNEventsJSON() {
         }
 	});
 	
-	var vircadiaEventsFile = storagePath.default + '/' + CDN_EVENTS_FILENAME;
+	var vircadiaEventsFile = storagePath.default + '/' + DEFAULT_CDN_EVENTS_FILENAME;
 	let rawdata = fs.readFileSync(vircadiaEventsFile);
 	let vircadiaEventsJSON = JSON.parse(rawdata);
 	
@@ -852,6 +880,26 @@ async function silentInstall(useOldInstaller) {
 //     });
 // }
 
+async function requestClose () {
+    var list = await tasklist();
+    var canClose = true;
+    
+    list.forEach((task) => {
+        if (task.imageName === "interface.exe") {
+            console.log("Interface.exe found to be running.");
+            canClose = false;
+        }
+    });
+    
+    if (!canClose) {
+        win.webContents.send('request-close-interface-running');
+    } else {
+        app.exit();
+    }
+}
+
+// ### MESSAGE HANDLING BETWEEN MAIN AND BROWSER ###
+
 ipcMain.on('get-vircadia-location', async (event, arg) => {
     var vircadiaLocation = await getSetting('vircadia_interface.location', storagePath.interfaceSettings);
     var vircadiaLocationExe = vircadiaLocation.toString();
@@ -1100,21 +1148,7 @@ ipcMain.on('check-for-events', async (event, arg) => {
 
 // TODO: Ensure this is working effectively to most users.
 ipcMain.on('request-close', async (event, arg) => {
-    var list = await tasklist();
-    var canClose = true;
-    
-    list.forEach((task) => {
-        if (task.imageName === "interface.exe") {
-            console.log("Interface.exe found to be running.");
-            canClose = false;
-        }
-    });
-    
-    if (!canClose) {
-        win.webContents.send('request-close-interface-running');
-    } else {
-        app.exit();
-    }
+    requestClose();
 });
 
 ipcMain.on('request-launcher-as-admin', async (event, arg) => {

@@ -104,7 +104,7 @@ import * as Sentry from '@sentry/electron';
             <v-slide-x-transition
                 :hide-on-leave=true
             >
-                <h2 class="titleURL" v-show="!titleHover" v-on:click="openURL('https://vircadia.com/')">Alpha</h2>
+                <h2 class="titleURL" v-show="!titleHover" v-on:click="openURL('https://vircadia.com/')">Virtuality</h2>
             </v-slide-x-transition>
             <v-slide-x-reverse-transition
                 :hide-on-leave=true
@@ -117,7 +117,7 @@ import * as Sentry from '@sentry/electron';
                 target="_blank"
                 text
                 absolute
-                style="margin-left: 140px;"
+                style="margin-left: 160px;"
             >
                 <span class="mr-2">Report an issue</span>
                 <v-icon>mdi-open-in-new</v-icon>
