@@ -20,8 +20,6 @@ import {
 	createProtocol,
 } from 'vue-cli-plugin-electron-builder/lib';
 import path from 'path';
-const forceDevelopment = false;
-const isDevelopment = forceDevelopment === true || process.env.NODE_ENV !== 'production';
 const storage = require('electron-json-storage');
 const { shell } = require('electron');
 const { dialog } = require('electron');
@@ -41,20 +39,56 @@ process.env.PATH = 'C:\\Windows\\System32;' + process.env.PATH;
 // electron_modules
 import * as versionPaths from './electron_modules/versionPaths.js';
 import * as migrateLauncher from './electron_modules/migrateLauncher.js';
+// Load pantheon.config.js
+var pantheonConfig = require('../pantheon.config.js');
+var packageJSON = require('../package.json');
 
-Object.assign(console, log.functions);
-
-electronDl();
+// Universal Variables
+var APPLICATION_NAME;
+var APPLICATION_VERSION;
+var PRODUCT_NAME;
+var LAUNCHER_ICON;
+var DEFAULT_CDN_URL;
+var DEFAULT_CDN_EVENTS_FILENAME;
+var DEFAULT_CDN_METADATA_FILENAME;
+var developmentMode = process.env.NODE_ENV !== 'production';
 var electronDlItem = null;
+var storagePath = {
+	main: storage.getDefaultDataPath(),
+	interface: null,
+	interfaceSettings: null,
+	currentLibrary: null,
+};
 
-// Universal Variables and Consts
-var APPLICATION_NAME = 'Vircadia Launcher'
+function initialize () {
+    APPLICATION_NAME = pantheonConfig.app.name;
+    APPLICATION_VERSION = packageJSON.version;
+    PRODUCT_NAME = packageJSON.productName + '.exe';
+    LAUNCHER_ICON = path.join(__static, '/resources/logo_launcher_256_256.ico');
+    DEFAULT_CDN_URL = pantheonConfig.cdn.root;
+    DEFAULT_CDN_EVENTS_FILENAME = pantheonConfig.cdn.eventsFilename;
+    DEFAULT_CDN_METADATA_FILENAME = pantheonConfig.cdn.metadataFilename;
+    
+    if (pantheonConfig.app.developmentMode === true) {
+        developmentMode = true;
+    }
+    
+    if (pantheonConfig.app.storagePath) {
+        if (pantheonConfig.app.storagePath.main !== '') {
+            storagePath.main = pantheonConfig.app.storagePath.main;
+        }
+    }
+    
+    // Assign electron-log to take over.
+    Object.assign(console, log.functions);
+    
+    // Initiate electron-dl
+    electronDl();
+}
 
-var DEFAULT_CDN_URL = 'https://cdn.vircadia.com'
-var DEFAULT_CDN_EVENTS_FILENAME = 'vircadiaEvents.json'
-var DEFAULT_CDN_METADATA_FILENAME = 'vircadiaMeta.json'
+initialize();
 
-var LAUNCHER_ICON = path.join(__static, '/resources/logo_launcher_256_256.ico');
+console.log("Data Path: " + storagePath.main);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -67,6 +101,7 @@ protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: { secure: true
 function createWindow () {
     tray = new Tray(LAUNCHER_ICON);
     tray.setToolTip(APPLICATION_NAME);
+
     tray.setContextMenu(Menu.buildFromTemplate([
         { 
             label: 'Show Launcher', click:  function () {
@@ -80,11 +115,16 @@ function createWindow () {
             } 
         }
     ]));
-    
+
+    tray.on('double-click', function(event) {
+        win.show();
+    });
+
 	// Create the browser window.
 	win = new BrowserWindow({ 
 		width: 1000, 
-		height: 800, 
+		height: 800,
+        title: APPLICATION_NAME + ' ' + APPLICATION_VERSION,
 		icon: LAUNCHER_ICON, 
 		resizable: false,
 		webPreferences: {
@@ -95,7 +135,7 @@ function createWindow () {
 	})
 
 	// This line disables the default menu behavior on Windows.
-    if (isDevelopment && !process.env.IS_TEST) {
+    if (developmentMode && !process.env.IS_TEST) {
         // Don't nullify the menu.
     } else {
         win.setMenu(null);
@@ -108,20 +148,16 @@ function createWindow () {
 	} else {
 		createProtocol('app')
 		// Load the index.html when not in development
-		win.loadURL('app://./index.html')
+		win.loadURL('app://./index.html');
 	}
-    
+
     win.on('minimize', function (event) {
         event.preventDefault();
         win.hide();
     });
-    
-    win.on('double-click', function(event) {
-        win.show();
-    });
 
 	win.on('closed', () => {
-    	win = null
+    	win = null;
 	})
 }
 
@@ -150,7 +186,7 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
-    if (isDevelopment && !process.env.IS_TEST) {
+    if (developmentMode && !process.env.IS_TEST) {
         // Install Vue Devtools
         try {
             // console.info("Installing VueDevTools, if this does not work, Electron will not generate an interface.");
@@ -163,7 +199,7 @@ app.on('ready', async () => {
 })
 
 // Exit cleanly on request from parent process in development mode.
-if (isDevelopment) {
+if (developmentMode) {
     if (process.platform === 'win32') {
         process.on('message', data => {
             if (data === 'graceful-exit') {
@@ -177,22 +213,10 @@ if (isDevelopment) {
     }
 }
 
-// Settings.JSON bootstrapping
-// storage.setDataPath(app.getAppPath() + "/settings");
-
-console.log("Data Path: " + storage.getDataPath());
-
-var storagePath = {
-	default: storage.getDefaultDataPath(),
-	interface: null,
-	interfaceSettings: null,
-	currentLibrary: null,
-};
-
-// var needsLauncherMigration = migrateLauncher.detectOldDataPath("VircadiaLauncher", app.name, storagePath.default);
+// var needsLauncherMigration = migrateLauncher.detectOldDataPath("VircadiaLauncher", app.name, storagePath.main);
 // 
 // if (needsLauncherMigration) {
-//     migrateLauncher.moveInstalls(needsLauncherMigration, storagePath.default);
+//     migrateLauncher.moveInstalls(needsLauncherMigration, storagePath.main);
 // }
 
 var currentInterface;
@@ -274,7 +298,7 @@ async function getLibraryInterfaces() {
     let getLibraryPromise = new Promise((res, rej) => {
         var res_p = res;
         var rej_p = rej;
-        getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
+        getSetting('vircadia_interface.library', storagePath.main).then(async function(libraryPath){
             if(libraryPath) {
                 await getDirectories(libraryPath).then(function(interfacesList) {
                     interfaces = interfacesList;
@@ -282,8 +306,8 @@ async function getLibraryInterfaces() {
                 });
                 console.info("Nani Lib Path?", libraryPath);
             } else {
-                setLibrary(storagePath.default);
-                await getDirectories(storagePath.default).then(function(interfacesList) {
+                setLibrary(storagePath.main);
+                await getDirectories(storagePath.main).then(function(interfacesList) {
                     interfaces = interfacesList;
                     res_p();
                 });
@@ -296,7 +320,7 @@ async function getLibraryInterfaces() {
 }
 
 function setLibrary(libPath) {
-	storage.set('vircadia_interface.library', libPath, {dataPath: storagePath.default}, function(error) {
+	storage.set('vircadia_interface.library', libPath, {dataPath: storagePath.main}, function(error) {
 		if (error) {
 			throw error;
 		} else {
@@ -354,7 +378,7 @@ async function getCDNMetaJSON() {
 	var metaURL = DEFAULT_CDN_URL + '/dist/launcher/' + DEFAULT_CDN_METADATA_FILENAME;
 		
 	await electronDl.download(win, metaURL, {
-		directory: storagePath.default,
+		directory: storagePath.main,
 		showBadge: false,
 		filename: DEFAULT_CDN_METADATA_FILENAME,
         // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
@@ -376,7 +400,7 @@ async function getCDNMetaJSON() {
         }
 	});
 	
-	var vircadiaMetaFile = storagePath.default + '/' + DEFAULT_CDN_METADATA_FILENAME;
+	var vircadiaMetaFile = storagePath.main + '/' + DEFAULT_CDN_METADATA_FILENAME;
 	let rawdata = fs.readFileSync(vircadiaMetaFile);
 	let vircadiaMetaJSON = JSON.parse(rawdata);
 	
@@ -393,7 +417,7 @@ async function getCDNEventsJSON() {
 	var eventsURL = DEFAULT_CDN_URL + '/dist/launcher/' + DEFAULT_CDN_EVENTS_FILENAME;
 		
 	await electronDl.download(win, eventsURL, {
-		directory: storagePath.default,
+		directory: storagePath.main,
 		showBadge: false,
 		filename: DEFAULT_CDN_EVENTS_FILENAME,
         // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
@@ -415,7 +439,7 @@ async function getCDNEventsJSON() {
         }
 	});
 	
-	var vircadiaEventsFile = storagePath.default + '/' + DEFAULT_CDN_EVENTS_FILENAME;
+	var vircadiaEventsFile = storagePath.main + '/' + DEFAULT_CDN_EVENTS_FILENAME;
 	let rawdata = fs.readFileSync(vircadiaEventsFile);
 	let vircadiaEventsJSON = JSON.parse(rawdata);
 	
@@ -535,14 +559,14 @@ const { ipcMain } = require('electron')
 ipcMain.on('save-state', (event, arg) => {
     // FIXME: Find out why your settings keep getting nuked...? Specifically current interface and the library folder sometimes.
     // create a log file... and logging function to find the source of these issues.
-    storage.set('vircadia_launcher.state', arg, {dataPath: storagePath.default}, function(error) {
+    storage.set('vircadia_launcher.state', arg, {dataPath: storagePath.main}, function(error) {
         console.info("Saving state.", error);
         if (error) throw error;
     });
 })
 
 ipcMain.on('load-state', (event, arg) => {
-	getSetting('vircadia_launcher.state', storagePath.default).then(function(results) {
+	getSetting('vircadia_launcher.state', storagePath.main).then(function(results) {
         if (results) {    
             if (results.sentryEnabled === true) {
                 init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
@@ -556,7 +580,7 @@ ipcMain.on('load-state', (event, arg) => {
         }
 	});
     
-    win.webContents.send('development-mode', isDevelopment);
+    win.webContents.send('development-mode', developmentMode);
 })
 
 ipcMain.on('set-metaverse-server', (event, arg) => {
@@ -700,8 +724,8 @@ function launchInterfaceDetached(executablePath, parameters) {
 var installer_exe = cp.execFile;
 
 function launchInstaller() {
-    getSetting('vircadia_interface.library', storagePath.default).then(function (libPath) {
-        var executablePath = libPath + "/Vircadia_Setup_Latest.exe";
+    getSetting('vircadia_interface.library', storagePath.main).then(function (libPath) {
+        var executablePath = libPath + '/' + pantheonConfig.manager.preInstallerName;
         var installPath = libPath + "/Vircadia_Interface_Latest";
         var parameters = [""];
 
@@ -746,15 +770,15 @@ async function silentInstall(useOldInstaller) {
         return;
     }
     
-    getSetting('vircadia_interface.library', storagePath.default).then(function (libPath) {    
+    getSetting('vircadia_interface.library', storagePath.main).then(function (libPath) {    
         if (libPath) {
-            executableLocation = libPath + "/Vircadia_Setup_Latest.exe";
+            executableLocation = libPath + '/' + pantheonConfig.manager.preInstallerName;
             installPath = libPath + installFolderName;
             executablePath = libPath;
         } else {
-            executableLocation = storagePath.default + "/Vircadia_Setup_Latest.exe";
-            installPath = storagePath.default + installFolderName;
-            executablePath = storagePath.default;
+            executableLocation = storagePath.main + '/' + pantheonConfig.manager.preInstallerName;
+            installPath = storagePath.main + installFolderName;
+            executablePath = storagePath.main;
         }
         
         var parameters = [];
@@ -763,7 +787,7 @@ async function silentInstall(useOldInstaller) {
         parameters.push("/D=" + installPath);
         
         if (useOldInstaller === true) {
-            exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
+            exeLocToInstall = executablePath + '/' + pantheonConfig.manager.postInstallerName;
         } else {
             if (!fs.existsSync(executableLocation)) {
                 // Notify main window of the issue.
@@ -773,7 +797,7 @@ async function silentInstall(useOldInstaller) {
                 console.info("exeLoc:", executableLocation);
                 console.info("exePath:", executablePath);
                 
-                fs.copyFileSync(executableLocation, executablePath + "/Vircadia_Setup_Latest_READY.exe", (err) => {
+                fs.copyFileSync(executableLocation, executablePath + '/' + pantheonConfig.manager.postInstallerName, (err) => {
                     if (err) console.log('ERROR ON COPY: ' + err);
                     console.log('Completed copy operation successfully.');
                 });
@@ -783,7 +807,7 @@ async function silentInstall(useOldInstaller) {
                     console.info(executableLocation, 'was deleted after copying.');
                 });
                 
-                exeLocToInstall = executablePath + "/Vircadia_Setup_Latest_READY.exe";
+                exeLocToInstall = executablePath + '/' + pantheonConfig.manager.postInstallerName;
             }
         }
         
@@ -841,7 +865,7 @@ async function silentInstall(useOldInstaller) {
 // TODO: Fix this LATER, it's unacceptable.
 
 // async function postInstall() {
-//     getSetting('vircadia_interface.library', storagePath.default).then(async function (libPath) {
+//     getSetting('vircadia_interface.library', storagePath.main).then(async function (libPath) {
 //         var installPath;
 //         var vircadiaMetaJSON = await getCDNMetaJSON();
 //         var vircadiaPackageJSON = 
@@ -855,7 +879,7 @@ async function silentInstall(useOldInstaller) {
 //         if (libPath) {
 //             installPath = libPath + installFolderName;
 //         } else {
-//             installPath = storagePath.default + installFolderName;
+//             installPath = storagePath.main + installFolderName;
 //         }
 // 
 //         var packageJSONLocation = installPath + "/launcher_settings";
@@ -946,11 +970,11 @@ ipcMain.on('set-library-folder', (event, arg) => {
 })
 
 ipcMain.on('set-library-folder-default', (event, arg) => {
-    setLibrary(storagePath.default);
+    setLibrary(storagePath.main);
 })
 
 ipcMain.on('get-library-folder', (event, arg) => {
-    getSetting('vircadia_interface.library', storagePath.default).then(async function(libraryPath){
+    getSetting('vircadia_interface.library', storagePath.main).then(async function(libraryPath){
         win.webContents.send('current-library-folder', {
             libraryPath
         });
@@ -1018,8 +1042,8 @@ ipcMain.on('download-vircadia', async (event, arg) => {
     var vircadiaMetaJSON = await getCDNMetaJSON();
     var isAdmin = await isRunningAsAdministrator();
     var checkPrereqs = await checkRunningApps();
-    var installerName = "Vircadia_Setup_Latest.exe";
-    var installerNamePost = "Vircadia_Setup_Latest_READY.exe";
+    var installerName = pantheonConfig.manager.preInstallerName;
+    var installerNamePost = pantheonConfig.manager.postInstallerName;
     console.info("DLURL:", downloadURL);
     console.info(checkPrereqs)
     
@@ -1040,11 +1064,11 @@ ipcMain.on('download-vircadia', async (event, arg) => {
     }
     
     if (downloadURL) {
-        getSetting('vircadia_interface.library', storagePath.default).then(function(results){
+        getSetting('vircadia_interface.library', storagePath.main).then(function(results){
             if(results) {
                 libraryPath = results;
             } else {
-                libraryPath = storagePath.default;
+                libraryPath = storagePath.main;
             }
             
             var previousInstaller = libraryPath + "/" + installerNamePost;
@@ -1155,7 +1179,7 @@ ipcMain.on('request-launcher-as-admin', async (event, arg) => {
     var appPathSplit = app.getPath('exe').split('\\');
     var appPathCleaned = appPathSplit.slice(0, appPathSplit.length - 1).join('\\');
     
-    var pathToLauncher = appPathCleaned + '\\Vircadia Launcher.exe';
+    var pathToLauncher = appPathCleaned + '\\' + PRODUCT_NAME;
     var pathToElevator = '"' + appPathCleaned + '\\resources\\elevate.exe' + '"';
     var launchParameter = '-k "' + pathToLauncher + '"';
     var interface_exe = require('child_process').spawn;

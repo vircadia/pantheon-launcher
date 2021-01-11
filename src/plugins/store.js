@@ -16,6 +16,7 @@ Vue.use(Vuex);
 export const store = new Vuex.Store({
     devtools: true,
     state: {
+        appVersion: process.env.VUE_APP_VERSION,
         sentryEnabled: false,
         selectedInterface: null,
         interfaceSelectionRequired: true,
