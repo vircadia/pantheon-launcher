@@ -143,7 +143,7 @@
 						</v-card-text>
 						<v-card-actions>
 							<v-spacer />
-							<v-btn @click="setMetaverseServer()" color="accent">Save Metaverse Settings</v-btn>
+							<v-btn @click="setMetaverseServer()" color="primary">Save Metaverse Settings</v-btn>
 						</v-card-actions>
                         
                         <v-toolbar
@@ -230,19 +230,16 @@ export default {
             ipcRenderer.send('get-library-folder');
         },
 		setMetaverseServer: function() {
-			this.$store.commit('mutate', {
-				property: 'metaverseServer', 
-				with: this.metaverseServer
-			});
+			this.metaverseServerStore = this.metaverseServer;
 			ipcRenderer.send('set-metaverse-server', this.$store.state.metaverseServer);
 		}
 	},
 	data: () => ({
 		show: false,
 		showRequireInterface: false,
-        currentFolder: "",
-		metaverseServer: "https://metaverse.vircadia.com/live", // Default metaverse API URL
-        selectedInterface: "[No Interface Selected]",
+        currentFolder: '',
+		metaverseServer: '',
+        selectedInterface: '[No Interface Selected]',
         sentryEnabled: false,
         inactive: false,
 	}),
@@ -254,6 +251,17 @@ export default {
             set(value) {
                 this.$store.commit('mutate', {
                     property: 'customLaunchParameters', 
+                    with: value
+                });
+            },
+        },
+        metaverseServerStore: {
+            get() {
+                return this.$store.state.metaverseServer;
+            },
+            set(value) {
+                this.$store.commit('mutate', {
+                    property: 'metaverseServer', 
                     with: value
                 });
             },

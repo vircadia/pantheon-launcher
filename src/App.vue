@@ -27,29 +27,19 @@ import * as Sentry from '@sentry/electron';
         
         <v-bottom-navigation id="navBar">
             <v-btn-toggle dense tile borderless v-model="showTab">
-                <v-btn disabled value="Recent">
-                    <span>Recent</span>
-                    <v-icon>mdi-history</v-icon>
-                </v-btn>
-
-                <v-btn disabled value="Favorites">
-                    <span>Favorites</span>
-                    <v-icon>mdi-heart</v-icon>
-                </v-btn>
-
-                <v-btn disabled value="Nearby">
-                    <span>Worlds</span>
-                    <v-icon>mdi-map-search-outline</v-icon>
+                <v-btn value="Events" :disabled="true || disableEventsTab">
+                    <span>Events</span>
+                    <v-icon>mdi-calendar-star</v-icon>
                 </v-btn>
                 
-                <v-btn disabled value="News">
+                <v-btn value="News">
                     <span>News</span>
                     <v-icon>mdi-newspaper-variant</v-icon>
                 </v-btn>
                 
-                <v-btn value="Events" :disabled="disableEventsTab">
-                    <span>Events</span>
-                    <v-icon>mdi-calendar-star</v-icon>
+                <v-btn value="Metaverse">
+                    <span>Metaverse</span>
+                    <v-icon>mdi-earth</v-icon>
                 </v-btn>
                 
                 <v-btn value="Settings">
@@ -623,6 +613,7 @@ function clearSelectedInterface() {
 
 import Events from './components/Events';
 import FavoriteWorlds from './components/FavoriteWorlds';
+import Metaverse from './components/Metaverse';
 import News from './components/News';
 import Settings from './components/Settings';
 // Dialogs
@@ -651,6 +642,7 @@ export default {
     components: {
         Events,
         FavoriteWorlds,
+        Metaverse,
         News,
         Settings,
         // Dialogs
@@ -833,8 +825,8 @@ export default {
         }
     },
     data: () => ({
-        showTab: 'Events', // Filling this in sets the default tab to show on startup.
-        defaultTab: 'Events', // The default tab to go to when a user toggles off another.
+        showTab: 'News', // Filling this in sets the default tab to show on startup.
+        defaultTab: 'News', // The default tab to go to when a user toggles off another.
         disableEventsTab: false,
         titleHover: false,
         showOverlay: false,

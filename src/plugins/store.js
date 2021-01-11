@@ -21,12 +21,12 @@ export const store = new Vuex.Store({
         sentryEnabled: false,
         selectedInterface: null,
         interfaceSelectionRequired: true,
-        metaverseServer: "",
+        metaverseServer: 'https://metaverse.vircadia.com/live',
         populatedInterfaceList: [],
         pendingGoto: null,
         downloadOnNextLaunch: false,
         // Launch Parameters
-        customLaunchParameters: "",
+        customLaunchParameters: '',
         allowMultipleInstances: false,
         noSteamVR: false,
         noOculus: false,
@@ -35,13 +35,13 @@ export const store = new Vuex.Store({
         autoRestartInterface: false,
         shouldCheckForUpdates: true,
         // End Launch Parameters
-        currentLibraryFolder: "No library folder selected.",
+        currentLibraryFolder: 'No library folder selected.',
         currentNotice: null
     },
     mutations: {
         mutate(state, payload) {
             state[payload.property] = payload.with;
-            console.info("Payload:", payload.property, "with:", payload.with, "state is now:", this.state);
+            console.info('Payload:', payload.property, 'with:', payload.with, 'state is now:', this.state);
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('save-state', this.state);
         }
