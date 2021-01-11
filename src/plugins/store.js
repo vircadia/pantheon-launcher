@@ -17,11 +17,14 @@ export const store = new Vuex.Store({
     devtools: true,
     state: {
         appVersion: process.env.VUE_APP_VERSION,
+        darkMode: true,
         sentryEnabled: false,
         selectedInterface: null,
         interfaceSelectionRequired: true,
         metaverseServer: "",
         populatedInterfaceList: [],
+        pendingGoto: null,
+        downloadOnNextLaunch: false,
         // Launch Parameters
         customLaunchParameters: "",
         allowMultipleInstances: false,
@@ -30,10 +33,10 @@ export const store = new Vuex.Store({
         dontPromptForLogin: false,
         launchAsChild: false,
         autoRestartInterface: false,
+        shouldCheckForUpdates: true,
         // End Launch Parameters
         currentLibraryFolder: "No library folder selected.",
-        currentNotice: null,
-        darkMode: true
+        currentNotice: null
     },
     mutations: {
         mutate(state, payload) {

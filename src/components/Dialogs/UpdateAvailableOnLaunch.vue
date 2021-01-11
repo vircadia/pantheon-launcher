@@ -1,7 +1,7 @@
 <!--
-//  CancelDownload.vue
+//  UpdateAvailableOnLaunch.vue
 //
-//  Created by David Rowe on 14 Feb 2020.
+//  Created by Kalila L. on Jan 11 2021.
 //  Copyright 2020 Vircadia contributors.
 //
 //  Distributed under the Apache License, Version 2.0.
@@ -11,7 +11,7 @@
     <v-dialog
         width="500"
         persistent
-        v-model="showCancelDownload"
+        v-model="showUpdateAvailable"
     >
         <v-card>
             <v-card-title
@@ -20,11 +20,13 @@
                 dark
             >
                 <v-icon color="green" class="mr-2">mdi-comment-question</v-icon>
-                Cancel Download?
+                Update Available
             </v-card-title>
     
             <v-card-text>
-                Do you want to cancel the download?
+                An update is available. <br />
+                <pre>Latest Version: {{ this.$store.state.currentNotice }}</pre>
+                Would you like to download and install it?
             </v-card-text>
     
             <v-divider></v-divider>
@@ -32,14 +34,14 @@
             <v-card-actions>
                 <v-btn
                     color="primary"
-                    @click="continueDownload(); $emit('hideDialog')"
+                    @click="rejectUpdate(); $emit('hideDialog')"
                 >
                     No
                 </v-btn>
                 <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
-                    @click="cancelDownload(); $emit('hideDialog')"
+                    @click="continueUpdate(); $emit('hideDialog')"
                 >
                     Yes
                 </v-btn>
@@ -51,19 +53,20 @@
 
 <script>
 const { ipcRenderer } = require('electron');
+import { EventBus } from '../../plugins/event-bus.js';
 
 export default {
-    name: 'CancelDownload',
+    name: 'UpdateAvailableOnLaunch',
 	methods: {
-        continueDownload: function () {
-            // Nothing to do.
+        continueUpdate: function () {
+            ipcRenderer.send('download-vircadia');
         },
-        cancelDownload: function () {
-            ipcRenderer.send('cancel-download');
-        },
+        rejectUpdate: function () {
+            EventBus.$emit('reject-update-continue-launch');
+        }
      },
     data: () => ({
-        showCancelDownload: true
+        showUpdateAvailable: true
     }),
 };
 </script>

@@ -119,7 +119,7 @@ import * as Sentry from '@sentry/electron';
                 absolute
                 style="margin-left: 160px;"
             >
-                <span class="mr-2">Report an issue</span>
+                <span class="mr-2">Report</span>
                 <v-icon>mdi-open-in-new</v-icon>
             </v-btn>
         </div>
@@ -128,7 +128,7 @@ import * as Sentry from '@sentry/electron';
         
             <v-btn
                 v-if="showDownloadButton"
-                v-on:click.native="downloadInterface();"
+                v-on:click.native="downloadVircadia();"
                 :right=true
                 color="primary"
                 :tile=true
@@ -238,7 +238,7 @@ import * as Sentry from '@sentry/electron';
             <transition name="fade" mode="out-in">
                 <component v-bind:is="showTab" id=""></component>
             </transition>
-            <pre id="development-output" v-if="isDevelopment">
+            <pre id="development-output" v-if="developmentMode">
             
             </pre>
         </v-main>
@@ -249,6 +249,13 @@ import * as Sentry from '@sentry/electron';
             <component @hideDialog="shouldShowDialog = false" v-if="shouldShowDialog" v-bind:is="showDialog" @open-url="openURL"></component>
         </transition>
     </v-main>
+    
+    <v-overlay :value="showOverlay">
+        <v-progress-circular
+            indeterminate
+            size="64"
+        ></v-progress-circular>
+    </v-overlay>
 		
     </v-app>
 </template>
@@ -275,6 +282,17 @@ EventBus.$on('no-events-found', data => {
     // vue_this.defaultTab = "News";
     // vue_this.showTab = "News";
     // vue_this.disableEventsTab = true;
+});
+
+EventBus.$on('reject-update-continue-launch', data => {
+    vue_this.attemptLaunchInterface('', true);
+});
+
+EventBus.$on('request-launcher-as-admin', data => {
+    vue_this.showOverlay = true;
+    setTimeout(function () { 
+        ipcRenderer.send('request-launcher-as-admin');
+    }, vue_this.TIME_TO_WAIT_BEFORE_REQUEST_ADMIN_QUIT);
 });
 
 ipcRenderer.on('download-installer-progress', (event, arg) => {
@@ -355,6 +373,10 @@ ipcRenderer.on('state-loaded', (event, arg) => {
             property: 'sentryEnabled', 
             with: arg.results.sentryEnabled
         });
+
+        if (arg.results.sentryEnabled === true) {
+            Sentry.init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
+        }
     }
     
     if (arg.results.darkMode !== null) {
@@ -417,13 +439,28 @@ ipcRenderer.on('state-loaded', (event, arg) => {
 	} else {
         ipcRenderer.send('set-library-folder-default');
     }
+
+    if (arg.results.downloadOnNextLaunch) {
+        vue_this.$store.commit('mutate', {
+			property: 'downloadOnNextLaunch', 
+			with: arg.results.downloadOnNextLaunch
+		});
+
+        if (arg.results.downloadOnNextLaunch === true) {
+            vue_this.showOverlay = true;
+            setTimeout(function () { 
+                vue_this.showOverlay = false;
+                vue_this.downloadVircadia();
+            }, vue_this.TIME_TO_WAIT_BEFORE_AUTO_DOWNLOAD_VIRCADIA);
+        }
+    }
     
     // Run anything that was waiting for the state to finish loading.
     vue_this.onStateLoaded();
 });
 
 ipcRenderer.on('development-mode', (event, arg) => {
-    vue_this.isDevelopment = arg;
+    vue_this.developmentMode = arg;
 });
 
 ipcRenderer.on('launching-interface', (event, arg) => {
@@ -479,12 +516,11 @@ ipcRenderer.on('first-time-user', (event, arg) => {
 });
 
 ipcRenderer.on('failed-to-retrieve-interface-metadata', (event, arg) => {
-    
     vue_this.$store.commit('mutate', {
         property: 'currentNotice', 
         with: arg
     });
-    
+
     vue_this.openDialog('FailedMetadata', true);
 });
 
@@ -546,14 +582,32 @@ ipcRenderer.on('checked-for-updates', (event, arg) => {
     vue_this.disableLaunchButton = false;
     vue_this.$store.commit('mutate', {
         property: 'currentNotice', 
-        with: arg.checkForUpdates.latestVersion
+        with: arg.latestVersion
     });
     
-    if (arg.checkForUpdates.updateAvailable === true) {
+    if (arg.updateAvailable === true) {
         vue_this.openDialog('UpdateAvailable', true);
     } else if (arg.checkSilently === false) {
         vue_this.openDialog('NoUpdateAvailable', true);
     }
+});
+
+ipcRenderer.on('checked-for-updates-on-launch', (event, arg) => {
+    if (arg.customPath) {
+        vue_this.$store.commit('mutate', {
+            property: 'pendingGoto', 
+            with: arg.customPath
+        });
+    }
+
+    vue_this.disableUpdateButton = false;
+    vue_this.disableLaunchButton = false;
+    vue_this.$store.commit('mutate', {
+        property: 'currentNotice', 
+        with: arg.latestVersion
+    });
+
+    vue_this.openDialog('UpdateAvailableOnLaunch', true);
 });
 
 /* Debug COMMANDS */
@@ -569,8 +623,8 @@ function clearSelectedInterface() {
 
 import Events from './components/Events';
 import FavoriteWorlds from './components/FavoriteWorlds';
-import Settings from './components/Settings';
 import News from './components/News';
+import Settings from './components/Settings';
 // Dialogs
 import CancelDownload from './components/Dialogs/CancelDownload'
 import CheckForUpdatesFailed from './components/Dialogs/CheckForUpdatesFailed'
@@ -589,6 +643,7 @@ import NoUpdateAvailable from './components/Dialogs/NoUpdateAvailable'
 import ReportAnIssue from './components/Dialogs/ReportAnIssue'
 import SelectVersion from './components/Dialogs/SelectVersion'
 import UpdateAvailable from './components/Dialogs/UpdateAvailable'
+import UpdateAvailableOnLaunch from './components/Dialogs/UpdateAvailableOnLaunch'
 import WantToClose from './components/Dialogs/WantToClose'
 
 export default {
@@ -596,32 +651,33 @@ export default {
     components: {
         Events,
         FavoriteWorlds,
-        Settings,
         News,
+        Settings,
         // Dialogs
         CancelDownload,
+        CheckForUpdatesFailed,
         DownloadComplete,
         DownloadFailed,
+        FailedMetadata,
+        FirstTimeUser,
+        InstallComplete,
+        InstallFailed,
         LaunchFailedInterfaceRunning,
         LaunchOptions,
+        NoUpdateAvailable,
         NoInstallerFound,
         NoInterfaceFound,
         NoInterfaceSelected,
-        InstallComplete,
-        InstallFailed,
-        WantToClose,
-        CheckForUpdatesFailed,
-        NoUpdateAvailable,
         ReportAnIssue,
         SelectVersion,
         UpdateAvailable,
-        FirstTimeUser,
-        FailedMetadata
+        UpdateAvailableOnLaunch,
+        WantToClose
     },
     methods: {
         openDialog: function (which, shouldShow) {
-            // We want to reset the element first.
-            this.showDialog = "";
+            // We want to reset the element first so any change is detected.
+            this.showDialog = '';
             this.shouldShowDialog = false;
             // console.info(this.showDialog, this.shouldShowDialog);
             
@@ -630,10 +686,10 @@ export default {
             // console.info(this.showDialog, this.shouldShowDialog);
         },
         closeDialog: function () {
-            this.showDialog = "";
+            this.showDialog = '';
             this.shouldShowDialog = false;
         },
-		attemptLaunchInterface: function (goto) {
+		attemptLaunchInterface: function (goto, rejectUpdateContinuingLaunch) {
 			// var exeLoc = ipcRenderer.sendSync('get-vircadia-location'); // todo: check if that location exists first when using that, we need to default to using folder path + /interface.exe otherwise.
             var exeLoc;
             
@@ -644,14 +700,24 @@ export default {
             console.info("Attempting to launch interface, found exeLoc:", exeLoc);
             
             if (exeLoc) {
-                this.launchInterface (exeLoc, goto);
+                this.launchInterface(exeLoc, goto, rejectUpdateContinuingLaunch);
             } else {
                 // Disable automatic selection of interfaces...
                 // ipcRenderer.invoke('get-interface-list-for-launch');
                 vue_this.openDialog('NoInterfaceSelected', true);
             }
 		},
-        launchInterface: function (exeLoc, goto) {
+        launchInterface: function (exeLoc, goto, rejectUpdateContinuingLaunch) {
+            var shouldCheckForUpdates = this.$store.state.shouldCheckForUpdates;
+            if (rejectUpdateContinuingLaunch === true) {
+                shouldCheckForUpdates = false;
+            }
+
+            var pendingGoto = this.$store.state.pendingGoto;
+            if (!goto && pendingGoto) {
+                goto = pendingGoto;
+            }
+
             ipcRenderer.send('launch-interface', { 
                 "exec": exeLoc, 
                 "customPath": goto, 
@@ -661,7 +727,8 @@ export default {
                 "allowMultipleInstances": this.$store.state.allowMultipleInstances, 
                 "autoRestartInterface": this.$store.state.autoRestartInterface, 
                 "dontPromptForLogin": this.$store.state.dontPromptForLogin,
-                "launchAsChild": this.$store.state.launchAsChild
+                "launchAsChild": this.$store.state.launchAsChild,
+                "shouldCheckForUpdates": shouldCheckForUpdates
             });
         },
         openURL: function (url) {
@@ -669,34 +736,37 @@ export default {
             shell.openExternal(url);    
         },
         openInterfaceURL: function (url) {
-            this.attemptLaunchInterface(url);
+            this.attemptLaunchInterface(url, false);
         },
-		downloadInterface: function () {
+		downloadVircadia: function () {
+            if (this.$store.state.downloadOnNextLaunch === true) {
+                this.$store.commit('mutate', {
+                    property: 'downloadOnNextLaunch', 
+                    with: false
+                });
+            }
+
             this.disableDownloadButton = true;
             this.disableLaunchButton = true;
-            
+
             // This function also auto-installs Interface.
             if (!this.isDownloading) {
                 this.isDownloading = true;
-                const { ipcRenderer } = require('electron');
                 ipcRenderer.send('download-vircadia');
             } else {
-                vue_this.openDialog('CancelDownload', true);
+                this.openDialog('CancelDownload', true);
             }
 		},
         installInterface: function () {
-            const { ipcRenderer } = require('electron');
             ipcRenderer.send('install-vircadia');
         },
         selectInterfaceExe: function () {
-            const { ipcRenderer } = require('electron');
             ipcRenderer.send('set-vircadia-location');
         },
         checkForUpdates: function (checkSilently) {
             this.disableUpdateButton = true;
             this.disableLaunchButton = true;
 
-            const { ipcRenderer } = require('electron');
             ipcRenderer.send('check-for-updates', checkSilently);            
         },
         resetDownloadButton: function () {
@@ -727,12 +797,7 @@ export default {
         }
 	},
     created: function () {
-        const { ipcRenderer } = require('electron');
         vue_this = this;
-        
-        if (this.$store.state.sentryEnabled === true) {
-            Sentry.init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
-        }
 
         window.onbeforeunload = (e) => {
             e.returnValue = false;
@@ -743,10 +808,10 @@ export default {
         ipcRenderer.send('get-library-folder');
     },
     computed: {
-        interfaceSelected() {
+        interfaceSelected () {
             return this.$store.state.selectedInterface;
         },
-        watchStoreAndData() {
+        watchStoreAndData () {
             return JSON.stringify(Object.assign({}, this.$data, this.$store.state), 0, 2);
         }
     },
@@ -772,7 +837,10 @@ export default {
         defaultTab: 'Events', // The default tab to go to when a user toggles off another.
         disableEventsTab: false,
         titleHover: false,
-        isDevelopment: false,
+        showOverlay: false,
+        developmentMode: false,
+        TIME_TO_WAIT_BEFORE_REQUEST_ADMIN_QUIT: 1000, // 1000ms / 1s
+        TIME_TO_WAIT_BEFORE_AUTO_DOWNLOAD_VIRCADIA: 1000, // 1000ms / 1s
         // Dialog Data
         showDialog: '',
         shouldShowDialog: false,
@@ -792,7 +860,7 @@ export default {
         disableDownloadButton: false,
         disableUpdateButton: false,
         showDownloadButton: true,
-        showUpdateButton: false,
+        showUpdateButton: false
     }),
 };
 </script>

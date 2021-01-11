@@ -69,7 +69,7 @@
 
 
 <script>
-const { ipcRenderer } = require('electron');
+import { EventBus } from '../../plugins/event-bus.js';
 
 export default {
     name: 'CheckForUpdatesFailed',
@@ -80,7 +80,11 @@ export default {
     }),
     methods: {
         requestLauncherAdmin: function () {
-            ipcRenderer.send('request-launcher-as-admin');
+            this.$store.commit('mutate', {
+                property: 'downloadOnNextLaunch', 
+                with: true
+            });
+            EventBus.$emit('request-launcher-as-admin');
         }
     },
     created: function () {

@@ -23,7 +23,9 @@ import path from 'path';
 const storage = require('electron-json-storage');
 const { shell } = require('electron');
 const { dialog } = require('electron');
-const electronDl = require('electron-dl');
+const electronDlMain = require('electron-dl');
+const electronDlMeta = require('electron-dl');
+const electronDlEvents = require('electron-dl');
 const { readdirSync } = require('fs');
 const { forEach } = require('p-iteration');
 const hasha = require('hasha');
@@ -52,7 +54,9 @@ var DEFAULT_CDN_URL;
 var DEFAULT_CDN_EVENTS_FILENAME;
 var DEFAULT_CDN_METADATA_FILENAME;
 var developmentMode = process.env.NODE_ENV !== 'production';
-var electronDlItem = null;
+var electronDlItemMain = null;
+var electronDlItemMeta = null;
+var electronDlItemEvents = null;
 var storagePath = {
 	main: storage.getDefaultDataPath(),
 	interface: null,
@@ -83,7 +87,9 @@ function initialize () {
     Object.assign(console, log.functions);
     
     // Initiate electron-dl
-    electronDl();
+    electronDlMain();
+    electronDlMeta();
+    electronDlEvents();
 }
 
 initialize();
@@ -377,26 +383,26 @@ function setLibraryDialog() {
 async function getCDNMetaJSON() {
 	var metaURL = DEFAULT_CDN_URL + '/dist/launcher/' + DEFAULT_CDN_METADATA_FILENAME;
 		
-	await electronDl.download(win, metaURL, {
+	await electronDlMeta.download(win, metaURL, {
 		directory: storagePath.main,
 		showBadge: false,
 		filename: DEFAULT_CDN_METADATA_FILENAME,
         // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
         // downloadItem to check which download is progressing.
         onStarted: downloadItem => {
-            electronDlItem = downloadItem;
+            electronDlItemMeta = downloadItem;
         },
 		onProgress: currentProgress => {
 			var percent = currentProgress.percent;
-            if (electronDlItem && electronDlItem.getURL() === metaURL) {
+            if (electronDlItemMeta && electronDlItemMeta.getURL() === metaURL) {
                 if (percent === 1) {
-                    electronDlItem = null;
+                    electronDlItemMeta = null;
                 }
                 // console.info("DLing meta:", percent);
             }
 		},
         onCancel: downloadItem => {
-            electronDlItem = null;
+            electronDlItemMeta = null;
         }
 	});
 	
@@ -416,26 +422,26 @@ async function getCDNMetaJSON() {
 async function getCDNEventsJSON() {
 	var eventsURL = DEFAULT_CDN_URL + '/dist/launcher/' + DEFAULT_CDN_EVENTS_FILENAME;
 		
-	await electronDl.download(win, eventsURL, {
+	await electronDlEvents.download(win, eventsURL, {
 		directory: storagePath.main,
 		showBadge: false,
 		filename: DEFAULT_CDN_EVENTS_FILENAME,
         // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
         // downloadItem to check which download is progressing.
         onStarted: downloadItem => {
-            electronDlItem = downloadItem;
+            electronDlItemEvents = downloadItem;
         },
 		onProgress: currentProgress => {
 			var percent = currentProgress.percent;
-            if (electronDlItem && electronDlItem.getURL() === eventsURL) {
+            if (electronDlItemEvents && electronDlItemEvents.getURL() === eventsURL) {
                 if (percent === 1) {
-                    electronDlItem = null;
+                    electronDlItemEvents = null;
                 }
                 // console.info("DLing events:", percent);
             }
 		},
         onCancel: downloadItem => {
-            electronDlItem = null;
+            electronDlItemEvents = null;
         }
 	});
 	
@@ -487,14 +493,15 @@ async function isRunningAsAdministrator() {
     }
 }
 
-async function checkForUpdates(checkSilently) {
+async function checkForUpdates (checkSilently) {
     if (storagePath.interfaceSettings) {
         // This means to update because an interface exists and is selected.
         console.info("Checking for updates.");
-        var checkForUpdates = await checkForInterfaceUpdates();
-        if (checkForUpdates != null) {
+        var result = await checkForInterfaceUpdates();
+        if (result != null) {
             // Return with the URL to download or false if not.
-            win.webContents.send('checked-for-updates', { checkForUpdates, "checkSilently": checkSilently }); 
+            result.checkSilently = checkSilently;
+            return result;
         }
     }
 }
@@ -603,6 +610,19 @@ ipcMain.on('launch-interface', async (event, arg) => {
         // var convertProtocol = arg.customPath.replace("hifi://", "http://")
         parameters.push('--url "' + arg.customPath + '"');
     }
+
+    if (arg.shouldCheckForUpdates) {
+        var checkResult = await checkForUpdates(true);
+
+        if (checkResult.updateAvailable === true) {
+            if (isPathSet === true) {
+                checkResult.customPath = arg.customPath;
+            }
+
+            win.webContents.send('checked-for-updates-on-launch', checkResult);
+            return;
+        }
+    }
     
     if (arg.customLaunchParameters) {
         var splitParameters = arg.customLaunchParameters.split(",");
@@ -615,7 +635,7 @@ ipcMain.on('launch-interface', async (event, arg) => {
         var list = await tasklist();
         list.forEach((task) => {
             if (task.imageName === "interface.exe") {
-                console.log("INTERFACE ALREADY RUNNING WHILE ATTEMPTING TO LAUNCH!");
+                console.log("Interface is already running while attempting to launch without --allowMultipleInstances set!");
                 if (isPathSet === true) {
                     console.log("A goto URL was set, we will redirect this to the operating system.");
                     shell.openExternal(arg.customPath);
@@ -1090,31 +1110,31 @@ ipcMain.on('download-vircadia', async (event, arg) => {
                 }
             }
             
-			electronDl.download(win, downloadURL, {
+			electronDlMain.download(win, downloadURL, {
 				directory: libraryPath,
 				showBadge: true,
 				filename: installerName,
                 // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to
                 // use the downloadItem to check which download is progressing.
                 onStarted: downloadItem => {
-                    electronDlItem = downloadItem;
+                    electronDlItemMain = downloadItem;
                 },
 				onProgress: currentProgress => {
 					console.info(currentProgress);
 					var percent = currentProgress.percent;
-                    if (electronDlItem && electronDlItem.getURL() === downloadURL) {
+                    if (electronDlItemMain && electronDlItemMain.getURL() === downloadURL) {
                         win.webContents.send('download-installer-progress', {
                             percent
                         });
                         if (percent === 1) { // When the setup download completes...
-                            electronDlItem = null;
+                            electronDlItemMain = null;
                             // launchInstaller();
                             silentInstall(false);
                         }
                     }
 				},
                 onCancel: downloadItem => {
-                    electronDlItem = null;
+                    electronDlItemMain = null;
                 }
                 // FIXME: electron-dl currently displays its own "download interrupted" message box if file not found or 
                 // download interrupted. It would be nicer to display our own, download-installer-failed, message box.
@@ -1147,8 +1167,8 @@ ipcMain.on('launch-sandbox', (event, folder) => {
 });
 
 ipcMain.on('cancel-download', async (event) => {
-    if (electronDlItem) {
-        electronDlItem.cancel();
+    if (electronDlItemMain) {
+        electronDlItemMain.cancel();
         win.webContents.send('download-cancelled');
     }
 });
@@ -1161,8 +1181,9 @@ ipcMain.on('install-vircadia', (event, arg) => {
 //       update not available.
 // TODO: When a new version is downloaded and installed, the old version is no
 //       longer overwritten. What should we do about this?
-ipcMain.on('check-for-updates', (event, arg) => {
-    checkForUpdates(arg);
+ipcMain.on('check-for-updates', async (event, arg) => {
+    var result = await checkForUpdates(arg);
+    win.webContents.send('checked-for-updates', result);
 });
 
 ipcMain.on('check-for-events', async (event, arg) => {

@@ -24,7 +24,7 @@
             </v-card-title>
     
             <v-card-text>
-                The latest version of Interface is done downloading!
+                The latest version of Vircadia is done downloading!
             </v-card-text>
     
             <v-divider></v-divider>
