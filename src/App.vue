@@ -708,6 +708,11 @@ export default {
             var pendingGoto = this.$store.state.pendingGoto;
             if (!goto && pendingGoto) {
                 goto = pendingGoto;
+
+                this.$store.commit('mutate', {
+                    property: 'pendingGoto', 
+                    with: ''
+                });
             }
 
             ipcRenderer.send('launch-interface', { 
