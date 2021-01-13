@@ -335,107 +335,48 @@ ipcRenderer.on('download-installer-failed', (event, arg) => {
 });
 
 ipcRenderer.on('state-loaded', (event, arg) => {
-	console.info("STATE LOADED:", arg);
-	
-    if (arg.results.noSteamVR) {
-        vue_this.$store.commit('mutate', {
-            property: 'noSteamVR', 
-            with: arg.results.noSteamVR
-        });
-    }
+	console.info('Loaded state:', arg);
     
-    if (arg.results.noOculus) {
-        vue_this.$store.commit('mutate', {
-            property: 'noOculus', 
-            with: arg.results.noOculus
-        });
-    }
-    
-    if (arg.results.customLaunchParameters) {
-        vue_this.$store.commit('mutate', {
-            property: 'customLaunchParameters', 
-            with: arg.results.customLaunchParameters
-        });
-    }
-    
-    if (arg.results.sentryEnabled !== null) {
-        vue_this.$store.commit('mutate', {
-            property: 'sentryEnabled', 
-            with: arg.results.sentryEnabled
-        });
-
-        if (arg.results.sentryEnabled === true) {
-            Sentry.init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
+    vue_this.$store.commit('mutate', {
+        update: true,
+        with: {
+            sentryEnabled: arg.results.sentryEnabled,
+            darkMode: arg.results.darkMode,
+            selectedInterface: arg.results.selectedInterface,
+            metaverseServer: arg.results.metaverseServer,
+            currentLibraryFolder: arg.results.currentLibraryFolder,
+            downloadOnNextLaunch: arg.results.downloadOnNextLaunch,
+            customLaunchParameters: arg.results.customLaunchParameters,
+            launchAsChild: arg.results.launchAsChild,
+            allowMultipleInstances: arg.results.allowMultipleInstances,
+            dontPromptForLogin: arg.results.dontPromptForLogin,
+            noSteamVR: arg.results.noSteamVR,
+            noOculus: arg.results.noOculus,
+            hideOnLaunch: arg.results.hideOnLaunch
         }
+    });
+    
+    if (arg.results.sentryEnabled === true) {
+        Sentry.init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
     }
     
     if (arg.results.darkMode !== null) {
-        vue_this.$store.commit('mutate', {
-            property: 'darkMode', 
-            with: arg.results.darkMode
-        });
         vue_this.$vuetify.theme.dark = arg.results.darkMode;
     }
     
-    if (arg.results.launchAsChild) {
-        vue_this.$store.commit('mutate', {
-            property: 'launchAsChild', 
-            with: arg.results.launchAsChild
-        });
-    }
-    
-    if (arg.results.allowMultipleInstances) {
-        vue_this.$store.commit('mutate', {
-            property: 'allowMultipleInstances', 
-            with: arg.results.allowMultipleInstances
-        });
-    }
-    
-    if (arg.results.autoRestartInterface) {
-        vue_this.$store.commit('mutate', {
-            property: 'autoRestartInterface', 
-            with: arg.results.autoRestartInterface
-        });
-    }
-    
-    if (arg.results.dontPromptForLogin) {
-        vue_this.$store.commit('mutate', {
-            property: 'dontPromptForLogin', 
-            with: arg.results.dontPromptForLogin
-        });
-    }
-    
-	if (arg.results.selectedInterface) {
-		vue_this.$store.commit('mutate', {
-			property: 'selectedInterface', 
-			with: arg.results.selectedInterface
-		});
+    if (arg.results.selectedInterface) {
         ipcRenderer.send('set-current-interface', vue_this.$store.state.selectedInterface.folder);
-	}
+    }
     
-	if (arg.results.metaverseServer) {
-		vue_this.$store.commit('mutate', {
-			property: 'metaverseServer', 
-			with: arg.results.metaverseServer
-		});
-		ipcRenderer.send('set-metaverse-server', arg.results.metaverseServer);
-	}
+    if (arg.results.metaverseServer) {
+        ipcRenderer.send('set-metaverse-server', arg.results.metaverseServer);
+    }
     
-    if (arg.results.currentLibraryFolder) {
-        vue_this.$store.commit('mutate', {
-			property: 'currentLibraryFolder', 
-			with: arg.results.currentLibraryFolder
-		});
-	} else {
+    if (!arg.results.currentLibraryFolder) {
         ipcRenderer.send('set-library-folder-default');
     }
 
     if (arg.results.downloadOnNextLaunch) {
-        vue_this.$store.commit('mutate', {
-			property: 'downloadOnNextLaunch', 
-			with: arg.results.downloadOnNextLaunch
-		});
-
         if (arg.results.downloadOnNextLaunch === true) {
             vue_this.showOverlay = true;
             setTimeout(function () { 
@@ -444,7 +385,7 @@ ipcRenderer.on('state-loaded', (event, arg) => {
             }, vue_this.TIME_TO_WAIT_BEFORE_AUTO_DOWNLOAD_VIRCADIA);
         }
     }
-    
+
     // Run anything that was waiting for the state to finish loading.
     vue_this.onStateLoaded();
 });
@@ -716,16 +657,17 @@ export default {
             }
 
             ipcRenderer.send('launch-interface', { 
-                "exec": exeLoc, 
-                "customPath": goto, 
-                "customLaunchParameters": this.$store.state.customLaunchParameters, 
-                "noSteamVR": this.$store.state.noSteamVR, 
-                "noOculus": this.$store.state.noOculus, 
-                "allowMultipleInstances": this.$store.state.allowMultipleInstances, 
-                "autoRestartInterface": this.$store.state.autoRestartInterface, 
-                "dontPromptForLogin": this.$store.state.dontPromptForLogin,
-                "launchAsChild": this.$store.state.launchAsChild,
-                "shouldCheckForUpdates": shouldCheckForUpdates
+                'exec': exeLoc, 
+                'customPath': goto, 
+                'customLaunchParameters': this.$store.state.customLaunchParameters, 
+                'noSteamVR': this.$store.state.noSteamVR, 
+                'noOculus': this.$store.state.noOculus, 
+                'allowMultipleInstances': this.$store.state.allowMultipleInstances, 
+                'autoRestartInterface': this.$store.state.autoRestartInterface, 
+                'dontPromptForLogin': this.$store.state.dontPromptForLogin,
+                'launchAsChild': this.$store.state.launchAsChild,
+                'shouldCheckForUpdates': shouldCheckForUpdates,
+                'hideOnLaunch': this.$store.state.hideOnLaunch
             });
         },
         openURL: function (url) {

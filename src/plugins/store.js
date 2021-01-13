@@ -8,8 +8,12 @@
     See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
 */
 
+/* eslint no-redeclare: 0 */  // --> OFF
+
 import Vue from 'vue';
 import Vuex from 'vuex';
+
+const { ipcRenderer } = require('electron');
 
 Vue.use(Vuex);
 
@@ -25,6 +29,7 @@ export const store = new Vuex.Store({
         populatedInterfaceList: [],
         pendingGoto: null,
         downloadOnNextLaunch: false,
+        hideOnLaunch: false,
         // Launch Parameters
         customLaunchParameters: '',
         allowMultipleInstances: false,
@@ -39,10 +44,35 @@ export const store = new Vuex.Store({
         currentNotice: null
     },
     mutations: {
-        mutate(state, payload) {
-            state[payload.property] = payload.with;
-            console.info('Payload:', payload.property, 'with:', payload.with, 'state is now:', this.state);
-            const { ipcRenderer } = require('electron');
+        mutate (state, payload) {
+            // This means we're trying to update a specific set of items.
+            if (payload.property) {
+                if (!payload.update) {
+                    state[payload.property] = payload.with;
+                } else {
+                    for (var item in payload.with) {
+                        if (Object.prototype.hasOwnProperty.call(state[payload.property], item)) {
+                            state[payload.property][item] = payload.with[item];
+                        }
+                    }
+                }
+
+                console.info('Updated:', payload.property, 'with:', payload.with, 'state is now:', this.state);
+            } else {
+            // This means we're trying to update the entire store.
+                if (!payload.update) {
+                    state = payload.with;
+                } else {
+                    for (var item in payload.with) {
+                        if (Object.prototype.hasOwnProperty.call(state, item)) {
+                            state[item] = payload.with[item];
+                        }
+                    }
+                }
+
+                console.info('Updated:', state, 'with:', payload.with, 'state is now:', this.state);
+            }
+
             ipcRenderer.send('save-state', this.state);
         }
     }

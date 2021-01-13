@@ -682,28 +682,37 @@ ipcMain.on('launch-interface', async (event, arg) => {
     console.info("Parameters:", parameters, "type:", Array.isArray(parameters));
     console.info("arg.launchAsChild", arg.launchAsChild);
     if (arg.launchAsChild) {
-        launchInterface(executablePath, parameters, arg.autoRestartInterface);
+        launchInterface(executablePath, parameters, arg);
     } else {
-        launchInterfaceDetached(executablePath, parameters);
+        launchInterfaceDetached(executablePath, parameters, arg);
     }
 })
 
-function launchInterface(executablePath, parameters, autoRestartInterface) {
+function launchInterface(executablePath, parameters, passedArgs) {
     win.webContents.send('launching-interface');
-    
+
+    if (passedArgs.hideOnLaunch === true) {
+        win.hide();
+    }
+
     var interface_exe = require('child_process').execFile;
-    
+
     interface_exe(executablePath, parameters, { windowsVerbatimArguments: true }, function(err, stdout, data) {
         console.info("Interface.exe exited with code:", err);
-        if (autoRestartInterface == true && err && !err.killed) {
-            launchInterface(executablePath, parameters, autoRestartInterface);
+        if (passedArgs.autoRestartInterface == true && err && !err.killed) {
+            launchInterface(executablePath, parameters, passedArgs);
         }
     });
 }
 
-function launchInterfaceDetached(executablePath, parameters) {
-    // All arguments that have or may have spaces should be wrapped in ""
+function launchInterfaceDetached(executablePath, parameters, passedArgs) {
     win.webContents.send('launching-interface');
+
+    if (passedArgs.hideOnLaunch === true) {
+        win.hide();
+    }
+
+    // All arguments that have or may have spaces should be wrapped in ""
     var appPathSplit = app.getPath('exe').split('\\');
     var appPathCleaned = appPathSplit.slice(0, appPathSplit.length - 1).join('\\');
     var pathToLaunch = appPathCleaned + "\\bat\\launcher.bat";
