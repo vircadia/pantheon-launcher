@@ -19,17 +19,14 @@ import {
 	installVueDevtools,
 	createProtocol,
 } from 'vue-cli-plugin-electron-builder/lib';
+require('./global.js');
 import path from 'path';
-const storage = require('electron-json-storage');
 const { shell } = require('electron');
 const { dialog } = require('electron');
 const electronDlMain = require('electron-dl');
-const electronDlMeta = require('electron-dl');
-const electronDlEvents = require('electron-dl');
 const { readdirSync } = require('fs');
 const { forEach } = require('p-iteration');
 const hasha = require('hasha');
-const fs = require('fs');
 const compareVersions = require('compare-versions');
 const isAdmin = require('is-admin');
 const glob = require('glob');
@@ -41,42 +38,9 @@ process.env.PATH = 'C:\\Windows\\System32;' + process.env.PATH;
 // electron_modules
 import * as versionPaths from './electron_modules/versionPaths.js';
 import * as migrateLauncher from './electron_modules/migrateLauncher.js';
-// Load pantheon.config.js
-var pantheonConfig = require('../pantheon.config.js');
-var packageJSON = require('../package.json');
-
-// Universal Variables
-var APPLICATION_NAME;
-var APPLICATION_VERSION;
-var PRODUCT_NAME;
-var LAUNCHER_ICON;
-var DEFAULT_CDN_URL;
-var DEFAULT_CDN_EVENTS_FILENAME;
-var DEFAULT_CDN_METADATA_FILENAME;
-var developmentMode = process.env.NODE_ENV !== 'production';
-var electronDlItemMain = null;
-var electronDlItemMeta = null;
-var electronDlItemEvents = null;
-var storagePath = {
-	main: storage.getDefaultDataPath(),
-	interface: null,
-	interfaceSettings: null,
-	currentLibrary: null,
-};
+import * as download from './electron_modules/networking/download.js';
 
 function initialize () {
-    APPLICATION_NAME = pantheonConfig.app.name;
-    APPLICATION_VERSION = packageJSON.version;
-    PRODUCT_NAME = packageJSON.productName + '.exe';
-    LAUNCHER_ICON = path.join(__static, '/resources/logo_launcher_256_256.ico');
-    DEFAULT_CDN_URL = pantheonConfig.cdn.root;
-    DEFAULT_CDN_EVENTS_FILENAME = pantheonConfig.cdn.eventsFilename;
-    DEFAULT_CDN_METADATA_FILENAME = pantheonConfig.cdn.metadataFilename;
-    
-    if (pantheonConfig.app.developmentMode === true) {
-        developmentMode = true;
-    }
-    
     if (pantheonConfig.app.storagePath) {
         if (pantheonConfig.app.storagePath.main !== '') {
             storagePath.main = pantheonConfig.app.storagePath.main;
@@ -88,18 +52,11 @@ function initialize () {
     
     // Initiate electron-dl
     electronDlMain();
-    electronDlMeta();
-    electronDlEvents();
 }
 
 initialize();
 
 console.log("Data Path: " + storagePath.main);
-
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-let win
-let tray
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: { secure: true, standard: true } }])
@@ -310,7 +267,7 @@ async function getLibraryInterfaces() {
                     interfaces = interfacesList;
                     res_p();
                 });
-                console.info("Nani Lib Path?", libraryPath);
+                console.info("Found library path:", libraryPath);
             } else {
                 setLibrary(storagePath.main);
                 await getDirectories(storagePath.main).then(function(interfacesList) {
@@ -380,86 +337,8 @@ function setLibraryDialog() {
 //     }
 // }
 
-async function getCDNMetaJSON() {
-	var metaURL = DEFAULT_CDN_URL + '/dist/launcher/' + DEFAULT_CDN_METADATA_FILENAME;
-		
-	await electronDlMeta.download(win, metaURL, {
-		directory: storagePath.main,
-		showBadge: false,
-		filename: DEFAULT_CDN_METADATA_FILENAME,
-        // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
-        // downloadItem to check which download is progressing.
-        onStarted: downloadItem => {
-            electronDlItemMeta = downloadItem;
-        },
-		onProgress: currentProgress => {
-			var percent = currentProgress.percent;
-            if (electronDlItemMeta && electronDlItemMeta.getURL() === metaURL) {
-                if (percent === 1) {
-                    electronDlItemMeta = null;
-                }
-                // console.info("DLing meta:", percent);
-            }
-		},
-        onCancel: downloadItem => {
-            electronDlItemMeta = null;
-        }
-	});
-	
-	var vircadiaMetaFile = storagePath.main + '/' + DEFAULT_CDN_METADATA_FILENAME;
-	let rawdata = fs.readFileSync(vircadiaMetaFile);
-	let vircadiaMetaJSON = JSON.parse(rawdata);
-	
-	if (vircadiaMetaJSON) {
-		console.info("Vircadia Meta JSON:", vircadiaMetaJSON);
-		return vircadiaMetaJSON;
-	} else {
-        console.error("Failed to download Vircadia Meta JSON");
-		return false;
-	}
-}
-
-async function getCDNEventsJSON() {
-	var eventsURL = DEFAULT_CDN_URL + '/dist/launcher/' + DEFAULT_CDN_EVENTS_FILENAME;
-		
-	await electronDlEvents.download(win, eventsURL, {
-		directory: storagePath.main,
-		showBadge: false,
-		filename: DEFAULT_CDN_EVENTS_FILENAME,
-        // onStarted etc. event listeners are added to the downloader, not replaced in the downloader, so we need to use the 
-        // downloadItem to check which download is progressing.
-        onStarted: downloadItem => {
-            electronDlItemEvents = downloadItem;
-        },
-		onProgress: currentProgress => {
-			var percent = currentProgress.percent;
-            if (electronDlItemEvents && electronDlItemEvents.getURL() === eventsURL) {
-                if (percent === 1) {
-                    electronDlItemEvents = null;
-                }
-                // console.info("DLing events:", percent);
-            }
-		},
-        onCancel: downloadItem => {
-            electronDlItemEvents = null;
-        }
-	});
-	
-	var vircadiaEventsFile = storagePath.main + '/' + DEFAULT_CDN_EVENTS_FILENAME;
-	let rawdata = fs.readFileSync(vircadiaEventsFile);
-	let vircadiaEventsJSON = JSON.parse(rawdata);
-	
-	if (vircadiaEventsJSON) {
-		console.info("Vircadia Events JSON:", vircadiaEventsJSON);
-		return vircadiaEventsJSON;
-	} else {
-        console.error("Failed to download Vircadia Events JSON.");
-		return false;
-	}
-}
-
 async function checkForInterfaceUpdates() {
-	var vircadiaMeta = await getCDNMetaJSON();
+	var vircadiaMeta = await download.cdn.meta();
     // var interfacePackage = await getCurrentInterfaceJSON();
     storagePath.interfaceSettings = storagePath.interfaceSettings.replace("//launcher_settings", "");
     storagePath.interfaceSettings = storagePath.interfaceSettings.replace("\\/launcher_settings", "");
@@ -525,7 +404,7 @@ async function checkRunningApps() {
 }
 
 async function getDownloadURL() {
-    var metaJSON = await getCDNMetaJSON();
+    var metaJSON = await download.cdn.meta();
     if (metaJSON) {
         return metaJSON.latest.url;
     } else {
@@ -774,7 +653,7 @@ function launchInstaller() {
 }
 
 async function silentInstall(useOldInstaller) {
-    var vircadiaMetaJSON = await getCDNMetaJSON();
+    var vircadiaMetaJSON = await download.cdn.meta();
     var executableLocation; // This is the downloaded installer.
     var installPath; // This is the location to install the application to.
     var installFolderName = "\\" + versionPaths.toPath(vircadiaMetaJSON.latest) + "\\";
@@ -896,7 +775,7 @@ async function silentInstall(useOldInstaller) {
 // async function postInstall() {
 //     getSetting('vircadia_interface.library', storagePath.main).then(async function (libPath) {
 //         var installPath;
-//         var vircadiaMetaJSON = await getCDNMetaJSON();
+//         var vircadiaMetaJSON = await download.cdn.meta();
 //         var vircadiaPackageJSON = 
 //         {
 //             "package": {
@@ -1068,7 +947,7 @@ ipcMain.handle('get-interface-list-for-launch', async (event, arg) => {
 ipcMain.on('download-vircadia', async (event, arg) => {
     var libraryPath;
     var downloadURL = await getDownloadURL();
-    var vircadiaMetaJSON = await getCDNMetaJSON();
+    var vircadiaMetaJSON = await download.cdn.meta();
     var isAdmin = await isRunningAsAdministrator();
     var checkPrereqs = await checkRunningApps();
     var installerName = pantheonConfig.manager.preInstallerName;
@@ -1196,7 +1075,7 @@ ipcMain.on('check-for-updates', async (event, arg) => {
 });
 
 ipcMain.on('check-for-events', async (event, arg) => {
-    var fetchEvents = await getCDNEventsJSON();
+    var fetchEvents = await download.cdn.events();
     win.webContents.send('events-list', fetchEvents);
 });
 

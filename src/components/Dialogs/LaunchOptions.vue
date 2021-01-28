@@ -129,7 +129,7 @@
             
                     <v-list-item-content>
                         <v-list-item-title>Hide on Launch</v-list-item-title>
-                        <v-list-item-subtitle>Hide the launcher after launching Vircadia.</v-list-item-subtitle>
+                        <v-list-item-subtitle>Hide the launcher after launching Vircadia Interface.</v-list-item-subtitle>
                     </v-list-item-content>
                 </template>
             </v-list-item>

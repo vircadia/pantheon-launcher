@@ -68,16 +68,13 @@
                     <template 
                         v-for="(item, i) in interfaceFolders"
                     >
-                        <v-divider
-                            :key="i"
-                        ></v-divider>
+                        <v-divider :key="i"></v-divider>
                         <v-list-item
                             :key="i"
                         >
                             <v-list-item-content @click="selectInterface(item)">
                                 <v-list-item-title v-html="item.name"></v-list-item-title>
                                 <v-list-item-subtitle v-html="item.version"></v-list-item-subtitle>
-                                
                             </v-list-item-content>
                             <v-tooltip left>
                                 <template v-slot:activator="{ on }">

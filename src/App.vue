@@ -236,7 +236,12 @@ import * as Sentry from '@sentry/electron';
     
     <v-main id="dialogContent">
         <transition name="fade" mode="out-in">
-            <component @hideDialog="shouldShowDialog = false" v-if="shouldShowDialog" v-bind:is="showDialog" @open-url="openURL"></component>
+            <component 
+                @hideDialog="shouldShowDialog = false" 
+                v-if="shouldShowDialog" 
+                v-bind:is="showDialog" 
+                @open-url="openURL"
+            ></component>
         </transition>
     </v-main>
     
