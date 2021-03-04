@@ -15,6 +15,8 @@
 // init({dsn: 'https://def94db0cce14e2180e054407e551220@sentry.vircadia.dev/3'});
 
 import { app, protocol, BrowserWindow, DownloadItem, Menu, Tray } from 'electron';
+// To ensure only one instance of the launcher can exist, we request a lock.
+let requestAppLock = app.requestSingleInstanceLock();
 import {
 	installVueDevtools,
 	createProtocol,
@@ -34,7 +36,9 @@ const cp = require('child_process');
 const log = require('electron-log');
 const tasklist = require('tasklist'); // This is specific to Windows.
 // For tasklist to work correctly on some systems...
-process.env.PATH = 'C:\\Windows\\System32;' + process.env.PATH;
+// if (process.platform === "win32") {
+    process.env.PATH = 'C:\\Windows\\System32;' + process.env.PATH;
+// }
 // electron_modules
 import * as versionPaths from './electron_modules/versionPaths.js';
 import * as migrateLauncher from './electron_modules/migrateLauncher.js';
@@ -85,8 +89,8 @@ function createWindow () {
 
 	// Create the browser window.
 	win = new BrowserWindow({ 
-		width: 1000, 
-		height: 800,
+		width: APPLICATION_WIDTH, 
+		height: APPLICATION_HEIGHT,
         title: APPLICATION_NAME + ' ' + APPLICATION_VERSION,
 		icon: LAUNCHER_ICON, 
 		resizable: false,
@@ -124,16 +128,33 @@ function createWindow () {
 	})
 }
 
+function attemptCreateWindow () {
+    if (!requestAppLock && !developmentMode) {
+        app.exit();
+    } else {
+        createWindow();
+    }
+}
+
 // This stops CORS from getting in the way...
 // app.commandLine.appendSwitch('disable-site-isolation-trials');
 // app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
+
+// Someone tried to run a second instance, we should focus our window.
+app.on('second-instance', (event, commandLine, workingDirectory) => {
+    if (win) {
+        if (win.isMinimized()) {
+            win.show();
+        }
+    }
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
 	// On macOS it is common for applications and their menu bar
 	// to stay active until the user quits explicitly with Cmd + Q
 	if (process.platform !== 'darwin') {
-		app.quit()
+		app.quit();
 	}
 })
 
@@ -141,7 +162,7 @@ app.on('activate', () => {
 	// On macOS it's common to re-create a window in the app when the
 	// dock icon is clicked and there are no other windows open.
 	if (win === null) {
-		createWindow()
+		attemptCreateWindow();
 	}
 })
 
@@ -158,7 +179,8 @@ app.on('ready', async () => {
             // console.error('Vue Devtools failed to install:', e.toString())
         }
     }
-    createWindow();
+
+    attemptCreateWindow();
 })
 
 // Exit cleanly on request from parent process in development mode.

@@ -26,6 +26,12 @@ module.exports = {
                     "perMachine": true,
                     "createStartMenuShortcut": true,
                 },
+                "publish": [
+                    {
+                        "provider": "generic",
+                        "url": "https://cdn.vircadia.com/dist/launcher/updater/"
+                    }
+                ],
                 "win": {
                     "target": "nsis",
                     "icon": "src/assets/logo_launcher_256_256.ico",

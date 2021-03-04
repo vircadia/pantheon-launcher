@@ -16,6 +16,8 @@ module.exports = {
     },
     'app': {
         'name': 'Vircadia Launcher',
+        'width': 1000,
+        'height': 800,
         'developmentMode': false
     },
     'manager': {

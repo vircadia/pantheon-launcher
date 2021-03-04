@@ -1,11 +1,11 @@
 {
   "name": "VircadiaLauncher",
+  "version": "1.0.1",
   "productName": "Vircadia Launcher",
   "author": {
     "name": "Kalila L.",
     "email": "somnilibertas@gmail.com"
   },
-  "version": "1.0.1",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
