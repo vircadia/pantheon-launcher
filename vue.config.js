@@ -35,7 +35,7 @@ module.exports = {
                 "win": {
                     "target": "nsis",
                     "icon": "src/assets/logo_launcher_256_256.ico",
-                    "publisherName": "Vircadia",
+                    "publisherName": "Meitefusi",
                     "rfc3161TimeStampServer": "http://timestamp.comodoca.com/",
                 },
                 "linux": {

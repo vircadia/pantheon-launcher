@@ -502,6 +502,14 @@ ipcRenderer.on('silent-installer-failed', (event, arg) => {
     vue_this.openDialog('InstallFailed', true);
 });
 
+ipcRenderer.on('launcher-auto-update-failed', (event, arg) => {
+    vue_this.$store.commit('mutate', {
+        property: 'currentNotice', 
+        with: arg
+    });
+    vue_this.openDialog('UpdateLauncherFailed', true);
+});
+
 ipcRenderer.on('check-for-updates-failed', (event, arg) => {
     vue_this.disableUpdateButton = false;
     vue_this.resetUpdateButton();
@@ -546,6 +554,16 @@ ipcRenderer.on('checked-for-updates-on-launch', (event, arg) => {
     vue_this.openDialog('UpdateAvailableOnLaunch', true);
 });
 
+ipcRenderer.on('checked-for-launcher-updates', (event, arg) => {
+    if (arg.updateAvailable === true) {
+        vue_this.openDialog('LauncherUpdateAvailable', true);
+    }
+});
+
+ipcRenderer.on('launcher-auto-updater-running', (event, arg) => {
+    vue_this.showOverlay = true;
+});
+
 /* Debug COMMANDS */
 
 function clearSelectedInterface() {
@@ -571,6 +589,7 @@ import FailedMetadata from './components/Dialogs/FailedMetadata'
 import FirstTimeUser from './components/Dialogs/FirstTimeUser'
 import InstallComplete from './components/Dialogs/InstallComplete'
 import InstallFailed from './components/Dialogs/InstallFailed'
+import LauncherUpdateAvailable from './components/Dialogs/LauncherUpdateAvailable'
 import LaunchFailedInterfaceRunning from './components/Dialogs/LaunchFailedInterfaceRunning'
 import LaunchOptions from './components/Dialogs/LaunchOptions'
 import NoInstallerFound from './components/Dialogs/NoInstallerFound'
@@ -581,6 +600,7 @@ import ReportAnIssue from './components/Dialogs/ReportAnIssue'
 import SelectVersion from './components/Dialogs/SelectVersion'
 import UpdateAvailable from './components/Dialogs/UpdateAvailable'
 import UpdateAvailableOnLaunch from './components/Dialogs/UpdateAvailableOnLaunch'
+import UpdateLauncherFailed from './components/Dialogs/UpdateLauncherFailed'
 import WantToClose from './components/Dialogs/WantToClose'
 
 export default {
@@ -600,6 +620,7 @@ export default {
         FirstTimeUser,
         InstallComplete,
         InstallFailed,
+        LauncherUpdateAvailable,
         LaunchFailedInterfaceRunning,
         LaunchOptions,
         NoUpdateAvailable,
@@ -610,6 +631,7 @@ export default {
         SelectVersion,
         UpdateAvailable,
         UpdateAvailableOnLaunch,
+        UpdateLauncherFailed,
         WantToClose
     },
     methods: {
@@ -701,6 +723,17 @@ export default {
                 this.openDialog('CancelDownload', true);
             }
 		},
+        downloadLauncher: function () {
+            if (this.$store.state.updateLauncherOnNextLaunch === true) {
+                this.$store.commit('mutate', {
+                    property: 'updateLauncherOnNextLaunch', 
+                    with: false
+                });
+            }
+            
+            // This function also auto-installs the update to the launcher.
+            ipcRenderer.send('request-launcher-auto-update');
+        },
         installInterface: function () {
             ipcRenderer.send('install-vircadia');
         },
@@ -748,8 +781,12 @@ export default {
             ipcRenderer.send('request-close');
         }
 
+        
         ipcRenderer.send('load-state');
         ipcRenderer.send('get-library-folder');
+    },
+    mounted: function () {
+        ipcRenderer.send('check-for-launcher-updates');
     },
     computed: {
         interfaceSelected () {

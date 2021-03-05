@@ -9,6 +9,7 @@
 */
 
 'use strict'
+require('./global.js');
 
 // import * as Sentry from '@sentry/electron'
 // import { init } from '@sentry/electron/dist/main';
@@ -21,19 +22,17 @@ import {
 	installVueDevtools,
 	createProtocol,
 } from 'vue-cli-plugin-electron-builder/lib';
-require('./global.js');
 import path from 'path';
-const { shell } = require('electron');
-const { dialog } = require('electron');
+const { shell, dialog } = require('electron');
 const electronDlMain = require('electron-dl');
 const { readdirSync } = require('fs');
 const { forEach } = require('p-iteration');
 const hasha = require('hasha');
 const compareVersions = require('compare-versions');
-const isAdmin = require('is-admin');
 const glob = require('glob');
 const cp = require('child_process');
 const log = require('electron-log');
+import { autoUpdater } from 'electron-updater'
 const tasklist = require('tasklist'); // This is specific to Windows.
 // For tasklist to work correctly on some systems...
 // if (process.platform === "win32") {
@@ -43,6 +42,7 @@ const tasklist = require('tasklist'); // This is specific to Windows.
 import * as versionPaths from './electron_modules/versionPaths.js';
 import * as migrateLauncher from './electron_modules/migrateLauncher.js';
 import * as download from './electron_modules/networking/download.js';
+import * as privileges from './electron_modules/privileges.js'
 
 function initialize () {
     if (pantheonConfig.app.storagePath) {
@@ -111,7 +111,9 @@ function createWindow () {
 	if (process.env.WEBPACK_DEV_SERVER_URL) {
 		// Load the url of the dev server if in development mode
 		win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
-	if (!process.env.IS_TEST) win.webContents.openDevTools()
+    	if (!process.env.IS_TEST) {
+            win.webContents.openDevTools()
+        }
 	} else {
 		createProtocol('app')
 		// Load the index.html when not in development
@@ -338,6 +340,28 @@ function setLibraryDialog() {
 	})
 }
 
+function requestLauncherAsAdmin() {
+    var appPathSplit = app.getPath('exe').split('\\');
+    var appPathCleaned = appPathSplit.slice(0, appPathSplit.length - 1).join('\\');
+    
+    var pathToLauncher = appPathCleaned + '\\' + PRODUCT_NAME;
+    var pathToElevator = '"' + appPathCleaned + '\\resources\\elevate.exe' + '"';
+    var launchParameter = '-k "' + pathToLauncher + '"';
+    var interface_exe = require('child_process').spawn;
+    
+    // console.info(dialog.showMessageBox({ message: pathToElevator }))
+    // console.info(dialog.showMessageBox({ message: launchParameter }))
+    // console.info(dialog.showMessageBox({ message: appPathCleaned }))
+    
+    var elevateExe = interface_exe(pathToElevator, [launchParameter], {
+        windowsVerbatimArguments: true,
+        shell: true,
+        detached: true
+    });
+    
+    app.exit();
+}
+
 // async function getCurrentInterfaceJSON() {
 //     var interfacePackageJSON = storagePath.interfaceSettings + '/interface_package.json';
 // 
@@ -381,16 +405,6 @@ async function checkForInterfaceUpdates() {
     } else {
         // Failed to retrieve either or both the server meta and interface meta .JSON files.
         return { "updateAvailable": false, "latestVersion": null };
-    }
-}
-
-async function isRunningAsAdministrator() {
-    var requestIsAdmin = await isAdmin();
-    
-    if (requestIsAdmin) {
-        return true;
-    } else {
-        return false;
     }
 }
 
@@ -683,7 +697,7 @@ async function silentInstall(useOldInstaller) {
     var executablePath; // This is the location that the installer exe is located in after being downloaded.
     var exeLocToInstall; // This is what gets installed.
     var checkPrereqs = await checkRunningApps();
-    var isAdmin = await isRunningAsAdministrator();
+    var isAdmin = await privileges.isRunningAsAdministrator();
 
     if (checkPrereqs.sandbox === true) {
         win.webContents.send('silent-installer-failed', { "message": 'Your server sandbox is running. Please close it before proceeding.' });
@@ -970,7 +984,7 @@ ipcMain.on('download-vircadia', async (event, arg) => {
     var libraryPath;
     var downloadURL = await getDownloadURL();
     var vircadiaMetaJSON = await download.cdn.meta();
-    var isAdmin = await isRunningAsAdministrator();
+    var isAdmin = await privileges.isRunningAsAdministrator();
     var checkPrereqs = await checkRunningApps();
     var installerName = pantheonConfig.manager.preInstallerName;
     var installerNamePost = pantheonConfig.manager.postInstallerName;
@@ -1107,27 +1121,53 @@ ipcMain.on('request-close', async (event, arg) => {
 });
 
 ipcMain.on('request-launcher-as-admin', async (event, arg) => {
-    var appPathSplit = app.getPath('exe').split('\\');
-    var appPathCleaned = appPathSplit.slice(0, appPathSplit.length - 1).join('\\');
-    
-    var pathToLauncher = appPathCleaned + '\\' + PRODUCT_NAME;
-    var pathToElevator = '"' + appPathCleaned + '\\resources\\elevate.exe' + '"';
-    var launchParameter = '-k "' + pathToLauncher + '"';
-    var interface_exe = require('child_process').spawn;
-    
-    // console.info(dialog.showMessageBox({ message: pathToElevator }))
-    // console.info(dialog.showMessageBox({ message: launchParameter }))
-    // console.info(dialog.showMessageBox({ message: appPathCleaned }))
-    
-    var elevateExe = interface_exe(pathToElevator, [launchParameter], {
-        windowsVerbatimArguments: true,
-        shell: true,
-        detached: true
-    });
-    
-    app.exit();
+    requestLauncherAsAdmin();
+});
+
+ipcMain.on('get-is-launcher-admin', async (event, arg) => {
+    var isAdmin = await privileges.isRunningAsAdministrator();
+    win.webContents.send('send-is-launcher-admin', isAdmin);
 });
 
 ipcMain.on('close-launcher', (event, arg) => {
     app.exit();
 });
+
+// LAUNCHER AUTO UPDATER //
+
+autoUpdater.autoDownload = false;
+const autoUpdaterLoggingPrefix = '[Launcher AutoUpdater]';
+
+autoUpdater.on('checking-for-update', () => {
+    console.info(autoUpdaterLoggingPrefix, 'checking-for-update');
+})
+autoUpdater.on('update-available', (ev, info) => {
+    console.info(autoUpdaterLoggingPrefix, 'update-available', info);
+    win.webContents.send('checked-for-launcher-updates', { 'updateAvailable': true });
+})
+autoUpdater.on('update-not-available', (ev, info) => {
+    console.info(autoUpdaterLoggingPrefix, 'update-not-available', info);
+    win.webContents.send('checked-for-launcher-updates', { 'updateAvailable': false });
+})
+autoUpdater.on('error', (ev, err) => {
+    console.info(autoUpdaterLoggingPrefix, 'error', err);
+})
+autoUpdater.on('download-progress', (ev, progressObj) => {
+    console.info(autoUpdaterLoggingPrefix, 'download-progress', progressObj);
+})
+autoUpdater.on('update-downloaded', (ev, info) => {
+    console.info(autoUpdaterLoggingPrefix, 'update-downloaded');
+    console.info(autoUpdaterLoggingPrefix, 'Attempting to install.');
+    autoUpdater.quitAndInstall(true, true);
+});
+
+ipcMain.on('check-for-launcher-updates', async (event, arg) => {
+    autoUpdater.checkForUpdates();
+});
+
+ipcMain.on('request-launcher-auto-update', async (event, arg) => {
+    win.webContents.send('launcher-auto-updater-running');
+    autoUpdater.downloadUpdate();
+});
+
+// END LAUNCHER AUTO UPDATER //
