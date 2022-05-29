@@ -441,8 +441,27 @@ async function checkRunningApps() {
 
 async function getDownloadURL() {
     var metaJSON = await download.cdn.meta();
-    if (metaJSON) {
-        return metaJSON.latest.url;
+
+    /*
+    GitHub provides releases in the following format:
+    metaJSON                                    -> A list of all releases.
+    metaJSON[0]                                 -> Latest release.
+    metaJSON[0].assets                          -> A list of downloadable assets (installers, etc) for the latest release.
+    metaJSON[0].assets[0].browser_download_url  -> The download link for the first asset in the list.
+
+    Since the assets list could contain any number of files in any order, we need to search through the list until we find the windows installer.
+    The windows installer will be demarcated by its content type: 'application/x-msdownload'.
+    */
+
+    let latest_url = false;
+    metaJSON[0].assets.forEach((asset) => {
+        if (asset.content_type === 'application/x-msdownload') {
+            latest_url = asset.browser_download_url;
+        }
+    });
+    
+    if (metaJSON && latest_url) {
+        return latest_url;
     } else {
         return false;
     }

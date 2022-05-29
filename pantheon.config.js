@@ -10,7 +10,7 @@
 
 module.exports = {
     'cdn': {
-        'root': 'https://cdn.vircadia.com',
+        'root': 'https://api.github.com/repos/vircadia/vircadia/releases',
         'eventsFilename': 'vircadiaEvents.json',
         'metadataFilename': 'vircadiaMeta.json'
     },
