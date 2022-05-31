@@ -393,14 +393,15 @@ async function checkForInterfaceUpdates() {
     console.info("interfacePackage", interfacePackage);
     console.info("vircadiaMeta", vircadiaMeta);
 
-    if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.version) {
-        var versionCompare = compareVersions(vircadiaMeta.latest.version, cleanedLocalMeta);
+    if (vircadiaMeta && vircadiaMeta[0].tag_name && interfacePackage && interfacePackage.version) {
+        let latestVersion = vircadiaMeta[0].tag_name;
+        var versionCompare = compareVersions(latestVersion, cleanedLocalMeta);
         console.info("Compare Versions:", versionCompare);
         if (versionCompare == 1) {
-            return { "updateAvailable": true, "latestVersion": vircadiaMeta.latest.version };
+            return { "updateAvailable": true, "latestVersion": latestVersion };
         } else {
             // Version check failed, interface is either equal to or above the server's version.
-            return { "updateAvailable": false, "latestVersion": vircadiaMeta.latest.version };
+            return { "updateAvailable": false, "latestVersion": latestVersion };
         }
     } else {
         // Failed to retrieve either or both the server meta and interface meta .JSON files.
