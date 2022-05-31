@@ -712,7 +712,7 @@ async function silentInstall(useOldInstaller) {
     var vircadiaMetaJSON = await download.cdn.meta();
     var executableLocation; // This is the downloaded installer.
     var installPath; // This is the location to install the application to.
-    var installFolderName = "\\" + versionPaths.toPath(vircadiaMetaJSON.latest) + "\\";
+    var installFolderName = "\\" + versionPaths.toPath(vircadiaMetaJSON[0]) + "\\";
     console.info("silentInstall: installFolderName:", installFolderName);
     var executablePath; // This is the location that the installer exe is located in after being downloaded.
     var exeLocToInstall; // This is what gets installed.
@@ -808,7 +808,7 @@ async function silentInstall(useOldInstaller) {
                     console.info("Running post-install.");
                     // postInstall();
                     win.webContents.send('silent-installer-complete', {
-                        "name": vircadiaMetaJSON.latest.name,
+                        "name": vircadiaMetaJSON[0].tag_name,
                         "folder": installPath,
                     });
                 }
@@ -835,8 +835,8 @@ async function silentInstall(useOldInstaller) {
 //         var vircadiaPackageJSON = 
 //         {
 //             "package": {
-//                 "name": vircadiaMetaJSON.latest.name,
-//                 "version": vircadiaMetaJSON.latest.version
+//                 "name": vircadiaMetaJSON[0].name,
+//                 "version": vircadiaMetaJSON[0].tag_name
 //             }
 //         };
 // 
@@ -858,7 +858,7 @@ async function silentInstall(useOldInstaller) {
 //         }
 // 
 //         var postInstallPackage = {
-//             "name": vircadiaMetaJSON.latest.name,
+//             "name": vircadiaMetaJSON[0].name,
 //             "folder": installPath,
 //         }
 // 
@@ -1041,14 +1041,14 @@ ipcMain.on('download-vircadia', async (event, arg) => {
                 var md5current = hasha.fromFileSync(previousInstaller, {algorithm: 'md5'});
                 md5current = md5current.toUpperCase();
                 
-                if (md5current === vircadiaMetaJSON.latest.md5) {
+                if (md5current === vircadiaMetaJSON[0].md5) {
                     silentInstall(true);
                     return;
                 } else {
                     fs.unlink(previousInstaller, (err) => {
                         if (err) console.log("No previous installation to delete.");
                         console.info(installerName, 'was deleted prior to downloading.');
-                        console.info("Latest Live MD5:", vircadiaMetaJSON.latest.md5);
+                        console.info("Latest Live MD5:", vircadiaMetaJSON[0].md5);
                         console.info(installerName, "MD5:", md5current);
                     });
                 }
@@ -1066,7 +1066,7 @@ ipcMain.on('download-vircadia', async (event, arg) => {
 				onProgress: currentProgress => {
 					console.info(currentProgress);
 					var percent = currentProgress.percent;
-                    if (electronDlItemMain && electronDlItemMain.getURL() === downloadURL) {
+                    if (electronDlItemMain && electronDlItemMain.getURL()) {
                         win.webContents.send('download-installer-progress', {
                             percent
                         });
