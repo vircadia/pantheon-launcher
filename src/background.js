@@ -393,14 +393,15 @@ async function checkForInterfaceUpdates() {
     console.info("interfacePackage", interfacePackage);
     console.info("vircadiaMeta", vircadiaMeta);
 
-    if (vircadiaMeta && vircadiaMeta.latest.version && interfacePackage && interfacePackage.version) {
-        var versionCompare = compareVersions(vircadiaMeta.latest.version, cleanedLocalMeta);
+    if (vircadiaMeta && vircadiaMeta[0].tag_name && interfacePackage && interfacePackage.version) {
+        let latestVersion = vircadiaMeta[0].tag_name;
+        var versionCompare = compareVersions(latestVersion, cleanedLocalMeta);
         console.info("Compare Versions:", versionCompare);
         if (versionCompare == 1) {
-            return { "updateAvailable": true, "latestVersion": vircadiaMeta.latest.version };
+            return { "updateAvailable": true, "latestVersion": latestVersion };
         } else {
             // Version check failed, interface is either equal to or above the server's version.
-            return { "updateAvailable": false, "latestVersion": vircadiaMeta.latest.version };
+            return { "updateAvailable": false, "latestVersion": latestVersion };
         }
     } else {
         // Failed to retrieve either or both the server meta and interface meta .JSON files.
@@ -441,8 +442,27 @@ async function checkRunningApps() {
 
 async function getDownloadURL() {
     var metaJSON = await download.cdn.meta();
-    if (metaJSON) {
-        return metaJSON.latest.url;
+
+    /*
+    GitHub provides releases in the following format:
+    metaJSON                                    -> A list of all releases.
+    metaJSON[0]                                 -> Latest release.
+    metaJSON[0].assets                          -> A list of downloadable assets (installers, etc) for the latest release.
+    metaJSON[0].assets[0].browser_download_url  -> The download link for the first asset in the list.
+
+    Since the assets list could contain any number of files in any order, we need to search through the list until we find the windows installer.
+    The windows installer will be demarcated by its content type: 'application/x-msdownload'.
+    */
+
+    let latest_url = false;
+    metaJSON[0].assets.forEach((asset) => {
+        if (asset.content_type === 'application/x-msdownload') {
+            latest_url = asset.browser_download_url;
+        }
+    });
+    
+    if (metaJSON && latest_url) {
+        return latest_url;
     } else {
         return false;
     }
@@ -692,7 +712,7 @@ async function silentInstall(useOldInstaller) {
     var vircadiaMetaJSON = await download.cdn.meta();
     var executableLocation; // This is the downloaded installer.
     var installPath; // This is the location to install the application to.
-    var installFolderName = "\\" + versionPaths.toPath(vircadiaMetaJSON.latest) + "\\";
+    var installFolderName = "\\" + versionPaths.toPath(vircadiaMetaJSON[0]) + "\\";
     console.info("silentInstall: installFolderName:", installFolderName);
     var executablePath; // This is the location that the installer exe is located in after being downloaded.
     var exeLocToInstall; // This is what gets installed.
@@ -788,7 +808,7 @@ async function silentInstall(useOldInstaller) {
                     console.info("Running post-install.");
                     // postInstall();
                     win.webContents.send('silent-installer-complete', {
-                        "name": vircadiaMetaJSON.latest.name,
+                        "name": vircadiaMetaJSON[0].tag_name,
                         "folder": installPath,
                     });
                 }
@@ -815,8 +835,8 @@ async function silentInstall(useOldInstaller) {
 //         var vircadiaPackageJSON = 
 //         {
 //             "package": {
-//                 "name": vircadiaMetaJSON.latest.name,
-//                 "version": vircadiaMetaJSON.latest.version
+//                 "name": vircadiaMetaJSON[0].name,
+//                 "version": vircadiaMetaJSON[0].tag_name
 //             }
 //         };
 // 
@@ -838,7 +858,7 @@ async function silentInstall(useOldInstaller) {
 //         }
 // 
 //         var postInstallPackage = {
-//             "name": vircadiaMetaJSON.latest.name,
+//             "name": vircadiaMetaJSON[0].name,
 //             "folder": installPath,
 //         }
 // 
@@ -1021,14 +1041,14 @@ ipcMain.on('download-vircadia', async (event, arg) => {
                 var md5current = hasha.fromFileSync(previousInstaller, {algorithm: 'md5'});
                 md5current = md5current.toUpperCase();
                 
-                if (md5current === vircadiaMetaJSON.latest.md5) {
+                if (md5current === vircadiaMetaJSON[0].md5) {
                     silentInstall(true);
                     return;
                 } else {
                     fs.unlink(previousInstaller, (err) => {
                         if (err) console.log("No previous installation to delete.");
                         console.info(installerName, 'was deleted prior to downloading.');
-                        console.info("Latest Live MD5:", vircadiaMetaJSON.latest.md5);
+                        console.info("Latest Live MD5:", vircadiaMetaJSON[0].md5);
                         console.info(installerName, "MD5:", md5current);
                     });
                 }
@@ -1046,7 +1066,7 @@ ipcMain.on('download-vircadia', async (event, arg) => {
 				onProgress: currentProgress => {
 					console.info(currentProgress);
 					var percent = currentProgress.percent;
-                    if (electronDlItemMain && electronDlItemMain.getURL() === downloadURL) {
+                    if (electronDlItemMain && electronDlItemMain.getURL()) {
                         win.webContents.send('download-installer-progress', {
                             percent
                         });

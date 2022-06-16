@@ -17,7 +17,7 @@ var electronDlItemMeta = null;
 var electronDlItemEvents = null;
 
 async function getCDNMetaJSON() {
-	var metaURL = DEFAULT_CDN_URL + '/dist/launcher/' + DEFAULT_CDN_METADATA_FILENAME;
+	var metaURL = DEFAULT_CDN_URL;
 		
 	await electronDlMeta.download(win, metaURL, {
 		directory: storagePath.main,
