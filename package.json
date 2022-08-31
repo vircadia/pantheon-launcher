@@ -34,7 +34,7 @@
     "is-admin": "^3.0.0",
     "material-design-icons-iconfont": "^5.0.1",
     "moment": "^2.29.2",
-    "moment-timezone": "^0.5.32",
+    "moment-timezone": "^0.5.35",
     "p-iteration": "^1.1.8",
     "roboto-fontface": "*",
     "tasklist": "^4.0.1",
